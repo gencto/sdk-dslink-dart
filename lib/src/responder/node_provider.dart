@@ -2,7 +2,7 @@ part of dslink.responder;
 
 /// Base Class for responder-side nodes.
 abstract class LocalNode extends Node {
-  BroadcastStreamController<String> _listChangeController;
+  BroadcastStreamController<String>? _listChangeController;
 
   /// Changes to nodes will be added to this controller's stream.
   /// See [updateList].
@@ -15,7 +15,7 @@ abstract class LocalNode extends Node {
           onAllListCancel();
         }, null, true);
     }
-    return _listChangeController;
+    return _listChangeController!;
   }
 
   void overrideListChangeController(BroadcastStreamController<String> controller) {
@@ -38,7 +38,7 @@ abstract class LocalNode extends Node {
   NodeProvider get provider;
 
   /// Node Path
-  final String path;
+  final String? path;
 
   LocalNode(this.path);
 
@@ -58,20 +58,20 @@ abstract class LocalNode extends Node {
     }
   }
 
-  ValueUpdate _lastValueUpdate;
+  ValueUpdate? _lastValueUpdate;
 
   /// Gets the last value update of this node.
-  ValueUpdate get lastValueUpdate {
+  ValueUpdate? get lastValueUpdate {
     if (_lastValueUpdate == null) {
       _lastValueUpdate = new ValueUpdate(null);
     }
-    return _lastValueUpdate;
+    return _lastValueUpdate!;
   }
 
   /// Gets the current value of this node.
   dynamic get value {
     if (_lastValueUpdate != null) {
-      return _lastValueUpdate.value;
+      return _lastValueUpdate?.value;
     }
     return null;
   }
@@ -81,19 +81,19 @@ abstract class LocalNode extends Node {
   bool get valueReady => _valueReady;
 
   /// Updates this node's value to the specified [value].
-  void updateValue(Object update, {bool force: false}) {
+  void updateValue(Object? update, {bool force = false}) {
     _valueReady = true;
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
       callbacks.forEach((callback, qos) {
-        callback(_lastValueUpdate);
+        callback(_lastValueUpdate!);
       });
     } else if (_lastValueUpdate == null ||
-        _lastValueUpdate.value != update ||
+        _lastValueUpdate?.value != update ||
         force) {
       _lastValueUpdate = new ValueUpdate(update);
       callbacks.forEach((callback, qos) {
-        callback(_lastValueUpdate);
+        callback(_lastValueUpdate!);
       });
     }
   }
@@ -112,7 +112,7 @@ abstract class LocalNode extends Node {
   bool get listReady => true;
 
   /// Disconnected Timestamp
-  String get disconnected => null;
+  String? get disconnected => null;
   List getDisconnectedListResponse() {
     return [
       [r'$disconnectedTs', disconnected]
@@ -145,8 +145,8 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to set an attribute on this node.
-  Response setAttribute(
-      String name, Object value, Responder responder, Response response) {
+  Response? setAttribute(
+      String name, Object value, Responder responder, Response? response) {
     if (response != null) {
       return response..close();
     } else {
@@ -165,8 +165,8 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to remove an attribute from this node.
-  Response removeAttribute(
-      String name, Responder responder, Response response) {
+  Response? removeAttribute(
+      String name, Responder responder, Response? response) {
     if (response != null) {
       return response..close();
     } else {
@@ -185,8 +185,8 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to set a config on this node.
-  Response setConfig(
-      String name, Object value, Responder responder, Response response) {
+  Response? setConfig(
+      String name, Object value, Responder responder, Response? response) {
     if (response != null) {
       return response..close();
     } else {
@@ -201,7 +201,7 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to remove a config from this node.
-  Response removeConfig(String name, Responder responder, Response response) {
+  Response? removeConfig(String name, Responder responder, Response? response) {
     if (response != null) {
       return response..close();
     } else {
@@ -215,9 +215,9 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to set a value of a node.
-  Response setValue(Object value, Responder responder, Response response,
+  Response? setValue(Object value, Responder? responder, Response? response,
       [int maxPermission = Permission.CONFIG]) {
-    return response..close();
+    return response?..close();
   }
 
   /// Shortcut to [get].
@@ -244,7 +244,7 @@ abstract class LocalNode extends Node {
 /// A single node provider can be reused by multiple responder.
 abstract class NodeProvider {
   /// Gets an existing node.
-  LocalNode getNode(String path);
+  LocalNode? getNode(String? path);
 
   /// Gets a node at the given [path] if it exists.
   /// If it does not exist, create a new node and return it.
@@ -253,7 +253,7 @@ abstract class NodeProvider {
   LocalNode getOrCreateNode(String path, [bool addToTree = true]);
 
   /// Gets an existing node, or creates a dummy node for a requester to listen on.
-  LocalNode operator [](String path) {
+  LocalNode? operator [](String path) {
     return getNode(path);
   }
 

@@ -4,7 +4,7 @@ import "dart:math";
 import "package:dslink/dslink.dart";
 import "package:dslink/nodes.dart";
 
-LinkProvider link;
+late LinkProvider link;
 
 int current = 0;
 
@@ -51,13 +51,13 @@ main(List<String> args) {
     }),
     "reduce": (String path) => new SimpleActionNode(path, (Map<String, dynamic> params) {
       var target = params["target"] != null ? params["target"] : 1;
-      for (var name in link["/"].children.keys.where((it) => it.startsWith("Node_")).toList()) {
+      for (var name in link["/"]!.children.keys.where((it) => it.startsWith("Node_")).toList()) {
         link.removeNode("/${name}");
       }
       generate(target);
     }),
     "test": (String path) {
-      CallbackNode node;
+      late CallbackNode node;
 
       node = new CallbackNode(path, onCreated: () {
         nodes.add(node);
@@ -71,15 +71,15 @@ main(List<String> args) {
 
   link.onValueChange("/Tick_Rate").listen((ValueUpdate u) {
     if (schedule != null) {
-      schedule.cancel();
+      schedule?.cancel();
       schedule = null;
     }
 
-    schedule = Scheduler.every(new Interval.forMilliseconds(u.value), update);
+    schedule = Scheduler.every(new Interval.forMilliseconds(u.value as int), update);
   });
 
   link.onValueChange("/RNG_Maximum").listen((ValueUpdate u) {
-    max = u.value;
+    max = u.value as int;
   });
 
   link.connect();
@@ -87,13 +87,13 @@ main(List<String> args) {
   schedule = Scheduler.every(Interval.THREE_HUNDRED_MILLISECONDS, update);
 }
 
-Timer schedule;
+Timer? schedule;
 int max = 100;
 
 void update() {
   nodes.forEach((node) {
     var l = link["${node.path}/RNG/Value"];
-    if (l.hasSubscriber) {
+    if (l!.hasSubscriber) {
       l.updateValue(random.nextInt(max));
     }
   });

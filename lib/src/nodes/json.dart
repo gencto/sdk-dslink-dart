@@ -1,7 +1,7 @@
 part of dslink.nodes;
 
 class DsaJsonNode extends SimpleNode {
-  DsaJsonNode(String path, [SimpleNodeProvider provider]) :
+  DsaJsonNode(String path, [SimpleNodeProvider? provider]) :
       super(path, provider);
 
   dynamic _json;
@@ -18,7 +18,7 @@ class DsaJsonNode extends SimpleNode {
 
       String type = _guessType(input);
 
-      String lastType = configs[r"$type"];
+      String? lastType = configs[r"$type"] as String?;
 
       if (lastType != type) {
         configs[r"$type"] = type;
@@ -29,54 +29,54 @@ class DsaJsonNode extends SimpleNode {
     }
 
     clearValue();
-    JsonDiff.JsonDiffer differ = new JsonDiff.JsonDiffer(
-      JSON.encode(_json),
-      JSON.encode(input)
+    JsonDiffer differ = new JsonDiffer(
+      json.encode(_json),
+      json.encode(input)
     );
 
-    JsonDiff.DiffNode fullDiff = differ.diff();
+    DiffNode fullDiff = differ.diff();
 
-    void apply(JsonDiff.DiffNode diff, DsaJsonNode node) {
-      for (String key in diff.added.keys) {
+    void apply(DiffNode diff, DsaJsonNode? node) {
+      for (String key in diff.added.keys.cast<String>()) {
         var name = NodeNamer.createName(key);
         provider.addNode(
-          "${node.path}/${name}",
+          "${node?.path}/${name}",
           buildNodeMap(diff.added[key])
         );
-        node.updateList(r"$is");
+        node?.updateList(r"$is");
       }
 
-      for (String key in diff.removed.keys) {
+      for (String key in diff.removed.keys.cast<String>()) {
         var name = NodeNamer.createName(key);
 
-        provider.removeNode("${node.path}/${name}");
+        provider.removeNode("${node?.path}/${name}");
       }
 
-      for (String key in diff.changed.keys) {
+      for (String key in diff.changed.keys.cast<String>()) {
         var name = NodeNamer.createName(key);
 
-        DsaJsonNode child = node.getChild(name);
+        DsaJsonNode? child = node?.getChild(name) as DsaJsonNode?;
 
         if (child == null) {
           child = provider.addNode(
-            "${node.path}/${name}",
-            buildNodeMap(diff.changed[key][1])
-          );
+            "${node?.path}/${name}",
+            buildNodeMap(diff.changed[key]?[1])
+          ) as DsaJsonNode?;
         } else {
-          child.updateJsonValue(diff.changed[key][1]);
+          child.updateJsonValue(diff.changed[key]?[1]);
         }
       }
 
-      for (String key in diff.node.keys) {
+      for (String key in diff.node.keys.cast<String>()) {
         var name = NodeNamer.createName(key);
 
-        DsaJsonNode child = node.getChild(name);
+        DsaJsonNode? child = node?.getChild(name) as DsaJsonNode?;
 
         if (child == null) {
-          child = provider.addNode("${node.path}/${name}", buildNodeMap({}));
+          child = provider.addNode("${node?.path}/${name}", buildNodeMap({})) as DsaJsonNode?;
         }
 
-        apply(diff.node[key], child);
+        apply(diff.node[key]!, child);
       }
     }
 

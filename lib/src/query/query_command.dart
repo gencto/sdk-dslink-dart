@@ -4,7 +4,7 @@ abstract class BrokerQueryCommand {
   final BrokerQueryManager _manager;
   BrokerQueryCommand(this._manager) {}
 
-  BrokerQueryCommand base;
+  BrokerQueryCommand? base;
   Set<BrokerQueryCommand> nexts = new Set<BrokerQueryCommand>();
   Set<InvokeResponse> responses = new Set<InvokeResponse>();
 
@@ -41,12 +41,12 @@ abstract class BrokerQueryCommand {
       resp.close;
     }
     if (base != null) {
-      base.removeNext(this);
+      base?.removeNext(this);
     }
     _manager._dict.remove(getQueryId());
   }
 
-  String _cachedQueryId;
+  String? _cachedQueryId;
 
   /// return a unified String as the key of the map
   String getQueryId() {
@@ -57,6 +57,6 @@ abstract class BrokerQueryCommand {
         _cachedQueryId = toString();
       }
     }
-    return _cachedQueryId;
+    return _cachedQueryId!;
   }
 }

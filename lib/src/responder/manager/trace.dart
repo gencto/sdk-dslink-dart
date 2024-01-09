@@ -4,17 +4,17 @@ typedef ResponseTraceCallback(ResponseTrace update);
 
 class ResponseTrace {
   /// data path for trace
-  String path;
+  String? path;
   /// 'list' 'subscribe' 'invoke'
-  String type;
+  String? type;
 
   /// value is + - or blank string
-  String change;
+  String? change;
 
   /// action name, only needed by invoke
-  String action;
+  String? action;
   /// rid, only needed by invoke
-  int rid;
+  int? rid;
 
 //  {'name': 'path', 'type': 'string'},
 //  {'name': 'type', 'type': 'string'},

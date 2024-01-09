@@ -1,30 +1,30 @@
 part of dslink.utils;
 
 class DSLinkJSON {
-  Map _json;
+  Map? _json;
 
-  Map get json => _json;
+  Map? get json => _json;
 
-  String name;
-  String version;
-  String description;
-  String main;
+  String? name;
+  String? version;
+  String? description;
+  String? main;
   Map<String, dynamic> engines = {};
   Map<String, Map<String, dynamic>> configs = {};
   List<String> getDependencies = [];
 
   DSLinkJSON();
 
-  factory DSLinkJSON.from(Map<String, dynamic> map) {
+  factory DSLinkJSON.from(Map<String, dynamic>? map) {
     var j = new DSLinkJSON();
     j._json = map;
-    j.name = map["name"];
-    j.version = map["version"];
-    j.description = map["description"];
-    j.main = map["main"];
-    j.engines = map["engines"] as Map<String, dynamic>;
-    j.configs = map["configs"] as Map<String, Map<String, dynamic>>;
-    j.getDependencies = map["getDependencies"] as List<String>;
+    j.name = map?["name"];
+    j.version = map?["version"];
+    j.description = map?["description"];
+    j.main = map?["main"];
+    j.engines = map?["engines"] as Map<String, dynamic>;
+    j.configs = map?["configs"] as Map<String, Map<String, dynamic>>;
+    j.getDependencies = map?["getDependencies"] as List<String>;
     return j;
   }
 
@@ -41,7 +41,7 @@ class DSLinkJSON {
   Map save() {
     verify();
 
-    var map = new Map<String, dynamic>.from(_json != null ? _json : {});
+    var map = new Map<String, dynamic>.from(_json ?? {});
     map["name"] = name;
     map["version"] = version;
     map["description"] = description;

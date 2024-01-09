@@ -18,7 +18,7 @@ class ValueUpdate {
     return "$s${hh < 10 ? '0' : ''}$hh:${mm < 10 ? "0" : ''}$mm";
   }();
 
-  static String _lastTsStr;
+  static late String _lastTsStr;
   static int _lastTs = 0;
   /// Generates a timestamp in the proper DSA format.
   static String getTs() {
@@ -35,47 +35,47 @@ class ValueUpdate {
   int waitingAck = -1;
 
   /// The value for this update.
-  Object value;
+  Object? value;
 
   /// A [String] representation of the timestamp for this value.
-  String ts;
+  String? ts;
 
-  DateTime _timestamp;
+  DateTime? _timestamp;
 
   /// Gets a [DateTime] representation of the timestamp for this value.
   DateTime get timestamp {
     if (_timestamp == null) {
-      _timestamp = DateTime.parse(ts);
+      _timestamp = DateTime.parse(ts!);
     }
-    return _timestamp;
+    return _timestamp!;
   }
 
   /// The current status of this value.
-  String status;
+  String? status;
 
   /// How many updates have happened since the last response.
-  int count;
+  late int count;
 
   /// The sum value if one or more numeric values has been skipped.
-  num sum;
+  late num sum;
 
   /// The minimum value if one or more numeric values has been skipped.
-  num min;
+  late num min;
 
   /// The maximum value if one or more numeric values has been skipped.
-  num max;
+  late num max;
 
   /// The timestamp for when this value update was created.
-  DateTime created;
+  DateTime? created;
 
   ValueUpdate(this.value,
       {this.ts,
-      Map meta,
+      Map? meta,
       this.status,
-      this.count: 1,
-      this.sum: double_NAN,
-      this.min: double_NAN,
-      this.max: double_NAN}) {
+      this.count = 1,
+      this.sum = double.nan,
+      this.min = double.nan,
+      this.max = double.nan}) {
     if (ts == null) {
       ts = getTs();
     }
@@ -107,9 +107,9 @@ class ValueUpdate {
     }
 
     if (value is num && count == 1) {
-      if (sum != sum) sum = value;
-      if (max != max) max = value;
-      if (min != min) min = value;
+      if (sum != sum) sum = value as num;
+      if (max != max) max = value as num;
+      if (min != min) min = value as num;
     }
   }
 
@@ -138,14 +138,14 @@ class ValueUpdate {
     created = newUpdate.created;
   }
 
-  Duration _latency;
+  Duration? _latency;
 
   /// Calculates the latency
   Duration get latency {
     if (_latency == null) {
-      _latency = created.difference(timestamp);
+      _latency = created?.difference(timestamp);
     }
-    return _latency;
+    return _latency!;
   }
 
   /// merge the new update into existing instance
@@ -216,7 +216,7 @@ class ValueUpdate {
   }
 
   /// could be the value or the key stored by ValueStorage
-  Object storedData;
+  late Object? storedData;
 
   bool _cloned = false;
   ValueUpdate cloneForAckQueue(){

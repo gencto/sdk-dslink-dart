@@ -1,7 +1,7 @@
 import "package:dslink/dslink.dart";
 import "package:dslink/worker.dart";
 
-LinkProvider link;
+late LinkProvider link;
 
 main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
@@ -16,12 +16,12 @@ main(List<String> args) async {
   // Connect to the broker.
   link.connect();
 
-  SimpleNode counterNode = link["/Counter"];
-  counterNode.subscribe((update) => link.save());
+  LocalNode? counterNode = link["/Counter"];
+  counterNode?.subscribe((update) => link.save());
 
   WorkerSocket worker = await createWorker(counterWorker).init();
   worker.addMethod("increment", (_) {
-    counterNode.updateValue((counterNode.lastValueUpdate.value as int) + 1);
+    counterNode?.updateValue((counterNode.lastValueUpdate?.value as int) + 1);
   });
 }
 

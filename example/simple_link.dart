@@ -2,11 +2,11 @@ import "package:dslink/dslink.dart";
 import "dart:io";
 import "dart:typed_data";
 
-LinkProvider link;
+LinkProvider? link;
 
 main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
-  link = new LinkProvider(args, "Simple-", defaultNodes: {
+  link = new LinkProvider(['--broker', 'http://localhost:8080/conn',], "Simple-", defaultNodes: {
     "message": {
       r"$name": "Message", // The pretty name of this node.
       r"$type": "string", // The type of the node is a string.
@@ -18,10 +18,10 @@ main(List<String> args) async {
     "default-message": "Hello World"
   });
 
-  SimpleNodeProvider provider = link.provider;
+  SimpleNodeProvider provider = link?.provider as SimpleNodeProvider;
 
-  if (provider["/message"].value == null) {
-    provider.updateValue("/message", link.parsedArguments["default-message"]);
+  if (provider["/message"]?.value == null) {
+    provider.updateValue("/message", link?.parsedArguments?["default-message"]);
   }
 
   provider.setIconResolver((String name) async {
@@ -35,14 +35,14 @@ main(List<String> args) async {
         );
       }
     }
-    return null;
+    return Future.value(ByteData(0));
   });
 
   // Connect to the broker.
-  link.connect();
+  link?.connect();
 
   // Save the message when it changes.
-  if (link.valuePersistenceEnabled) {
-    link.onValueChange("/message").listen((_) => link.save());
+  if (link!.valuePersistenceEnabled) {
+    link?.onValueChange("/message").listen((_) => link?.save());
   }
 }

@@ -1,7 +1,7 @@
 import "package:dslink/worker.dart";
 
 main() async {
-  WorkerSocket worker;
+  late WorkerSocket worker;
   worker = await createWorkerScript("worker.dart").init(methods: {
     "stop": (_) => worker.stop()
   });

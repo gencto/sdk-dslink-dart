@@ -8,7 +8,7 @@ import "dart:typed_data";
 import "dart:math";
 
 import "package:logging/logging.dart";
-import "package:msgpack/msgpack.dart";
+import 'package:msgpack_dart/msgpack_dart.dart';
 
 part "src/utils/base64.dart";
 part "src/utils/timer.dart";
@@ -27,9 +27,9 @@ typedef TwoTaker<A, B>(A a, B b);
 /// The DSA Version
 const String DSA_VERSION = "1.1.2";
 
-Logger _logger;
+Logger? _logger;
 
-bool _DEBUG_MODE;
+bool? _DEBUG_MODE;
 
 List<int> foldList(List<int> a, List<int> b) {
   return a..addAll(b);
@@ -45,7 +45,7 @@ int countCharacterFrequency(String input, String char) {
 /// Gets if we are in checked mode.
 bool get DEBUG_MODE {
   if (_DEBUG_MODE != null) {
-    return _DEBUG_MODE;
+    return _DEBUG_MODE!;
   }
 
   try {
@@ -54,53 +54,42 @@ bool get DEBUG_MODE {
   } catch (e) {
     _DEBUG_MODE = true;
   }
-  return _DEBUG_MODE;
+  return _DEBUG_MODE!;
 }
 
 class DSLogUtils {
   static withLoggerName(String name, handler()) {
-    return runZoned(handler, zoneValues: {
-      "dsa.logger.name": name
-    });
+    return runZoned(handler, zoneValues: {"dsa.logger.name": name});
   }
 
   static withSequenceNumbers(handler()) {
-    return runZoned(handler, zoneValues: {
-      "dsa.logger.sequence": true
-    });
+    return runZoned(handler, zoneValues: {"dsa.logger.sequence": true});
   }
 
   static withNoLoggerName(handler()) {
-    return runZoned(handler, zoneValues: {
-      "dsa.logger.show_name": false
-    });
+    return runZoned(handler, zoneValues: {"dsa.logger.show_name": false});
   }
 
   static withInlineErrorsDisabled(handler()) {
-    return runZoned(handler, zoneValues: {
-      "dsa.logger.inline_errors": false
-    });
+    return runZoned(handler, zoneValues: {"dsa.logger.inline_errors": false});
   }
 
   static withLoggerOff(handler()) {
-    return runZoned(handler, zoneValues: {
-      "dsa.logger.print": false
-    });
+    return runZoned(handler, zoneValues: {"dsa.logger.print": false});
   }
 }
 
 const bool _isJavaScript = identical(1, 1.0);
 
-bool _getLogSetting(LogRecord record, String name, [bool defaultValue = false]) {
-  if (!_isJavaScript) {
-    bool env = new bool.fromEnvironment(name, defaultValue: null);
-    if (env != null) {
-      return env;
-    }
+bool _getLogSetting(LogRecord record, String name,
+    [bool defaultValue = false]) {
+  if (record.zone?[name] is bool) {
+    return record.zone?[name];
   }
 
-  if (record.zone[name] is bool) {
-    return record.zone[name];
+  if (!_isJavaScript) {
+    bool? env = new bool.fromEnvironment(name, defaultValue: defaultValue);
+    return env;
   }
 
   return defaultValue;
@@ -109,25 +98,19 @@ bool _getLogSetting(LogRecord record, String name, [bool defaultValue = false]) 
 /// Fetches the logger instance.
 Logger get logger {
   if (_logger != null) {
-    return _logger;
+    return _logger!;
   }
 
   hierarchicalLoggingEnabled = true;
   _logger = new Logger("DSA");
 
-  _logger.onRecord.listen((record) {
+  _logger?.onRecord.listen((record) {
     List<String> lines = record.message.split("\n");
-    bool inlineErrors = _getLogSetting(
-      record,
-      "dsa.logger.inline_errors",
-      true
-    );
+    bool inlineErrors =
+        _getLogSetting(record, "dsa.logger.inline_errors", true);
 
-    bool enableSequenceNumbers = _getLogSetting(
-      record,
-      "dsa.logger.sequence",
-      false
-    );
+    bool enableSequenceNumbers =
+        _getLogSetting(record, "dsa.logger.sequence", false);
 
     if (inlineErrors) {
       if (record.error != null) {
@@ -135,24 +118,22 @@ Logger get logger {
       }
 
       if (record.stackTrace != null) {
-        lines.addAll(record.stackTrace.toString()
-          .split("\n")
-          .where((x) => x.isNotEmpty)
-          .toList());
+        lines.addAll(record.stackTrace
+            .toString()
+            .split("\n")
+            .where((x) => x.isNotEmpty)
+            .toList());
       }
     }
 
-    String rname = record.loggerName;
+    String? rname = record.loggerName;
 
-    if (record.zone["dsa.logger.name"] is String) {
-      rname = record.zone["dsa.logger.name"];
+    if (record.zone?["dsa.logger.name"] is String) {
+      rname = record.zone?["dsa.logger.name"];
     }
 
-    bool showTimestamps = _getLogSetting(
-      record,
-      "dsa.logger.show_timestamps",
-      false
-    );
+    bool showTimestamps =
+        _getLogSetting(record, "dsa.logger.show_timestamps", false);
 
     if (!_getLogSetting(record, "dsa.logger.show_name", true)) {
       rname = null;
@@ -194,33 +175,18 @@ Logger get logger {
     }
   });
 
-  updateLogLevel(
-    const String.fromEnvironment(
-      "dsa.logger.default_level",
-      defaultValue: "INFO"
-    )
-  );
+  updateLogLevel(const String.fromEnvironment("dsa.logger.default_level",
+      defaultValue: "INFO"));
 
-  return _logger;
+  return _logger!;
 }
 
 /// Updates the log level to the level specified [name].
 void updateLogLevel(String name) {
   name = name.trim().toUpperCase();
 
-  switch (name) {
-    case 'DEBUG':
-      name = Level.ALL.name;
-      break;
-    case 'ERROR':
-      name = Level.SEVERE.name;
-      break;
-    case 'TRACE':
-      name = Level.FINEST.name;
-      break;
-    case 'WARN':
-      name = Level.WARNING.name;
-      break;
+  if (name == "DEBUG") {
+    name = "ALL";
   }
 
   Map<String, Level> levels = {};
@@ -275,14 +241,14 @@ abstract class Disposable {
 }
 
 class FunctionDisposable extends Disposable {
-  final ExecutableFunction function;
+  final ExecutableFunction? function;
 
   FunctionDisposable(this.function);
 
   @override
   void dispose() {
     if (function != null) {
-      function();
+      function!();
     }
   }
 }
@@ -326,13 +292,13 @@ class Scheduler {
       throw new Exception("Invalid Interval: ${interval}");
     }
 
-    ExecutableFunction schedule;
-    Timer timer;
+    ExecutableFunction? schedule;
+    Timer? timer;
     bool disposed = false;
     schedule = () async {
       await action();
       if (!disposed) {
-        new Timer(duration, schedule);
+        new Timer(duration, schedule!);
       }
     };
 
@@ -394,13 +360,12 @@ List<Map<String, dynamic>> buildActionIO(Map<String, String> types) {
   return types.keys.map((it) => {"name": it, "type": types[it]}).toList();
 }
 
-Random _random = new Random();
-
-String generateBasicId({int length: 30}) {
+String generateBasicId({int length = 30}) {
   var r0 = new Random();
   var buffer = new StringBuffer();
   for (int i = 1; i <= length; i++) {
-    var r = new Random(r0.nextInt(0x70000000) + (new DateTime.now()).millisecondsSinceEpoch);
+    var r = new Random(
+        r0.nextInt(0x70000000) + (new DateTime.now()).millisecondsSinceEpoch);
     var n = r.nextInt(50);
     if (n >= 0 && n <= 32) {
       String letter = alphabet[r.nextInt(alphabet.length)];
@@ -414,11 +379,12 @@ String generateBasicId({int length: 30}) {
   return buffer.toString();
 }
 
-String generateToken({int length: 50}) {
+String generateToken({int length = 50}) {
   var r0 = new Random();
   var buffer = new StringBuffer();
   for (int i = 1; i <= length; i++) {
-    var r = new Random(r0.nextInt(0x70000000) + (new DateTime.now()).millisecondsSinceEpoch);
+    var r = new Random(
+        r0.nextInt(0x70000000) + (new DateTime.now()).millisecondsSinceEpoch);
     if (r.nextBool()) {
       String letter = alphabet[r.nextInt(alphabet.length)];
       buffer.write(r.nextBool() ? letter.toLowerCase() : letter);

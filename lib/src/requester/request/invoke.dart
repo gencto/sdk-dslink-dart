@@ -1,35 +1,36 @@
 part of dslink.requester;
 
 class RequesterInvokeUpdate extends RequesterUpdate {
-  List rawColumns;
-  List<TableColumn> columns;
-  List updates;
-  Map meta;
+  List? rawColumns;
+  List<TableColumn>? columns;
+  List? updates;
+  DSError? error;
+  Map? meta;
 
   RequesterInvokeUpdate(this.updates, this.rawColumns, this.columns,
       String streamStatus,
-      {this.meta, error})
-      : super(streamStatus, error);
+      {this.meta, this.error})
+      : super(streamStatus);
 
-  List<List> _rows;
+  List<List>? _rows;
 
   List<List> get rows {
     int colLen = -1;
     if (columns != null) {
-      colLen = columns.length;
+      colLen = columns!.length;
     }
     if (_rows == null) {
       _rows = [];
       if (updates == null) {
-        return _rows;
+        return _rows!;
       }
-      for (Object obj in updates) {
-        List<dynamic> row;
+      for (Object obj in updates!) {
+        late List<dynamic> row;
         if (obj is List) {
           if (obj.length < colLen) {
             row = obj.toList();
             for (int i = obj.length; i < colLen; ++i) {
-              row.add(columns[i].defaultValue);
+              row.add(columns?[i].defaultValue);
             }
           } else if (obj.length > colLen) {
             if (colLen == -1) {
@@ -50,7 +51,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
           }
 
           if (columns != null) {
-            for (TableColumn column in columns) {
+            for (TableColumn column in columns!) {
               if (obj.containsKey(column.name)) {
                 row.add(obj[column.name]);
               } else {
@@ -59,18 +60,18 @@ class RequesterInvokeUpdate extends RequesterUpdate {
             }
           }
         }
-        _rows.add(row);
+        _rows?.add(row);
       }
     }
-    return _rows;
+    return _rows!;
   }
 }
 
 class InvokeController implements RequestUpdater {
-  static List<TableColumn> getNodeColumns(RemoteNode node) {
-    Object columns = node.getConfig(r'$columns');
+  static List<TableColumn>? getNodeColumns(RemoteNode node) {
+    Object? columns = node.getConfig(r'$columns');
     if (columns is! List && node.profile != null) {
-      columns = node.profile.getConfig(r'$columns');
+      columns = node.profile?.getConfig(r'$columns');
     }
     if (columns is List) {
       return TableColumn.parseColumns(columns);
@@ -81,16 +82,16 @@ class InvokeController implements RequestUpdater {
   final RemoteNode node;
   final Requester requester;
 
-  StreamController<RequesterInvokeUpdate> _controller;
-  Stream<RequesterInvokeUpdate> _stream;
-  Request _request;
-  List<TableColumn> _cachedColumns;
+  late StreamController<RequesterInvokeUpdate> _controller;
+  late Stream<RequesterInvokeUpdate> _stream;
+  Request? _request;
+  List<TableColumn>? _cachedColumns;
 
   String mode = 'stream';
   String lastStatus = StreamStatus.initialize;
 
   InvokeController(this.node, this.requester, Map params,
-      [int maxPermission = Permission.CONFIG, RequestConsumer fetchRawReq]) {
+      [int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
     _controller = new StreamController<RequesterInvokeUpdate>();
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
@@ -111,19 +112,19 @@ class InvokeController implements RequestUpdater {
     _request = requester._sendRequest(reqMap, this);
 
     if (fetchRawReq != null) {
-      fetchRawReq(_request);
+      fetchRawReq(_request!);
     }
 //    }
   }
 
   void _onUnsubscribe(obj) {
-    if (_request != null && _request.streamStatus != StreamStatus.closed) {
-      _request.close();
+    if (_request != null && _request!.streamStatus != StreamStatus.closed) {
+      _request?.close();
     }
   }
 
-  void onUpdate(String streamStatus, List updates, List columns, Map meta,
-      DSError error) {
+  void onUpdate(String streamStatus, List? updates, List? columns, Map? meta,
+      DSError? error) {
     if (meta != null && meta['mode'] is String) {
       mode = meta['mode'];
     }
@@ -132,7 +133,7 @@ class InvokeController implements RequestUpdater {
       if (_cachedColumns == null || mode == 'refresh') {
         _cachedColumns = TableColumn.parseColumns(columns);
       } else {
-        _cachedColumns.addAll(TableColumn.parseColumns(columns));
+        _cachedColumns?.addAll(TableColumn.parseColumns(columns) as Iterable<TableColumn>);
       }
     } else if (_cachedColumns == null) {
       _cachedColumns = getNodeColumns(node);

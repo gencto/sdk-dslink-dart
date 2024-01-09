@@ -1,9 +1,9 @@
 part of dslink.utils;
 
 Future awaitWithTimeout(Future future, int timeoutMs,
-    {Function onTimeout: null,
-    Function onSuccessAfterTimeout: null,
-    Function onErrorAfterTimeout: null}) {
+    {Function? onTimeout = null,
+    Function? onSuccessAfterTimeout = null,
+    Function? onErrorAfterTimeout = null}) {
   Completer completer = new Completer();
 
   Timer timer = new Timer(new Duration(milliseconds: timeoutMs), () {

@@ -2,8 +2,8 @@ part of dslink.responder;
 
 class ListResponse extends Response {
   LocalNode node;
-  StreamSubscription _nodeChangeListener;
-  int _permission;
+  late StreamSubscription _nodeChangeListener;
+  late int _permission;
 
   ListResponse(Responder responder, int rid, this.node)
       : super(responder, rid, 'list') {
@@ -53,8 +53,8 @@ class ListResponse extends Response {
       _lastWatingAckId = waitingAckId;
     }
 
-    Object updateIs;
-    Object updateBase;
+    Object? updateIs;
+    Object? updateBase;
     List updateConfigs = [];
     List updateAttributes = [];
     List updateChildren = [];
@@ -172,7 +172,7 @@ class ListResponse extends Response {
           updateAttributes.add(update);
         } else {
           if (node.children.containsKey(change)) {
-            Map simpleMap = node.children[change].getSimpleMap();
+            Map simpleMap = node.children[change]!.getSimpleMap();
              if (_permission != Permission.CONFIG) {
                int invokePermission = Permission.parse(simpleMap[r'$invokable']);
                if (invokePermission != Permission.NEVER && invokePermission > _permission) {

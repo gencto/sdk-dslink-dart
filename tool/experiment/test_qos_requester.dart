@@ -1,8 +1,8 @@
 import "package:dslink/dslink.dart";
 
-LinkProvider link;
-int lastNum;
-SimpleNode valueNode;
+late LinkProvider link;
+late int lastNum;
+late SimpleNode valueNode;
 
 
 main(List<String> args) {
@@ -21,8 +21,8 @@ main(List<String> args) {
   }
 
   link.connect();
-  link.onRequesterReady.then((Requester req) {
-    req.subscribe('/downstream/qos-resp/node', (update) {
+  link.onRequesterReady.then((Requester? req) {
+    req?.subscribe('/downstream/qos-resp/node', (update) {
       print(update.value);
     }, 3);
   });

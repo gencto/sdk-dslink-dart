@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 typedef InvokeResponse InvokeCallback(Map params, Responder responder,
-    InvokeResponse response, LocalNode parentNode);
+    InvokeResponse response, LocalNode? parentNode);
 
 /// definition nodes are serializable node that won"t change
 /// the only change will be a global upgrade
@@ -12,7 +12,7 @@ class DefinitionNode extends LocalNodeImpl {
     this.configs[r"$is"] = "static";
   }
 
-  InvokeCallback _invokeCallback;
+  InvokeCallback? _invokeCallback;
 
   void setInvokeCallback(InvokeCallback callback) {
     _invokeCallback = callback;
@@ -23,13 +23,13 @@ class DefinitionNode extends LocalNodeImpl {
     Map<String, dynamic> params,
     Responder responder,
     InvokeResponse response,
-    Node parentNode,
+    Node? parentNode,
     [int maxPermission = Permission.CONFIG]) {
     if (_invokeCallback == null) {
       return response..close(DSError.NOT_IMPLEMENTED);
     }
 
-    String parentPath = parentNode is LocalNode ? parentNode.path : null;
+    String? parentPath = parentNode is LocalNode ? parentNode.path : null;
 
     int permission = responder.nodeProvider.permissions.getPermission(
       parentPath,
@@ -41,7 +41,7 @@ class DefinitionNode extends LocalNodeImpl {
     }
 
     if (getInvokePermission() <= permission) {
-      _invokeCallback(params, responder, response, parentNode);
+      _invokeCallback!(params, responder, response, parentNode as LocalNode?);
       return response;
     } else {
       return response..close(DSError.PERMISSION_DENIED);

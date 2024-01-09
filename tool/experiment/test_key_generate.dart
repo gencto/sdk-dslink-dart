@@ -1,6 +1,5 @@
 import 'package:dslink/src/crypto/pk.dart';
 import 'dart:io';
-import '../../lib/utils.dart';
 
  main() async{
   String rslt;
@@ -15,7 +14,7 @@ import '../../lib/utils.dart';
   DSRandom.instance.addEntropy(rslt);
 
   var t1 = (new DateTime.now()).millisecondsSinceEpoch;
-  PrivateKey key ;
+  late PrivateKey key ;
   for (int i=0; i< 50; ++i)
   // generate private key
   key = await PrivateKey.generate();

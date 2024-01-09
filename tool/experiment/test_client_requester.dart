@@ -1,10 +1,6 @@
-import 'dart:io';
 import 'package:dslink/client.dart';
-import 'package:dslink/src/crypto/pk.dart';
 import 'package:dslink/requester.dart';
 import 'package:dslink/common.dart';
-import 'dart:async';
-import 'package:logging/logging.dart';
 import 'package:dslink/utils.dart';
 
 main() async {

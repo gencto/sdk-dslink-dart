@@ -1,9 +1,9 @@
 part of dslink.query;
 
 class _QuerySubscription {
-  final QueryCommandSubscribe command;
+  final QueryCommandSubscribe? command;
   final LocalNode node;
-  RespSubscribeListener listener;
+  late RespSubscribeListener listener;
 
   /// if removed, the subscription will be destroyed next frame
   bool removed = false;
@@ -15,29 +15,29 @@ class _QuerySubscription {
     listener = node.subscribe(valueCallback);
   }
 
-  ValueUpdate lastUpdate;
-  void valueCallback(ValueUpdate value) {
+  ValueUpdate? lastUpdate;
+  void valueCallback(ValueUpdate? value) {
     lastUpdate = value;
-    command.updateRow(getRowData());
+    command?.updateRow(getRowData());
   }
 
-  List getRowData() {
+  List? getRowData() {
     // TODO: make sure node still in tree
     // because list remove node update could come one frame later
     if (!removed && lastUpdate != null) {
       if (justAdded) {
         justAdded = false;
-        return [node.path, '+', lastUpdate.value, lastUpdate.ts];
+        return [node.path, '+', lastUpdate?.value, lastUpdate?.ts];
       } else {
-        return [node.path, '', lastUpdate.value, lastUpdate.ts];
+        return [node.path, '', lastUpdate?.value, lastUpdate?.ts];
       }
     }
     return null;
   }
 
-  List getRowDataForNewResponse() {
+  List? getRowDataForNewResponse() {
     if (!removed && !justAdded && lastUpdate != null) {
-      return [node.path, '+', lastUpdate.value, lastUpdate.ts];
+      return [node.path, '+', lastUpdate?.value, lastUpdate?.ts];
     }
     return null;
   }
@@ -66,7 +66,7 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
     super.addResponse(response);
     List rows = [];
     subscriptions.forEach((String path, _QuerySubscription sub) {
-      List data = sub.getRowDataForNewResponse();
+      List? data = sub.getRowDataForNewResponse();
       if (data != null) {
         rows.add(data);
       }
@@ -88,7 +88,7 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
   }
 
   List _pendingRows = [];
-  void updateRow(List row) {
+  void updateRow(List? row) {
     _pendingRows.add(row);
     if (!_pending) {
       _pending = true;
@@ -104,7 +104,7 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
     List rows = _pendingRows;
     _pendingRows = [];
     for (String path in _changes) {
-      _QuerySubscription sub = subscriptions[path];
+      _QuerySubscription? sub = subscriptions[path];
       if (sub != null) {
         if (sub.removed) {
           if (!sub.justAdded) {
@@ -113,7 +113,7 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
           subscriptions.remove(path);
           sub.destroy();
         } else {
-          List data = sub.getRowData();
+          List? data = sub.getRowData();
           if (data != null) {
             rows.add(data);
           }
@@ -135,14 +135,14 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
         LocalNode node = data[0];
         if (data[1] == '+') {
           if (!subscriptions.containsKey(node.path)) {
-            subscriptions[node.path] = new _QuerySubscription(this, node);
+            subscriptions[node.path!] = new _QuerySubscription(this, node);
           } else {
-            subscriptions[node.path].removed = false;
+            subscriptions[node.path]?.removed = false;
           }
         } else if (data[1] == '-') {
           if (subscriptions.containsKey(node.path)) {
-            subscriptions[node.path].removed = true;
-            updatePath(node.path);
+            subscriptions[node.path]?.removed = true;
+            updatePath(node.path!);
           }
         }
       }

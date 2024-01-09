@@ -1,37 +1,31 @@
 part of dslink.requester;
 
 class ReqSubscribeListener implements StreamSubscription {
-  ValueUpdateCallback callback;
+  ValueUpdateCallback? callback;
   Requester requester;
   String path;
 
   ReqSubscribeListener(this.requester, this.path, this.callback);
 
-  Future cancel() {
+  Future<void> cancel() {
     if (callback != null) {
-      requester.unsubscribe(path, callback);
+      requester.unsubscribe(path, callback!);
       callback = null;
     }
-    return null;
+    return Future.value();
   }
 
-  // TODO: define a custom class to replace StreamSubscription
-  //FIXME: Dart 1.0
-Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
-  //FIXME: Dart 2.0
-//Future<T> asFuture<T>([T futureValue]) {
-    return null;
-  }
+  Future<E> asFuture<E>([E? futureValue]) => Future.value(futureValue);
 
   bool get isPaused => false;
 
-  void onData(void handleData(data)) {}
+  void onData(void Function(dynamic)? handleData) {}
 
-  void onDone(void handleDone()) {}
+  void onDone(void Function()? handleDone) {}
 
-  void onError(Function handleError) {}
+  void onError(Function? handleError) {}
 
-  void pause([Future resumeSignal]) {}
+  void pause([Future<void>? resumeSignal]) {}
 
   void resume() {}
 }
@@ -39,7 +33,7 @@ Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
 /// only a place holder for reconnect and disconnect
 /// real logic is in SubscribeRequest itself
 class SubscribeController implements RequestUpdater {
-  SubscribeRequest request;
+  SubscribeRequest? request;
 
   SubscribeController();
 
@@ -51,8 +45,8 @@ class SubscribeController implements RequestUpdater {
     // TODO: implement onReconnect
   }
 
-  void onUpdate(String status, List updates, List columns, Map meta,
-      DSError error) {
+  void onUpdate(String? status, List? updates, List? columns, Map? meta,
+      DSError? error) {
     // do nothing
   }
 }
@@ -88,7 +82,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
   }
 
   @override
-  void _close([DSError error]) {
+  void _close([DSError? error]) {
     if (subscriptions.isNotEmpty) {
       _changedPaths.addAll(subscriptions.keys);
     }
@@ -99,14 +93,14 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
 
   @override
   void _update(Map m) {
-    List updates = m['updates'];
+    List? updates = m['updates'];
     if (updates is List) {
       for (Object update in updates) {
-        String path;
+        String? path;
         int sid = -1;
         Object value;
-        String ts;
-        Map meta;
+        late String ts;
+        late Map meta;
         if (update is Map) {
           if (update['ts'] is String) {
             path = update['path'];
@@ -135,7 +129,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
           continue; // invalid response
         }
 
-        ReqSubscribeController controller;
+        ReqSubscribeController? controller;
         if (path != null) {
           controller = subscriptions[path];
         } else if (sid > -1) {
@@ -163,7 +157,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
   void removeSubscription(ReqSubscribeController controller) {
     String path = controller.node.remotePath;
     if (subscriptions.containsKey(path)) {
-      toRemove[subscriptions[path].sid] = subscriptions[path];
+      toRemove[subscriptions[path]!.sid] = subscriptions[path]!;
       prepareSending();
     } else if (subscriptionIds.containsKey(controller.sid)) {
       logger.severe(
@@ -192,7 +186,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
     _changedPaths = new HashSet<String>();
     for (String path in processingPaths) {
       if (subscriptions.containsKey(path)) {
-        ReqSubscribeController sub = subscriptions[path];
+        ReqSubscribeController sub = subscriptions[path]!;
         Map m = {'path': path, 'sid': sub.sid};
         if (sub.currentQos > 0) {
           m['qos'] = sub.currentQos;
@@ -261,20 +255,30 @@ class ReqSubscribeController {
 
   Map<Function, int> callbacks = new Map<Function, int>();
   int currentQos = -1;
-  int sid;
+  late int sid;
 
   ReqSubscribeController(this.node, this.requester) {
     sid = requester._subscription.getNextSid();
   }
 
   void listen(callback(ValueUpdate update), int qos) {
-    qos = qos.clamp(0, 3);
+    if (qos < 0 || qos > 3) {
+      qos = 0;
+    }
+    bool qosChanged = false;
 
-    callbacks[callback] = qos;
-    bool qosChanged = updateQos();
-
-    if (_lastUpdate != null) {
-      callback(_lastUpdate);
+    if (callbacks.containsKey(callback)) {
+      callbacks[callback] = qos;
+      qosChanged = updateQos();
+    } else {
+      callbacks[callback] = qos;
+      if (qos > currentQos) {
+        qosChanged = true;
+        currentQos = qos;
+      }
+      if (_lastUpdate != null) {
+        callback(_lastUpdate!);
+      }
     }
 
     if (qosChanged) {
@@ -284,7 +288,7 @@ class ReqSubscribeController {
 
   void unlisten(callback(ValueUpdate update)) {
     if (callbacks.containsKey(callback)) {
-      int cacheLevel = callbacks.remove(callback);
+      int? cacheLevel = callbacks.remove(callback);
       if (callbacks.isEmpty) {
         requester._subscription.removeSubscription(this);
       } else if (cacheLevel == currentQos && currentQos > 1) {
@@ -307,7 +311,7 @@ class ReqSubscribeController {
     return false;
   }
 
-  ValueUpdate _lastUpdate;
+  ValueUpdate? _lastUpdate;
 
   void addValue(ValueUpdate update) {
     _lastUpdate = update;

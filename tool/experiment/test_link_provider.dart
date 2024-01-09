@@ -4,10 +4,10 @@ import "package:dslink/utils.dart" show ByteDataUtil, DsTimer;
 import "dart:async";
 import "dart:math" as Math;
 
-LinkProvider link;
-int lastNum;
-SimpleNode addNode;
-SimpleNode rootNode;
+late LinkProvider link;
+int lastNum = 0;
+late SimpleNode addNode;
+late SimpleNode rootNode;
 
 class AddNodeAction extends SimpleNode {
   AddNodeAction(String path) : super(path);
@@ -35,7 +35,6 @@ class AddNodeAction extends SimpleNode {
     void closed(InvokeResponse resp) {
       print('closed');
     }
-    int colCount = 1;
     int tcount = 0;
     tableRslt.onClose = closed;
     tableRslt.columns = [{'name': 'a'}];
@@ -54,8 +53,8 @@ class AddNodeAction extends SimpleNode {
 class RemoveSelfAction extends SimpleNode {
   RemoveSelfAction(String path) : super(path);
 
-  Object onInvoke(Map params) {
-    List p = path.split('/')
+  Object? onInvoke(Map params) {
+    List p = path!.split('/')
       ..removeLast();
     String parentPath = p.join('/');
     link.removeNode(parentPath);
@@ -130,12 +129,12 @@ main(List<String> args) {
     return;
   }
 
-  addNode = link.getNode('/add');
-  rootNode = link.getNode('/');
-  lastNum = addNode.configs[r'$lastNum'];
+  addNode = link.getNode('/add') as SimpleNode;
+  rootNode = link.getNode('/') as SimpleNode;
+  lastNum = (addNode.configs[r'$lastNum'] ?? 0) as int;
 
-  var node = link.provider.getOrCreateNode('/testpoint');
-  node.load({
+  var node = link.provider?.getOrCreateNode('/testpoint');
+  node?.load({
     r'$type': 'number',
     "?value": 1
   });

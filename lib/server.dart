@@ -13,8 +13,8 @@ abstract class IRemoteRequester {
 ContentType _jsonContentType = new ContentType("application", "json", charset: "utf-8");
 
 void updateResponseBeforeWrite(HttpRequest request,
-    [int statusCode = HttpStatus.OK,
-    ContentType contentType,
+    [int? statusCode = HttpStatus.ok,
+    ContentType? contentType,
     bool noContentType = false]) {
   var response = request.response;
 
@@ -24,7 +24,7 @@ void updateResponseBeforeWrite(HttpRequest request,
 
   response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-  String origin = request.headers.value("origin");
+  String? origin = request.headers.value("origin");
 
   if (request.headers.value("x-proxy-origin") != null) {
     origin = request.headers.value("x-proxy-origin");

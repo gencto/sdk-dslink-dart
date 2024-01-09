@@ -21,7 +21,7 @@ class Base64 {
   /// 0 : = (Padding character).
   /// >=0 : Base 64 alphabet index of given byte.
   static final List<int> _decodeTable = (() {
-    List<int> table = new List<int>(256);
+    List<int> table = List<int>.filled(256, 0);
     table.fillRange(0, 256, -2);
     List<int> charCodes = _encodeTable.codeUnits;
     int len = charCodes.length;
@@ -43,8 +43,8 @@ class Base64 {
     return Base64.encode(toUTF8(content), lineSize, paddingSpace);
   }
 
-  static String decodeString(String input) {
-    return const Utf8Decoder().convert(decode(input));
+  static String decodeString(String? input) {
+    return const Utf8Decoder().convert(decode(input) as List<int>);
   }
 
   static String encode(List<int> bytes,
@@ -65,7 +65,7 @@ class Base64 {
       outputLen +=
           ((outputLen - 1) ~/ (lineSizeGroup << 2)) * (1 + paddingSpace);
     }
-    List<int> out = new List<int>(outputLen);
+    List<int> out = List<int>.filled(outputLen, 0);
 
     // Encode 24 bit chunks.
     int j = 0, i = 0, c = 0;
@@ -112,7 +112,7 @@ class Base64 {
     return new String.fromCharCodes(out);
   }
 
-  static Uint8List decode(String input) {
+  static Uint8List? decode(String? input) {
     if (input == null) {
       return null;
     }

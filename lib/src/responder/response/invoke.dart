@@ -7,30 +7,30 @@ typedef void OnInvokeSend(InvokeResponse response, Map m);
 typedef bool OnReqParams(InvokeResponse resp, Map m);
 
 class _InvokeResponseUpdate {
-  String status;
-  List columns;
-  List updates;
-  Map meta;
+  String? status;
+  List? columns;
+  List? updates;
+  Map? meta;
 
   _InvokeResponseUpdate(this.status, this.updates, this.columns, this.meta);
 }
 
 class InvokeResponse extends Response {
-  final LocalNode parentNode;
-  final LocalNode node;
-  final String name;
+  final LocalNode? parentNode;
+  final LocalNode? node;
+  final String? name;
 
   InvokeResponse(Responder responder, int rid, this.parentNode, this.node, this.name)
       : super(responder, rid, 'invoke');
 
-  List<_InvokeResponseUpdate> pendingData = new List<_InvokeResponseUpdate>();
+  List<_InvokeResponseUpdate> pendingData = [];
 
   bool _hasSentColumns = false;
 
   /// update data for the responder stream
   void updateStream(List updates,
-      {List columns, String streamStatus: StreamStatus.open,
-        Map meta, bool autoSendColumns: true}) {
+      {List? columns, String streamStatus = StreamStatus.open,
+        Map? meta, bool autoSendColumns = true}) {
     if (meta != null && meta['mode'] == 'refresh') {
       pendingData.length = 0;
     }
@@ -39,8 +39,8 @@ class InvokeResponse extends Response {
       if (columns == null &&
         autoSendColumns &&
         node != null &&
-        node.configs[r"$columns"] is List) {
-        columns = node.configs[r"$columns"];
+        node?.configs[r"$columns"] is List) {
+        columns = node!.configs[r"$columns"] as List?;
       }
     }
 
@@ -54,11 +54,11 @@ class InvokeResponse extends Response {
     prepareSending();
   }
 
-  OnReqParams onReqParams;
+  OnReqParams? onReqParams;
   /// new parameter from the requester
   void updateReqParams(Map m) {
     if (onReqParams != null) {
-      onReqParams(this, m);
+      onReqParams!(this, m);
     }
   }
 
@@ -66,7 +66,7 @@ class InvokeResponse extends Response {
   void startSendingData(int currentTime, int waitingAckId) {
     _pendingSending = false;
     if (_err != null) {
-      responder.closeResponse(rid, response: this, error: _err);
+      responder.closeResponse(rid, response: this, error: _err!);
       if (_sentStreamStatus == StreamStatus.closed) {
         _close();
       }
@@ -74,9 +74,9 @@ class InvokeResponse extends Response {
     }
 
     for (_InvokeResponseUpdate update in pendingData) {
-      List<Map<String, dynamic>> outColumns;
+      List<Map<String, dynamic>>? outColumns;
       if (update.columns != null) {
-        outColumns = TableColumn.serializeColumns(update.columns);
+        outColumns = TableColumn.serializeColumns(update.columns!);
       }
 
       responder.updateResponse(
@@ -86,7 +86,7 @@ class InvokeResponse extends Response {
         columns: outColumns,
         meta: update.meta, handleMap: (m) {
         if (onSendUpdate != null) {
-          onSendUpdate(this, m);
+          onSendUpdate!(this, m);
         }
       });
 
@@ -99,7 +99,7 @@ class InvokeResponse extends Response {
   }
 
   /// close the request from responder side and also notify the requester
-  void close([DSError err = null]) {
+  void close([DSError? err = null]) {
     if (err != null) {
       _err = err;
     }
@@ -113,19 +113,19 @@ class InvokeResponse extends Response {
     }
   }
 
-  DSError _err;
+  DSError? _err;
 
-  OnInvokeClosed onClose;
-  OnInvokeSend onSendUpdate;
+  OnInvokeClosed? onClose;
+  OnInvokeSend? onSendUpdate;
 
   void _close() {
     if (onClose != null) {
-      onClose(this);
+      onClose!(this);
     }
   }
 
   /// for the broker trace action
   ResponseTrace getTraceData([String change = '+']) {
-    return new ResponseTrace(parentNode.path, 'invoke', rid, change, name);
+    return new ResponseTrace(parentNode?.path, 'invoke', rid, change, name);
   }
 }

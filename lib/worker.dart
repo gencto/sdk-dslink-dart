@@ -14,7 +14,7 @@ typedef void WorkerFunction(Worker worker);
 
 WorkerSocket createWorker(
   WorkerFunction function, {
-    Map<String, dynamic> metadata
+    Map<String, dynamic>? metadata
   }) {
   var receiver = new ReceivePort();
   var socket = new WorkerSocket.master(receiver);
@@ -29,7 +29,7 @@ WorkerSocket createWorker(
 }
 
 WorkerSocket createFakeWorker(WorkerFunction function,
-    {Map<String, dynamic> metadata}) {
+    {Map<String, dynamic>? metadata}) {
   var receiver = new ReceivePort();
   var socket = new WorkerSocket.master(receiver);
   Timer.run(() {
@@ -40,23 +40,23 @@ WorkerSocket createFakeWorker(WorkerFunction function,
   return socket;
 }
 
-Worker buildWorkerForScript(Map<String, dynamic> data) {
-  SendPort port;
-  Map<String, dynamic> metadata;
+Worker buildWorkerForScript(Map<String, dynamic>? data) {
+  SendPort? port;
+  Map<String, dynamic>? metadata;
 
-  if (data["port"] is SendPort) {
-    port = data["port"];
+  if (data?["port"] is SendPort) {
+    port = data?["port"];
   }
 
-  if (data["metadata"] is Map<String, dynamic>) {
-    metadata = data["metadata"] as Map<String, dynamic>;
+  if (data?["metadata"] is Map<String, dynamic>) {
+    metadata = data?["metadata"] as Map<String, dynamic>;
   }
 
   return new Worker(port, metadata);
 }
 
 WorkerSocket createWorkerScript(script,
-    {List<String> args, Map<String, dynamic> metadata}) {
+    {List<String>? args, Map<String, dynamic>? metadata}) {
   var receiver = new ReceivePort();
   var socket = new WorkerSocket.master(receiver);
   Uri uri;
@@ -78,26 +78,26 @@ WorkerSocket createWorkerScript(script,
 }
 
 WorkerPool createWorkerScriptPool(int count, Uri uri,
-    {Map<String, dynamic> metadata}) {
+    {Map<String, dynamic>? metadata}) {
   var workers = <WorkerSocket>[];
   for (var i = 1; i <= count; i++) {
     workers.add(createWorkerScript(uri,
       metadata: {
         "workerId": i
-      }..addAll(metadata is! Map<String, int> ? {} : metadata as Map<String, int>)
+      }..addAll(metadata == null ? {} : metadata)
     ));
   }
   return new WorkerPool(workers);
 }
 
 WorkerPool createWorkerPool(int count, WorkerFunction function,
-    {Map<String, dynamic> metadata}) {
+    {Map<String, dynamic>? metadata}) {
   var workers = <WorkerSocket>[];
   for (var i = 1; i <= count; i++) {
     workers.add(
       createWorker(function, metadata: {
         "workerId": i
-      }..addAll(metadata is! Map<String, int> ? {} : metadata as Map<String, int>)));
+      }..addAll(metadata == null ? {} : metadata)));
   }
   return new WorkerPool(workers);
 }
@@ -110,7 +110,7 @@ class WorkerPool {
     resync();
   }
 
-  Function onMessageReceivedHandler;
+  Function? onMessageReceivedHandler;
 
   Future waitFor() {
     return Future.wait(sockets.map((it) => it.waitFor()).toList());
@@ -140,16 +140,16 @@ class WorkerPool {
   }
 
   resizeFunctionWorkers(int count, WorkerFunction function,
-    {Map<String, dynamic> metadata}) async {
+    {Map<String, dynamic>? metadata}) async {
     if (sockets.length < count) {
       for (var i = sockets.length + 1; i <= count; i++) {
         var sock = createWorker(function, metadata: {
           "workerId": i
-        }..addAll(metadata is! Map<String, int> ? {} : metadata as Map<String, int>));
+        }..addAll(metadata == null ? {} : metadata));
         sock._pool = this;
         sock.onReceivedMessageHandler = (msg) {
           if (onMessageReceivedHandler != null) {
-            onMessageReceivedHandler(i, msg);
+            onMessageReceivedHandler!(i, msg);
           }
         };
         await sock.init();
@@ -192,7 +192,7 @@ class WorkerPool {
   }
 
   Future<dynamic> divide(String name, int count,
-      {dynamic next(), dynamic collect(List<dynamic> inputs)}) async {
+      {dynamic next()?, dynamic collect(List<dynamic> inputs)?}) async {
     if (next == null) {
       var i = 0;
       next = () {
@@ -239,9 +239,9 @@ class WorkerPool {
 
   int getAvailableWorkerId() {
     var ids = _workCounts.keys.toList();
-    ids.sort((a, b) => _workCounts[a].compareTo(_workCounts[b]));
+    ids.sort((a, b) => _workCounts[a]!.compareTo(_workCounts[b]!));
     var best = ids.first;
-    _workCounts[best] = _workCounts[best] + 1;
+    _workCounts[best] = _workCounts[best]! + 1;
     return best;
   }
 
@@ -255,7 +255,7 @@ class WorkerPool {
       sockets[i]._pool = this;
       sockets[i].onReceivedMessageHandler = (msg) {
         if (onMessageReceivedHandler != null) {
-          onMessageReceivedHandler(i, msg);
+          onMessageReceivedHandler!(i, msg);
         }
       };
     }
@@ -268,37 +268,37 @@ class WorkerPool {
 }
 
 class Worker {
-  final SendPort port;
+  final SendPort? port;
   final Map<String, dynamic> metadata;
 
-  Worker(this.port, [Map<String, dynamic> meta])
+  Worker(this.port, [Map<String, dynamic>? meta])
       : metadata = meta == null ? {} : meta;
 
   WorkerSocket createSocket() {
-    var sock = new WorkerSocket.worker(port);
+    var sock = new WorkerSocket.worker(port!);
     if (_master != null) {
       sock._master = _master;
-      _master._targetWorker = sock;
+      _master?._targetWorker = sock;
     }
     return sock;
   }
 
-  Future<WorkerSocket> init({Map<String, Taker> methods}) async =>
+  Future<WorkerSocket> init({Map<String, Taker>? methods}) async =>
       await createSocket().init(methods: methods);
 
   dynamic get(String key) => metadata[key];
   bool has(String key) => metadata.containsKey(key);
 
-  WorkerSocket _master;
+  WorkerSocket? _master;
 }
 
 typedef Future<T> WorkerMethod<T>([argument]);
 
 class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
-  static WorkerSocket globalSocket;
+  static WorkerSocket? globalSocket;
 
   final ReceivePort receiver;
-  SendPort _sendPort;
+  late SendPort _sendPort;
 
   WorkerSocket.master(this.receiver) : isWorker = false {
     receiver.listen(handleData);
@@ -313,24 +313,24 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     receiver.listen(handleData);
   }
 
-  Function onReceivedMessageHandler;
+  Function? onReceivedMessageHandler;
 
-  WorkerPool _pool;
+  WorkerPool? _pool;
 
-  WorkerSession getRemoteSession(String id) => _remoteSessions[id];
+  WorkerSession? getRemoteSession(String id) => _remoteSessions[id];
 
-  WorkerSession getLocalSession(String id) => _ourSessions[id];
+  WorkerSession? getLocalSession(String id) => _ourSessions[id];
 
   handleData(msg) {
     if (onReceivedMessageHandler != null) {
-      onReceivedMessageHandler(msg);
+      onReceivedMessageHandler!(msg);
     }
 
     if (msg == null || msg is! Map) {
       return;
     }
 
-    String type = msg["t"];
+    String? type = msg["t"];
 
     if (type == null) {
       type = msg["type"];
@@ -357,7 +357,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     } else if (type == "pong") {
       var id = msg["i"];
       if (_pings.containsKey(id)) {
-        _pings[id].complete();
+        _pings[id]?.complete();
         _pings.remove(id);
       }
     } else if (type == "req") {
@@ -368,7 +368,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       var err = msg["e"];
       if (err != null) {
         if (_responseHandlers.containsKey(id)) {
-          _responseHandlers.remove(id).completeError(
+          _responseHandlers.remove(id)?.completeError(
               err,
               new StackTrace.fromString(msg["s"])
           );
@@ -377,7 +377,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
         }
       } else {
         if (_responseHandlers.containsKey(id)) {
-          _responseHandlers.remove(id).complete(result);
+          _responseHandlers.remove(id)?.complete(result);
         } else {
           throw new Exception("Invalid Request ID: ${id}");
         }
@@ -395,11 +395,11 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       var id = msg["s"];
       _remoteSessions[id] = new _WorkerSession(this, id, false, msg["n"]);
       _sendPort.send({"t": "session.ready", "s": id});
-      _sessionController.add(_remoteSessions[id]);
+      _sessionController.add(_remoteSessions[id]!);
     } else if (type == "session.ready") {
       var id = msg["s"];
       if (_sessionReady.containsKey(id)) {
-        _sessionReady[id].complete();
+        _sessionReady[id]?.complete();
         _sessionReady.remove(id);
       }
     } else if (type == "session.data") {
@@ -443,10 +443,10 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     }
   }
 
-  Future<WorkerSocket> init({Map<String, Taker> methods}) {
+  Future<WorkerSocket> init({Map<String, Taker>? methods}) {
     if (methods != null) {
       for (var key in methods.keys) {
-        addMethod(key, methods[key]);
+        addMethod(key, methods[key]!);
       }
     }
     return waitFor().then((_) => this);
@@ -456,29 +456,29 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     _requestHandlers[name] = Taker;
   }
 
-  WorkerSocket _master;
-  WorkerSocket _targetWorker;
+  WorkerSocket? _master;
+  WorkerSocket? _targetWorker;
 
   Future callMethod(String name, [argument]) {
     if (isWorker && _master != null) {
-      var handler = _master._requestHandlers[name];
+      var handler = _master?._requestHandlers[name];
       if (handler == null) {
-        handler = _master._pool._methods[name];
+        handler = _master?._pool?._methods[name];
       }
 
-      var result = handler(argument);
+      var result = handler!(argument);
       if (result is! Future) {
         return new Future.value(result);
       } else {
         return result;
       }
     } else if (_targetWorker != null) {
-      var handler = _targetWorker._requestHandlers[name];
+      var handler = _targetWorker?._requestHandlers[name];
       if (handler == null) {
-        handler = _targetWorker._pool._methods[name];
+        handler = _targetWorker?._pool?._methods[name];
       }
 
-      var result = handler(argument);
+      var result = handler!(argument);
       if (result is! Future) {
         return new Future.value(result);
       } else {
@@ -509,11 +509,11 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
 
   _handleRequest(String name, int id, argument) async {
     try {
-      if ((_pool != null && _pool._methods.containsKey(name)) || _requestHandlers.containsKey(name)) {
-        var handler = (_pool != null && _pool._methods.containsKey(name)) ?
-          _pool._methods[name] :
+      if ((_pool != null && _pool!._methods.containsKey(name)) || _requestHandlers.containsKey(name)) {
+        var handler = (_pool != null && _pool!._methods.containsKey(name)) ?
+          _pool?._methods[name] :
           _requestHandlers[name];
-        var result = handler(argument);
+        var result = handler!(argument);
         if (result is Future) {
           result = await result;
         }
@@ -530,8 +530,8 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       _sendPort.send({
         "t": "res",
         "i": id,
-        "e": e != null ? e.toString() : null,
-        "s": stack != null ? stack.toString() : null
+        "e": e.toString(),
+        "s": stack.toString()
       });
     }
   }
@@ -559,7 +559,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   void send(event) => add(event);
 
   @override
-  void addError(errorEvent, [StackTrace stackTrace]) {
+  void addError(errorEvent, [StackTrace? stackTrace]) {
     _sendPort.send({"t": "error", "e": errorEvent});
   }
 
@@ -610,8 +610,8 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   Completer _stopCompleter = new Completer();
 
   @override
-  StreamSubscription listen(void onData(event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription listen(void onData(event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
@@ -619,14 +619,14 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   bool kill() {
     receiver.close();
     if (_isolate != null) {
-      _isolate.kill();
+      _isolate?.kill();
       return true;
     } else {
       return false;
     }
   }
 
-  Isolate _isolate;
+  Isolate? _isolate;
 
   StreamController _controller = new StreamController.broadcast();
 }
@@ -648,7 +648,7 @@ class _WorkerSession extends WorkerSession {
 
   Completer _doneCompleter = new Completer.sync();
   StreamController _messages = new StreamController();
-  Stream _messageBroadcast;
+  Stream? _messageBroadcast;
 
   _WorkerSession(this._socket, this.id, this.creator, this._initialMessage);
 
@@ -675,7 +675,7 @@ class _WorkerSession extends WorkerSession {
       _messageBroadcast = _messages.stream.asBroadcastStream();
     }
 
-    return _messageBroadcast;
+    return _messageBroadcast!;
   }
 
   @override
@@ -720,7 +720,7 @@ class WorkerBuilder {
     return this;
   }
 
-  Future<WorkerSocket> spawn([WorkerFunction function]) async {
+  Future<WorkerSocket> spawn([WorkerFunction? function]) async {
     if (function == null) {
       function = defaultWorkerFunction;
     }
@@ -733,7 +733,7 @@ class WorkerBuilder {
   }
 
   static defaultWorkerFunction(Worker worker) async {
-    Map<String, WorkerMethod> methods;
+    Map<String, WorkerMethod>? methods;
 
     if (worker.get("methods") is Map<String, WorkerMethod>) {
       methods = worker.get("methods") as Map<String, WorkerMethod>;

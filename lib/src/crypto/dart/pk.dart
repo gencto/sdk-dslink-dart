@@ -2,102 +2,50 @@ library dslink.pk.dart;
 
 import "dart:async";
 import "dart:convert";
+import "dart:collection";
 import "dart:typed_data";
 import "dart:math" as Math;
-//FIXME:Dart1.0
-//*Dart1-open-block
-import "dart:collection";
 import "dart:isolate";
-//Dart1-close-block*/
-
-//FIXME:Dart2.0
-/*Dart2-open-block
-import "package:pointycastle/ecc/ecc_fp.dart" as fp;
-import "package:pointycastle/export.dart" hide PublicKey, PrivateKey;
-Dart2-close-block*/
-
-import 'package:dslink/convert_consts.dart';
 
 
-//FIXME:Dart1.0
-//*Dart1-open-block
-import "package:dscipher/cipher.dart" hide PublicKey, PrivateKey;
-import "package:dscipher/digests/sha256.dart";
-import "package:dscipher/key_generators/ec_key_generator.dart";
-import "package:dscipher/params/key_generators/ec_key_generator_parameters.dart";
-import "package:dscipher/random/secure_random_base.dart";
-import "package:dscipher/random/block_ctr_random.dart";
-import "package:dscipher/block/aes_fast.dart";
-
-import "package:dscipher/ecc/ecc_base.dart";
-import "package:dscipher/ecc/ecc_fp.dart" as fp;
-//Dart1-close-block*/
 
 
 import "../pk.dart";
 import "../../../utils.dart";
+import '../big_int_utils.dart';
 
-//FIXME:Dart1.0
-//*Dart1-open-block
+import 'package:pointycastle/ecc/curves/secp256r1.dart';
+import 'package:pointycastle/api.dart' hide PublicKey, PrivateKey;
+import 'package:pointycastle/ecc/api.dart';
+import "package:pointycastle/digests/sha256.dart";
+import "package:pointycastle/key_generators/ec_key_generator.dart";
+import "package:pointycastle/key_generators/api.dart";
+import "package:pointycastle/random/block_ctr_random.dart";
+import "package:pointycastle/block/aes_fast.dart";
+
+
 part "isolate.dart";
-//Dart1-close-block*/
 
 /// hard code the EC curve data here, so the compiler don"t have to register all curves
-ECDomainParameters __secp256r1;
-ECDomainParameters get _secp256r1 {
-  if (__secp256r1 != null) {
-    return __secp256r1;
-  }
-
-  var q = newBigInteger(
-    "ffffffff00000001000000000000000000000000ffffffffffffffffffffffff", 16);
-  var a = newBigInteger(
-    "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc", 16);
-  var b = newBigInteger(
-    "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b", 16);
-  var g = newBigInteger(
-    "046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5",
-    16);
-  var n = newBigInteger(
-    "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551", 16);
-  var h = newBigInteger("1", 16);
-  var seed =
-  newBigInteger("c49d360886e704936a6678e1139d26b7819f7e90", 16);
-  var seedBytes =  bigIntegerToByteArray(seed);
-
-  var curve = new fp.ECCurve(q, a, b);
-  return new ECDomainParametersImpl(
-    "secp256r1",
-    curve,
-    curve.decodePoint(bigIntegerToByteArray(g)),
-    n,
-    h,
-    seedBytes
-  );
-}
+ECDomainParameters get _secp256r1 => ECCurve_secp256r1();
 
 class DartCryptoProvider implements CryptoProvider {
   static final DartCryptoProvider INSTANCE = new DartCryptoProvider();
   final DSRandomImpl random = new DSRandomImpl();
 
-  ECPrivateKey _cachedPrivate;
-  ECPublicKey _cachedPublic;
+  ECPrivateKey? _cachedPrivate;
+  ECPublicKey? _cachedPublic;
   int _cachedTime = -1;
 
   Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async {
-//FIXME:Dart1.0
-//*Dart1-open-block
     if (ECDHIsolate.running) {
       if (old is ECDHImpl) {
         return ECDHIsolate._sendRequest(
-            publicKeyRemote,
-            /*old._ecPrivateKey.d.toRadix(16))*/
-            bigIntegerToRadix(old._ecPrivateKey.d, 16));
+            publicKeyRemote, old._ecPrivateKey.d!.toRadixString(16));
       } else {
         return ECDHIsolate._sendRequest(publicKeyRemote, null);
       }
     }
-//Dart1-close-block*/
     int ts = (new DateTime.now()).millisecondsSinceEpoch;
 
     /// reuse same ECDH server pair for up to 1 minute
@@ -106,15 +54,15 @@ class DartCryptoProvider implements CryptoProvider {
         (old is ECDHImpl && old._ecPrivateKey == _cachedPrivate)) {
       var gen = new ECKeyGenerator();
       var rsapars = new ECKeyGeneratorParameters(_secp256r1);
-      var params = new ParametersWithRandom(rsapars, random);
+      var params = new ParametersWithRandom(rsapars, DSRandomImpl());
       gen.init(params);
       var pair = gen.generateKeyPair();
-      _cachedPrivate = pair.privateKey;
-      _cachedPublic = pair.publicKey;
+      _cachedPrivate = pair.privateKey as ECPrivateKey?;
+      _cachedPublic = pair.publicKey as ECPublicKey?;
       _cachedTime = ts;
     }
 
-    PublicKeyImpl publicKeyRemoteImpl;
+    PublicKeyImpl? publicKeyRemoteImpl;
 
     if (publicKeyRemote is! PublicKeyImpl) {
       throw "Not a PublicKeyImpl: ${publicKeyRemoteImpl}";
@@ -122,17 +70,14 @@ class DartCryptoProvider implements CryptoProvider {
       publicKeyRemoteImpl = publicKeyRemote;
     }
 
-    var Q2 = publicKeyRemoteImpl.ecPublicKey.Q * _cachedPrivate.d;
-    return new ECDHImpl(_cachedPrivate, _cachedPublic, Q2);
+    var Q2 = publicKeyRemoteImpl.ecPublicKey.Q! * _cachedPrivate?.d!;
+    return new ECDHImpl(_cachedPrivate!, _cachedPublic!, Q2!);
   }
 
   Future<ECDH> getSecret(PublicKey publicKeyRemote) async {
-//FIXME:Dart1.0
-//*Dart1-open-block
     if (ECDHIsolate.running) {
       return ECDHIsolate._sendRequest(publicKeyRemote, "");
     }
-//Dart1-close-block*/
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars, random);
@@ -140,7 +85,7 @@ class DartCryptoProvider implements CryptoProvider {
     var pair = gen.generateKeyPair()
       as AsymmetricKeyPair<ECPublicKey, ECPrivateKey>;
 
-    PublicKeyImpl publicKeyRemoteImpl;
+    PublicKeyImpl? publicKeyRemoteImpl;
 
     if (publicKeyRemote is! PublicKeyImpl) {
       throw "Not a PublicKeyImpl: ${publicKeyRemoteImpl}";
@@ -148,8 +93,8 @@ class DartCryptoProvider implements CryptoProvider {
       publicKeyRemoteImpl = publicKeyRemote;
     }
 
-    var Q2 = publicKeyRemoteImpl.ecPublicKey.Q * pair.privateKey.d;
-    return new ECDHImpl(pair.privateKey, pair.publicKey, Q2);
+    var Q2 = publicKeyRemoteImpl.ecPublicKey.Q! * pair.privateKey.d;
+    return new ECDHImpl(pair.privateKey, pair.publicKey, Q2!);
   }
 
   Future<PrivateKey> generate() async {
@@ -162,26 +107,27 @@ class DartCryptoProvider implements CryptoProvider {
     var params = new ParametersWithRandom(rsapars, random);
     gen.init(params);
     var pair = gen.generateKeyPair();
-    return new PrivateKeyImpl(pair.privateKey, pair.publicKey);
+    return new PrivateKeyImpl(pair.privateKey as ECPrivateKey, pair.publicKey as ECPublicKey?);
   }
 
   PrivateKey loadFromString(String str) {
     if (str.contains(" ")) {
       List ss = str.split(" ");
-      var d = newBigIntegerFromBytes(1, Base64.decode(ss[0]));
+      var d = readBytes(Base64.decode(ss[0])!);
       ECPrivateKey pri = new ECPrivateKey(d, _secp256r1);
-      var Q = _secp256r1.curve.decodePoint(Base64.decode(ss[1]));
+      var Q = _secp256r1.curve.decodePoint(Base64.decode(ss[1]) as List<int>);
       ECPublicKey pub = new ECPublicKey(Q, _secp256r1);
       return new PrivateKeyImpl(pri, pub);
     } else {
-      var d = newBigIntegerFromBytes(1, Base64.decode(str));
+      var decode = Base64.decode(str);
+      var d = readBytes(decode!);
       ECPrivateKey pri = new ECPrivateKey(d, _secp256r1);
       return new PrivateKeyImpl(pri);
     }
   }
 
   PublicKey getKeyFromBytes(Uint8List bytes) {
-    ECPoint Q = _secp256r1.curve.decodePoint(bytes);
+    ECPoint? Q = _secp256r1.curve.decodePoint(bytes);
     return new PublicKeyImpl(new ECPublicKey(Q, _secp256r1));
   }
 
@@ -193,16 +139,16 @@ class DartCryptoProvider implements CryptoProvider {
 }
 
 class ECDHImpl extends ECDH {
-  String get encodedPublicKey => Base64.encode(_ecPublicKey.Q.getEncoded(false));
+  String get encodedPublicKey => Base64.encode(_ecPublicKey.Q!.getEncoded(false));
 
-  Uint8List bytes;
+  late Uint8List bytes;
 
   ECPrivateKey _ecPrivateKey;
   ECPublicKey _ecPublicKey;
 
   ECDHImpl(this._ecPrivateKey, this._ecPublicKey, ECPoint Q2) {
     //var Q2 = _ecPublicKeyRemote.Q * _ecPrivateKey.d;
-    bytes = bigintToUint8List(Q2.x.toBigInteger());
+    bytes = bigintToUint8List(Q2.x!.toBigInteger()!);
     if (bytes.length > 32) {
       bytes = bytes.sublist(bytes.length - 32);
     } else if (bytes.length < 32) {
@@ -219,7 +165,7 @@ class ECDHImpl extends ECDH {
   }
 
   String hashSalt(String salt) {
-    Uint8List encoded = toUTF8(salt);
+    List<int> encoded = utf8.encode(salt);
     Uint8List raw = new Uint8List(encoded.length + bytes.length);
     int i;
     for (i = 0; i < encoded.length; i++) {
@@ -237,14 +183,14 @@ class ECDHImpl extends ECDH {
 }
 
 class PublicKeyImpl extends PublicKey {
-  static final publicExp = newBigInteger(65537);
+  static final BigInt publicExp = BigInt.from(65537);
 
   ECPublicKey ecPublicKey;
-  String qBase64;
-  String qHash64;
+  late String qBase64;
+  late String qHash64;
 
   PublicKeyImpl(this.ecPublicKey) {
-    List<int> bytes = ecPublicKey.Q.getEncoded(false);
+    Uint8List bytes = ecPublicKey.Q!.getEncoded(false);
     qBase64 = Base64.encode(bytes);
     SHA256Digest sha256 = new SHA256Digest();
     qHash64 = Base64.encode(sha256.process(bytes));
@@ -252,35 +198,35 @@ class PublicKeyImpl extends PublicKey {
 }
 
 class PrivateKeyImpl implements PrivateKey {
-  PublicKey publicKey;
+  late PublicKey publicKey;
   ECPrivateKey ecPrivateKey;
-  ECPublicKey ecPublicKey;
+  ECPublicKey? ecPublicKey;
 
   PrivateKeyImpl(this.ecPrivateKey, [this.ecPublicKey]) {
     if (ecPublicKey == null) {
       ecPublicKey = new ECPublicKey(_secp256r1.G * ecPrivateKey.d, _secp256r1);
     }
-    publicKey = new PublicKeyImpl(ecPublicKey);
+    publicKey = new PublicKeyImpl(ecPublicKey!);
   }
 
   String saveToString() {
-    return "${Base64.encode(bigintToUint8List(ecPrivateKey.d))} ${publicKey.qBase64}";
+    return "${Base64.encode(bigIntToBytes(ecPrivateKey.d!))} ${publicKey.qBase64}";
   }
 
   Future<ECDHImpl> getSecret(String key) async {
-    ECPoint p = ecPrivateKey.parameters.curve.decodePoint(Base64.decode(key));
+    ECPoint? p = ecPrivateKey.parameters!.curve.decodePoint(Base64.decode(key)!)!;
     ECPublicKey publicKey = new ECPublicKey(p, _secp256r1);
-    var Q2 = publicKey.Q * ecPrivateKey.d;
-    return new ECDHImpl(ecPrivateKey, ecPublicKey, Q2);
+    var Q2 = publicKey.Q! * ecPrivateKey.d;
+    return new ECDHImpl(ecPrivateKey, ecPublicKey!, Q2!);
   }
 }
 
 /// random number generator
-class DSRandomImpl extends SecureRandomBase implements DSRandom {
+class DSRandomImpl implements DSRandom, SecureRandom {
   bool get needsEntropy => true;
 
-  BlockCtrRandom _delegate;
-  AESFastEngine _aes;
+  late BlockCtrRandom _delegate;
+  late AESFastEngine _aes;
 
   String get algorithmName => _delegate.algorithmName;
 
@@ -353,6 +299,26 @@ class DSRandomImpl extends SecureRandomBase implements DSRandom {
   int nextUint8() {
     return _delegate.nextUint8();
   }
+
+  @override
+  int nextUint16() {
+    return _delegate.nextUint16();
+  }
+
+  @override
+  BigInt nextBigInteger(int bitLength) {
+    return _delegate.nextBigInteger(bitLength);
+  }
+
+  @override
+  Uint8List nextBytes(int count) {
+    return _delegate.nextBytes(count);
+  }
+
+  @override
+  int nextUint32() {
+    return _delegate.nextUint32();
+  }
 }
 
 String bytes2hex(List<int> bytes) {
@@ -363,10 +329,10 @@ String bytes2hex(List<int> bytes) {
   return result.toString();
 }
 
-/// BigInteger.toByteArray contains negative values, so we need a different version
+/// BigInt.toByteArray contains negative values, so we need a different version
 /// this version also remove the byte for sign, so it's not able to serialize negative number
-Uint8List bigintToUint8List(input) {
-  List<int> rslt =  bigIntegerToByteArray(input);
+Uint8List bigintToUint8List(BigInt input) {
+  List<int> rslt = bigIntToBytes(input);
   if (rslt.length > 32 && rslt[0] == 0){
     rslt = rslt.sublist(1);
   }

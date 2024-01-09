@@ -11,8 +11,8 @@ void _ignoreError(Object obj) {}
 
 class SimpleStorageManager implements IStorageManager {
   Map<String, SimpleResponderStorage> rsponders = new Map<String, SimpleResponderStorage>();
-  Directory dir;
-  Directory subDir;
+  late Directory dir;
+  late Directory subDir;
 
   SimpleStorageManager(String path) {
     dir = new Directory(path);
@@ -27,7 +27,7 @@ class SimpleStorageManager implements IStorageManager {
 
   ISubscriptionResponderStorage getOrCreateSubscriptionStorage(String rpath) {
     if (rsponders.containsKey(rpath)) {
-      return rsponders[rpath];
+      return rsponders[rpath]!;
     }
     SimpleResponderStorage responder =
     new SimpleResponderStorage(
@@ -38,7 +38,7 @@ class SimpleStorageManager implements IStorageManager {
 
   void destroySubscriptionStorage(String rpath) {
     if (rsponders.containsKey(rpath)) {
-      rsponders[rpath].destroy();
+      rsponders[rpath]?.destroy();
       rsponders.remove(rpath);
     }
   }
@@ -58,7 +58,7 @@ class SimpleStorageManager implements IStorageManager {
     List<Future<List<ISubscriptionNodeStorage>>> loading = [];
     for (FileSystemEntity entity in subDir.listSync()) {
       if (await FileSystemEntity.type(entity.path) ==
-          FileSystemEntityType.DIRECTORY) {
+          FileSystemEntityType.directory) {
         String rpath = UriComponentDecoder.decode(entity.path.substring(
             entity.path.lastIndexOf(Platform.pathSeparator) + 1));
         SimpleResponderStorage responder =
@@ -75,7 +75,7 @@ class SimpleStorageManager implements IStorageManager {
 
   IValueStorageBucket getOrCreateValueStorageBucket(String category) {
     if (values.containsKey(category)) {
-      return values[category];
+      return values[category]!;
     }
     SimpleValueStorageBucket store =
     new SimpleValueStorageBucket(
@@ -86,7 +86,7 @@ class SimpleStorageManager implements IStorageManager {
 
   void destroyValueStorageBucket(String category) {
     if (values.containsKey(category)) {
-      values[category].destroy();
+      values[category]?.destroy();
       values.remove(category);
     }
   }
@@ -94,10 +94,10 @@ class SimpleStorageManager implements IStorageManager {
 
 class SimpleResponderStorage extends ISubscriptionResponderStorage {
   Map<String, SimpleNodeStorage> values = new Map<String, SimpleNodeStorage>();
-  Directory dir;
-  String responderPath;
+  late Directory dir;
+  late String responderPath;
 
-  SimpleResponderStorage(String path, [this.responderPath]) {
+  SimpleResponderStorage(String path, [String? responderPath]) {
     if (responderPath == null) {
       responderPath = UriComponentDecoder.decode(
           path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
@@ -111,7 +111,7 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 
   ISubscriptionNodeStorage getOrCreateValue(String path) {
     if (values.containsKey(path)) {
-      return values[path];
+      return values[path]!;
     }
     SimpleNodeStorage value = new SimpleNodeStorage(
         path, Uri.encodeComponent(path), dir.path, this);
@@ -126,14 +126,14 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
           entity.path.lastIndexOf(Platform.pathSeparator) + 1);
       String path = UriComponentDecoder.decode(name);
       values[path] = new SimpleNodeStorage(path, name, dir.path, this);
-      loading.add(values[path].load());
+      loading.add(values[path]!.load());
     }
     return Future.wait(loading);
   }
 
   void destroyValue(String path) {
     if (values.containsKey(path)) {
-      values[path].destroy();
+      values[path]?.destroy();
       values.remove(path);
     }
   }
@@ -147,8 +147,8 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 }
 
 class SimpleNodeStorage extends ISubscriptionNodeStorage {
-  File file;
-  String filename;
+  late File file;
+  late String filename;
 
   SimpleNodeStorage(String path, this.filename, String parentPath,
       SimpleResponderStorage storage)
@@ -160,8 +160,8 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
   void addValue(ValueUpdate value) {
     qos = 3;
     value.storedData = "${DsJson.encode(value.toMap())}\n";
-    file.openSync(mode: FileMode.APPEND)
-      ..writeStringSync(value.storedData)
+    file.openSync(mode: FileMode.append)
+      ..writeStringSync(value.storedData.toString())
       ..closeSync();
   }
 
@@ -169,7 +169,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
     qos = 2;
     newValue.storedData = " ${DsJson.encode(newValue.toMap())}\n";
     // add a space when qos = 2
-    file.writeAsStringSync(newValue.storedData);
+    file.writeAsStringSync(newValue.storedData.toString());
   }
 
   void removeValue(ValueUpdate value) {
@@ -192,7 +192,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
     file.delete().catchError(_ignoreError);
   }
 
-  List<ValueUpdate> _cachedValue;
+  late List<ValueUpdate> _cachedValue;
 
   Future<ISubscriptionNodeStorage> load() async {
     String str = file.readAsStringSync();
@@ -203,7 +203,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
     } else {
       qos = 3;
     }
-    List<ValueUpdate> rslt = new List<ValueUpdate>();
+    List<ValueUpdate> rslt = [];
     for (String s in strs) {
       if (s.length < 18) {
         // a valid data is always 18 bytes or more
@@ -228,7 +228,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
 class SimpleValueStorageBucket implements IValueStorageBucket {
 
   String category;
-  Directory dir;
+  late Directory dir;
 
   SimpleValueStorageBucket(this.category, String path) {
     dir = new Directory(path);
@@ -266,14 +266,13 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
 class SimpleValueStorage extends IValueStorage {
   String key;
   SimpleValueStorageBucket bucket;
-  File _file;
+  late File _file;
 
   SimpleValueStorage(this.bucket, this.key) {
     _file = new File("${bucket.dir.path}/${Uri.encodeComponent(key)}");
   }
   bool _pendingSet = false;
-  Object _pendingValue;
-  Object _setValue;
+  Object? _pendingValue;
 
   /// set the value, if previous setting is not finished, it will be set later
   void setValue(Object value) {
@@ -281,7 +280,6 @@ class SimpleValueStorage extends IValueStorage {
     if (_pendingSet) {
       return;
     }
-    _setValue = value;
     _pendingValue = null;
     _pendingSet = true;
     _file.writeAsString(DsJson.encode(value)).then(onSetDone).catchError(onSetDone);
@@ -289,13 +287,12 @@ class SimpleValueStorage extends IValueStorage {
   void onSetDone(Object obj) {
     _pendingSet = false;
     if (_pendingValue != null) {
-      setValue(_pendingValue);
+      setValue(_pendingValue!);
     }
   }
 
   void destroy() {
     _pendingValue = null;
-    _setValue = null;
     _file.delete().catchError(_ignoreError);
   }
 

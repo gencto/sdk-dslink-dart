@@ -9,15 +9,14 @@ import "package:dslink/utils.dart";
 import "package:logging/logging.dart";
 
 import "package:args/args.dart";
-import 'dart:async';
 
 class TestNodeProvider extends NodeProvider {
-  TestNode onlyNode;
+  late TestNode onlyNode;
   TestNodeProvider(){
     onlyNode = new TestNode('/', this);
   }
 
-  LocalNode getNode(String path) {
+  LocalNode? getNode(String? path) {
     return onlyNode;
   }
   IPermissionManager permissions = new DummyPermissionManager();
@@ -41,7 +40,7 @@ class TestNode extends LocalNodeImpl {
 
 int pairCount = 1000;
 String broker = "http://localhost:8080/conn";
-Stopwatch stopwatch;
+Stopwatch? stopwatch;
 Random random = new Random();
 
 String prefix = '';
@@ -117,7 +116,7 @@ int getRandomPair() {
 }
 
 void changeValue(value, int idx) {
-  (pairs[idx][2] as TestNodeProvider).getNode('/node').updateValue(value);
+  (pairs[idx][2] as TestNodeProvider).getNode('/node')?.updateValue(value);
 }
 
 createLinks() async {
@@ -155,7 +154,7 @@ createLinkPair() async {
   await linkResp.connect();
   print("Link Pair ${mine} is now ready.");
   connectedCount++;
-  linkReq.requester.subscribe("/conns/$prefix-resp-$mine/node", (ValueUpdate val) {
+  linkReq.requester!.subscribe("/conns/$prefix-resp-$mine/node", (ValueUpdate val) {
   });
 }
 

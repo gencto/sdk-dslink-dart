@@ -6,7 +6,7 @@ class SetController implements RequestUpdater {
   final Requester requester;
   final String path;
   final Object value;
-  Request _request;
+  Request? _request;
 
   SetController(this.requester, this.path, this.value,
       [int maxPermission = Permission.CONFIG]) {
@@ -23,8 +23,10 @@ class SetController implements RequestUpdater {
     _request = requester._sendRequest(reqMap, this);
   }
 
-  void onUpdate(String status, List updates, List columns, Map meta, DSError error) {
-    completer.complete(new RequesterUpdate(status, error));
+  void onUpdate(String? status, List? updates, List? columns, Map? meta,
+      DSError? error) {
+    // TODO implement error
+    completer.complete(new RequesterUpdate(status));
   }
 
   void onDisconnect() {}

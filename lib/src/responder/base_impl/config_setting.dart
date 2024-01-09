@@ -5,7 +5,7 @@ class ConfigSetting {
   final String type;
 
   /// need permission to read
-  final Object defaultValue;
+  final Object? defaultValue;
 
   /// whether broker need to maintain the change of config value when ds link is offline
   // bool maintain
@@ -15,7 +15,7 @@ class ConfigSetting {
       : type = m.containsKey('type') ? m['type'] : 'string',
         defaultValue = m.containsKey('default') ? m['default'] : null {}
 
-  DSError setConfig(Object value, LocalNodeImpl node, Responder responder) {
+  DSError? setConfig(Object value, LocalNodeImpl node, Responder responder) {
     if (node.configs[name] != value) {
       node.configs[name] = value;
       node.updateList(name);
@@ -23,7 +23,7 @@ class ConfigSetting {
     return null;
   }
 
-  DSError removeConfig(LocalNodeImpl node, Responder responder) {
+  DSError? removeConfig(LocalNodeImpl node, Responder responder) {
     if (node.configs.containsKey(name)) {
       node.configs.remove(name);
       node.updateList(name);
@@ -74,7 +74,7 @@ class Configs {
   static final ConfigSetting defaultConfig =
       new ConfigSetting.fromMap('', const {});
 
-  static ConfigSetting getConfig(String name, Node profile) {
+  static Object? getConfig(String name, Node? profile) {
     if (global.configs.containsKey(name)) {
       return global.configs[name];
     }

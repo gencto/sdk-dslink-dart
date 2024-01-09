@@ -20,27 +20,27 @@ class Node {
   }
 
   /// This node's profile.
-  Node profile;
+  Node? profile;
 
   /// Node Attributes
   Map<String, Object> attributes = {};
 
   /// same as attributes for local node
   /// but different on remote node
-  Object getOverideAttributes(String attr) {
+  Object? getOverideAttributes(String attr) {
     return attributes[attr];
   }
 
   Node();
 
   /// Get an Attribute
-  Object getAttribute(String name) {
+  Object? getAttribute(String name) {
     if (attributes.containsKey(name)) {
       return attributes[name];
     }
 
-    if (profile != null && profile.attributes.containsKey(name)) {
-      return profile.attributes[name];
+    if (profile != null && profile!.attributes.containsKey(name)) {
+      return profile?.attributes[name];
     }
     return null;
   }
@@ -49,13 +49,13 @@ class Node {
   Map<String, Object> configs = {r'$is': 'node'};
 
   /// Get a Config
-  Object getConfig(String name) {
+  Object? getConfig(String name) {
     if (configs.containsKey(name)) {
       return configs[name];
     }
 
-    if (profile != null && profile.configs.containsKey(name)) {
-      return profile.configs[name];
+    if (profile != null && profile!.configs.containsKey(name)) {
+      return profile?.configs[name];
     }
     return null;
   }
@@ -71,17 +71,12 @@ class Node {
 
   /// Remove a child from this node.
   /// [input] can be either an instance of [Node] or a [String].
-  String removeChild(dynamic input) {
+  String? removeChild(dynamic input) {
     if (input is String) {
-      children.remove(input);
+      children.remove(getChild(input));
       return input;
     } else if (input is Node) {
-      for (var nodeName in children.keys.toList()) {
-        if ((input as Node) == children[nodeName]) {
-          children.remove(nodeName);
-          return nodeName;
-        }
-      }
+      children.remove(input);
     } else {
       throw new Exception("Invalid Input");
     }
@@ -89,13 +84,13 @@ class Node {
   }
 
   /// Get a Child Node
-  Node getChild(String name) {
+  Node? getChild(String name) {
     if (children.containsKey(name)) {
       return children[name];
     }
 
-    if (profile != null && profile.children.containsKey(name)) {
-      return profile.children[name];
+    if (profile != null && profile!.children.containsKey(name)) {
+      return profile?.children[name];
     }
     return null;
   }
@@ -104,7 +99,7 @@ class Node {
   /// If [name] starts with '$', this will fetch a config.
   /// If [name] starts with a '@', this will fetch an attribute.
   /// Otherwise this will fetch a child.
-  Object get(String name) {
+  Object? get(String name) {
     if (name.startsWith(r'$')) {
       return getConfig(name);
     }
@@ -119,7 +114,7 @@ class Node {
   void forEachChild(void callback(String name, Node node)) {
     children.forEach(callback);
     if (profile != null) {
-      profile.children.forEach((String str, Node n) {
+      profile?.children.forEach((String str, Node n) {
         if (!children.containsKey(str)) {
           callback(str, n);
         }
@@ -130,7 +125,7 @@ class Node {
   void forEachConfig(void callback(String name, Object value)) {
     configs.forEach(callback);
     if (profile != null) {
-      profile.configs.forEach((String str, Object val) {
+      profile?.configs.forEach((String str, Object val) {
         if (!configs.containsKey(str)) {
           callback(str, val);
         }
@@ -141,7 +136,7 @@ class Node {
   void forEachAttribute(void callback(String name, Object value)) {
     attributes.forEach(callback);
     if (profile != null) {
-      profile.attributes.forEach((String str, Object val) {
+      profile?.attributes.forEach((String str, Object val) {
         if (!attributes.containsKey(str)) {
           callback(str, val);
         }
@@ -184,7 +179,10 @@ class Node {
       rslt[r'$result'] = configs[r'$result'];
     }
 
-    // TODO(rick): add permission of current requester
+    if(configs.containsKey(r'$permissions')) {
+      rslt[r'$permissions'] = configs[r'$permissions'];
+    }
+    
     return rslt;
   }
 }
@@ -204,7 +202,7 @@ class Path {
     return str;
   }
 
-  static Path getValidPath(Object path, [String basePath]) {
+  static Path? getValidPath(Object path, [String? basePath]) {
     if (path is String) {
       Path p = new Path(path);
       if (p.valid) {
@@ -214,7 +212,7 @@ class Path {
     return null;
   }
 
-  static Path getValidNodePath(Object path, [String basePath]) {
+  static Path? getValidNodePath(Object path, [String? basePath]) {
     if (path is String) {
       Path p = new Path(path);
       if (p.valid && p.isNode) {
@@ -224,7 +222,7 @@ class Path {
     return null;
   }
 
-  static Path getValidAttributePath(Object path, [String basePath]) {
+  static Path? getValidAttributePath(Object path, [String? basePath]) {
     if (path is String) {
       Path p = new Path(path);
       if (p.valid && p.isAttribute) {
@@ -234,7 +232,7 @@ class Path {
     return null;
   }
 
-  static Path getValidConfigPath(Object path, [String basePath]) {
+  static Path? getValidConfigPath(Object path, [String? basePath]) {
     if (path is String) {
       Path p = new Path(path);
       if (p.valid && p.isConfig) {
@@ -245,10 +243,10 @@ class Path {
   }
 
   /// Real Path
-  String path;
+  late String path;
 
   /// Real Parent Path
-  String parentPath;
+  late String parentPath;
 
   /// Get the parent of this path.
   Path get parent => new Path(parentPath);
@@ -263,7 +261,7 @@ class Path {
   /// The name of this path.
   /// This is the last component of the path.
   /// For the root node, this is '/'
-  String name;
+  late String name;
 
   /// If this path is invalid, this will be false. Otherwise this will be true.
   bool valid = true;
@@ -328,7 +326,7 @@ class Path {
   }
 
   /// Merges the [base] path with this path.
-  void mergeBasePath(String base, [bool force = false]) {
+  void mergeBasePath(String? base, [bool force = false]) {
     if (base == null) {
       return;
     }

@@ -9,7 +9,6 @@ import "responder.dart";
 import "utils.dart";
 
 import "src/crypto/pk.dart";
-import 'package:dslink/convert_consts.dart';
 
 part "src/common/node.dart";
 part "src/common/table.dart";
@@ -45,7 +44,7 @@ abstract class Connection {
       ConnectionAckGroup>();
 
   void ack(int ackId) {
-    ConnectionAckGroup findAckGroup;
+    ConnectionAckGroup? findAckGroup;
     for (ConnectionAckGroup ackGroup in pendingAcks) {
       if (ackGroup.ackId == ackId) {
         findAckGroup = ackGroup;
@@ -57,13 +56,11 @@ abstract class Connection {
 
     if (findAckGroup != null) {
       int ts = (new DateTime.now()).millisecondsSinceEpoch;
+      late ConnectionAckGroup ackGroup;
       do {
-        ConnectionAckGroup ackGroup = pendingAcks.removeFirst();
+        ackGroup = pendingAcks.removeFirst();
         ackGroup.ackAll(ackId, ts);
-        if (ackGroup == findAckGroup) {
-          break;
-        }
-      } while (findAckGroup != null);
+      } while (ackGroup != findAckGroup);
     }
   }
 }
@@ -80,7 +77,7 @@ class ProcessorResult {
 class ConnectionAckGroup {
   int ackId;
   int startTime;
-  int expectedAckTime;
+  int? expectedAckTime;
   List<ConnectionProcessor> processors;
 
   ConnectionAckGroup(this.ackId, this.startTime, this.processors);
@@ -113,14 +110,14 @@ abstract class ConnectionChannel {
 
 /// Base Class for Links
 abstract class BaseLink {
-  Requester get requester;
+  Requester? get requester;
 
-  Responder get responder;
+  Responder? get responder;
 
   ECDH get nonce;
 
   /// trigger when requester channel is Ready
-  Future<Requester> get onRequesterReady;
+  Future<Requester?> get onRequesterReady;
 
   void close();
 }
@@ -143,7 +140,7 @@ abstract class ClientLink extends BaseLink {
 
   updateSalt(String salt);
 
-  String get logName => null;
+  String? get logName => null;
 
   String formatLogMessage(String msg) {
     if (logName != null) {
@@ -166,7 +163,7 @@ abstract class ServerLinkManager {
   
   void removeLink(ServerLink link, String id);
 
-  ServerLink getLinkAndConnectNode(String dsId, {String sessionId: ""});
+  ServerLink getLinkAndConnectNode(String dsId, {String sessionId = ""});
 
   Requester getRequester(String dsId);
 
@@ -195,14 +192,14 @@ class ErrorPhase {
 
 class DSError {
   /// type of error
-  String type;
-  String detail;
-  String msg;
-  String path;
-  String phase;
+  String? type;
+  String? detail;
+  String? msg;
+  String? path;
+  String? phase;
 
   DSError(this.type,
-      {this.msg, this.detail, this.path, this.phase: ErrorPhase.response});
+      {this.msg, this.detail, this.path, this.phase = ErrorPhase.response});
 
   DSError.fromMap(Map m) {
     if (m["type"] is String) {
@@ -224,13 +221,16 @@ class DSError {
 
   String getMessage() {
     if (msg != null) {
-      return msg;
+      return msg!;
     }
     if (type != null) {
-      // TODO, return normal case instead of camel case
-      return type;
+      return capitalize(type!);
     }
     return "Error";
+  }
+
+  String capitalize(String s) {
+    return s[0].toUpperCase() + s.substring(1);
   }
 
   Map serialize() {
@@ -253,14 +253,31 @@ class DSError {
     return rslt;
   }
 
+  /// Represents a permission denied error.
   static final DSError PERMISSION_DENIED = new DSError("permissionDenied");
+
+  /// Represents an invalid method error.
   static final DSError INVALID_METHOD = new DSError("invalidMethod");
+
+  /// Represents a not implemented error.
   static final DSError NOT_IMPLEMENTED = new DSError("notImplemented");
+
+  /// Represents an invalid path error.
   static final DSError INVALID_PATH = new DSError("invalidPath");
+
+  /// Represents an invalid paths error.
   static final DSError INVALID_PATHS = new DSError("invalidPaths");
+
+  /// Represents an invalid value error.
   static final DSError INVALID_VALUE = new DSError("invalidValue");
+
+  /// Represents an invalid parameter error.
   static final DSError INVALID_PARAMETER = new DSError("invalidParameter");
+
+  /// Represents a disconnected error.
   static final DSError DISCONNECTED = new DSError("disconnected", phase: ErrorPhase.request);
+
+  /// Represents a failed error.
   static final DSError FAILED = new DSError("failed");
 }
 

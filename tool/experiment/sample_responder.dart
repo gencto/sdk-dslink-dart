@@ -5,13 +5,13 @@ import 'package:dslink/common.dart';
 import 'dart:async';
 
 class TestNodeProvider extends NodeProvider {
-  TestNode onlyNode;
+  late TestNode onlyNode;
 
   TestNodeProvider() {
     onlyNode = new TestNode('/', this);
   }
 
-  LocalNode getNode(String path) {
+  LocalNode? getNode(String? path) {
     return onlyNode;
   }
 

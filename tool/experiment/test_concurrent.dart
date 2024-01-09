@@ -7,12 +7,12 @@ import "package:logging/logging.dart";
 import "package:args/args.dart";
 
 class TestNodeProvider extends NodeProvider {
-  TestNode onlyNode;
+  late TestNode onlyNode;
   TestNodeProvider(){
     onlyNode = new TestNode('/', this);
   }
 
-  LocalNode getNode(String path) {
+  LocalNode? getNode(String? path) {
     return onlyNode;
   }
   IPermissionManager permissions = new DummyPermissionManager();
@@ -36,7 +36,7 @@ class TestNode extends LocalNodeImpl {
 
 int pairCount = 1000;
 
-Stopwatch stopwatch;
+Stopwatch? stopwatch;
 Random random = new Random();
 
 main(List<String> args) async {
@@ -92,7 +92,7 @@ int getRandomPair() {
 }
 
 void changeValue(value, int idx) {
-  (pairs[idx][2] as TestNodeProvider).getNode('/node').updateValue(value);
+  (pairs[idx][2] as TestNodeProvider).getNode('/node')?.updateValue(value);
 }
 
 createLinks() async {
@@ -129,7 +129,7 @@ createLinkPair() async {
   linkResp.connect().then((_) {
     print("Link Pair ${mine} is now ready.");
     connectedCount++;
-    linkReq.requester.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
+    linkReq.requester!.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
     });
   });
 }

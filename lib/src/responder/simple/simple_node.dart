@@ -1,17 +1,17 @@
 part of dslink.responder;
 
 typedef LocalNode NodeFactory(String path);
-typedef SimpleNode SimpleNodeFactory(String path);
+typedef SimpleNode? SimpleNodeFactory(String? path);
 typedef Future<ByteData> IconResolver(String name);
 
 /// A simple table result.
 /// This is used to return simple tables from an action.
 class SimpleTableResult {
   /// Table Columns
-  List columns;
+  List? columns;
 
   /// Table Rows
-  List rows;
+  List? rows;
 
   SimpleTableResult([this.rows, this.columns]);
 }
@@ -24,28 +24,28 @@ abstract class WaitForMe {
 /// This can be used to return asynchronous tables from actions.
 class AsyncTableResult {
   /// Invoke Response.
-  InvokeResponse response;
+  InvokeResponse? response;
   /// Table Columns
-  List columns;
+  List? columns;
   /// Table Rows
-  List rows;
+  List? rows;
   /// Stream Status
   String status = StreamStatus.open;
   /// Table Metadata
-  Map meta;
+  Map? meta;
   /// Handler for when this is closed.
-  OnInvokeClosed onClose;
+  OnInvokeClosed? onClose;
 
   AsyncTableResult([this.columns]);
 
   /// Updates table rows to [rows].
   /// [stat] is the stream status.
   /// [meta] is the action result metadata.
-  void update(List rows, [String stat, Map meta]) {
+  void update(List rows, [String? stat, Map? meta]) {
     if (this.rows == null) {
       this.rows = rows;
     } else {
-      this.rows.addAll(rows);
+      this.rows?.addAll(rows);
     }
     this.meta = meta;
     if (stat != null) {
@@ -60,7 +60,7 @@ class AsyncTableResult {
   }
 
   /// Write this result to the result given by [resp].
-  void write([InvokeResponse resp]) {
+  void write([InvokeResponse? resp]) {
     if (resp != null) {
       if (response == null) {
         response = resp;
@@ -70,7 +70,7 @@ class AsyncTableResult {
     }
 
     if (response != null && (rows != null || meta != null || status == StreamStatus.closed)) {
-      response.updateStream(rows, columns: columns, streamStatus: status, meta: meta);
+      response?.updateStream(rows!, columns: columns, streamStatus: status, meta: meta);
       rows = null;
       columns = null;
     }
@@ -79,7 +79,7 @@ class AsyncTableResult {
   /// Closes this response.
   void close() {
     if (response != null) {
-      response.close();
+      response?.close();
     } else {
       status = StreamStatus.closed;
     }
@@ -88,18 +88,18 @@ class AsyncTableResult {
 
 /// A Live-Updating Table
 class LiveTable {
-  final List<TableColumn> columns;
-  final List<LiveTableRow> rows;
+  final List<TableColumn>? columns;
+  final List<LiveTableRow>? rows;
 
   LiveTable.create(this.columns, this.rows);
 
-  factory LiveTable([List<TableColumn> columns]) {
+  factory LiveTable([List<TableColumn>? columns]) {
     return new LiveTable.create(columns == null ? [] : columns, []);
   }
 
   void onRowUpdate(LiveTableRow row) {
     if (_resp != null) {
-      _resp.updateStream([row.values], meta: {
+      _resp?.updateStream([row.values], meta: {
         "modify": "replace ${row.index}-${row.index}"
       });
     }
@@ -111,13 +111,13 @@ class LiveTable {
 
   List<Function> _onClose = [];
 
-  LiveTableRow createRow(List<dynamic> values, {bool ready: true}) {
+  LiveTableRow createRow(List<dynamic>? values, {bool ready = true}) {
     if (values == null) values = [];
     var row = new LiveTableRow(this, values);
-    row.index = rows.length;
-    rows.add(row);
+    row.index = rows!.length;
+    rows?.add(row);
     if (ready && _resp != null) {
-      _resp.updateStream([row.values], meta: {
+      _resp?.updateStream([row.values], meta: {
         "mode": "append"
       });
     }
@@ -125,9 +125,9 @@ class LiveTable {
   }
 
   void clear() {
-    rows.length = 0;
+    rows?.length = 0;
     if (_resp != null) {
-      _resp.updateStream([], meta: {
+      _resp?.updateStream([], meta: {
         "mode": "refresh"
       }, columns: []);
     }
@@ -135,7 +135,7 @@ class LiveTable {
 
   void refresh([int idx = -1]) {
     if (_resp != null) {
-      _resp.updateStream(getCurrentState(), columns: columns.map((x) {
+      _resp?.updateStream(getCurrentState(), columns: columns?.map((x) {
         return x.getData();
       }).toList(), streamStatus: StreamStatus.open, meta: {
         "mode": "refresh"
@@ -145,7 +145,7 @@ class LiveTable {
 
   void reindex() {
     var i = 0;
-    for (LiveTableRow row in rows) {
+    for (LiveTableRow row in rows!) {
       row.index = i;
       i++;
     }
@@ -156,18 +156,18 @@ class LiveTable {
   }
 
   void resend() {
-    sendTo(_resp);
+    sendTo(_resp!);
   }
 
   void sendTo(InvokeResponse resp) {
     _resp = resp;
 
-    _resp.onClose = (r) {
+    _resp?.onClose = (r) {
       close(true);
     };
 
     if (autoStartSend) {
-      resp.updateStream(getCurrentState(), columns: columns.map((x) {
+      resp.updateStream(getCurrentState(), columns: columns?.map((x) {
         return x.getData();
       }).toList(), streamStatus: StreamStatus.open, meta: {
         "mode": "refresh"
@@ -181,20 +181,20 @@ class LiveTable {
     }
 
     if (!isFromRequester) {
-      _resp.close();
+      _resp?.close();
     }
   }
 
   List getCurrentState([int from = -1]) {
-    List<LiveTableRow> rw = rows;
+    List<LiveTableRow>? rw = rows;
     if (from != -1) {
-      rw = rw.sublist(from);
+      rw = rw?.sublist(from);
     }
-    return rw.map((x) => x.values).toList();
+    return rw!.map((x) => x.values).toList();
   }
 
-  InvokeResponse get response => _resp;
-  InvokeResponse _resp;
+  InvokeResponse? get response => _resp;
+  InvokeResponse? _resp;
 
   bool autoStartSend = true;
 }
@@ -216,7 +216,7 @@ class LiveTableRow {
   }
 
   void delete() {
-    table.rows.remove(this);
+    table.rows?.remove(this);
     var idx = index;
     table.refresh(idx);
     table.reindex();
@@ -240,7 +240,7 @@ abstract class MutableNodeProvider {
   /// Updates the value of the node at [path] to the given [value].
   void updateValue(String path, Object value);
   /// Adds a node at the given [path] that is initialized with the given data in [m].
-  LocalNode addNode(String path, Map m);
+  LocalNode? addNode(String path, Map m);
   /// Removes the node specified at [path].
   void removeNode(String path);
   // Add a profile to the node provider.
@@ -248,9 +248,9 @@ abstract class MutableNodeProvider {
 }
 
 class SysGetIconNode extends SimpleNode {
-  SysGetIconNode(String path, [SimpleNodeProvider provider]) : super(
+  SysGetIconNode(String path, [SimpleNodeProvider? provider]) : super(
     path,
-    provider
+    provider!
   ) {
     configs.addAll({
       r"$invokable": "read",
@@ -273,9 +273,9 @@ class SysGetIconNode extends SimpleNode {
   @override
   onInvoke(Map<String, dynamic> params) async {
     String name = params["Icon"];
-    IconResolver resolver = provider._iconResolver;
+    IconResolver? resolver = provider._iconResolver;
 
-    ByteData data = await resolver(name);
+    ByteData data = await resolver!(name);
 
     return [[
       data
@@ -287,10 +287,10 @@ class SimpleNodeProvider extends NodeProviderImpl
     implements SerializableNodeProvider, MutableNodeProvider {
   /// Global instance.
   /// This is by default always the first instance of [SimpleNodeProvider].
-  static SimpleNodeProvider instance;
+  static SimpleNodeProvider? instance;
 
-  ExecutableFunction _persist;
-  IconResolver _iconResolver;
+  ExecutableFunction? _persist;
+  IconResolver? _iconResolver;
 
   /// All the nodes in this node provider.
   final Map<String, LocalNode> nodes = new Map<String, LocalNode>();
@@ -298,7 +298,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   List<SimpleNodeFactory> _resolverFactories = [];
 
   @override
-  LocalNode getNode(String path) {
+  LocalNode? getNode(String? path) {
     return _getNode(path);
   }
 
@@ -308,9 +308,9 @@ class SimpleNodeProvider extends NodeProviderImpl
     nodes["/sys/getIcon"] = new SysGetIconNode("/sys/getIcon", this);
   }
 
-  LocalNode _getNode(String path, {bool allowStubs: false}) {
+  LocalNode? _getNode(String? path, {bool allowStubs = false}) {
     if (nodes.containsKey(path)) {
-      SimpleNode node = nodes[path];
+      SimpleNode node = nodes[path] as SimpleNode;
       if (allowStubs || node._stub == false) {
         return node;
       }
@@ -318,7 +318,7 @@ class SimpleNodeProvider extends NodeProviderImpl
 
     if (_resolverFactories.isNotEmpty) {
       for (var f in _resolverFactories) {
-        var node = f(path);
+        SimpleNode? node = f(path);
         if (node != null) {
           return node;
         }
@@ -334,13 +334,13 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// When [addToTree] is false, the node will not be inserted into the node provider.
   /// When [init] is false, onCreated() is not called.
   LocalNode getOrCreateNode(String path, [bool addToTree = true, bool init = true]) {
-    LocalNode node = _getNode(path, allowStubs: true);
+    LocalNode? node = _getNode(path, allowStubs: true);
 
     if (node != null) {
       if (addToTree) {
-        Path po = new Path(path);
+        Path? po = new Path(path);
         if (!po.isRoot) {
-          LocalNode parent = getNode(po.parentPath);
+          LocalNode? parent = getNode(po.parentPath);
 
           if (parent != null && !parent.children.containsKey(po.name)) {
             parent.addChild(po.name, node);
@@ -369,7 +369,7 @@ class SimpleNodeProvider extends NodeProviderImpl
 
   /// Checks if this provider has the node at [path].
   bool hasNode(String path) {
-    SimpleNode node = nodes[path];
+    SimpleNode? node = nodes[path] as SimpleNode?;
 
     if (node == null) {
       return false;
@@ -411,14 +411,14 @@ class SimpleNodeProvider extends NodeProviderImpl
         return;
       }
 
-      _persist();
+      _persist!();
     } else {
       new Future.delayed(const Duration(seconds: 5), () {
         if (_persist == null) {
           return;
         }
 
-        _persist();
+        _persist!();
       });
     }
   }
@@ -428,7 +428,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// If [init] is false, onCreated() is not called.
   SimpleNode createNode(String path, [bool init = true]) {
     Path p = new Path(path);
-    LocalNode existing = nodes[path];
+    LocalNode? existing = nodes[path];
 
     if (existing != null) {
       if (existing is SimpleNode) {
@@ -442,17 +442,17 @@ class SimpleNodeProvider extends NodeProviderImpl
       }
     }
 
-    SimpleNode node = existing == null ? new SimpleNode(path, this) : existing;
+    SimpleNode node = existing == null ? new SimpleNode(path, this) : existing as SimpleNode;
     nodes[path] = node;
 
     if (init) {
       node.onCreated();
     }
 
-    SimpleNode pnode;
+    SimpleNode? pnode;
 
     if (p.parentPath != "") {
-      pnode = getNode(p.parentPath);
+      pnode = getNode(p.parentPath) as SimpleNode;
     }
 
     if (pnode != null) {
@@ -467,7 +467,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// Creates a [SimpleNodeProvider].
   /// If [m] and optionally [profiles] is specified,
   /// the provider is initialized with these values.
-  SimpleNodeProvider([Map<String, dynamic> m, Map<String, NodeFactory> profiles]) {
+  SimpleNodeProvider([Map<String, dynamic>? m, Map<String, NodeFactory>? profiles]) {
     // by default, the first SimpleNodeProvider is the static instance
     if (instance == null) {
        instance = this;
@@ -476,24 +476,24 @@ class SimpleNodeProvider extends NodeProviderImpl
     root = new SimpleNode("/", this);
     nodes["/"] = root;
     defs = new SimpleHiddenNode('/defs', this);
-    nodes[defs.path] = defs;
+    nodes[defs!.path!] = defs!;
     sys = new SimpleHiddenNode('/sys', this);
-    nodes[sys.path] = sys;
+    nodes[sys!.path!] = sys!;
 
     init(m, profiles);
   }
 
   /// Root node
-  SimpleNode root;
+  late SimpleNode root;
 
   /// defs node
-  SimpleHiddenNode defs;
+  SimpleHiddenNode? defs;
 
   /// sys node
-  SimpleHiddenNode sys;
+  SimpleHiddenNode? sys;
 
   @override
-  void init([Map<String, dynamic> m, Map<String, NodeFactory> profiles]) {
+  void init([Map<String, dynamic>? m, Map<String, NodeFactory>? profiles]) {
     if (profiles != null) {
       if (profiles.isNotEmpty) {
         _profiles.addAll(profiles);
@@ -516,15 +516,15 @@ class SimpleNodeProvider extends NodeProviderImpl
 
   @override
   void updateValue(String path, Object value) {
-    SimpleNode node = getNode(path);
+    SimpleNode node = getNode(path) as SimpleNode;
     node.updateValue(value);
   }
 
   /// Sets the given [node] to the given [path].
-  void setNode(String path, SimpleNode node, {bool registerChildren: false}) {
+  void setNode(String path, SimpleNode node, {bool registerChildren = false}) {
     if (path == '/' || !path.startsWith('/')) return null;
     Path p = new Path(path);
-    SimpleNode pnode = getNode(p.parentPath);
+    SimpleNode? pnode = getNode(p.parentPath) as SimpleNode?;
 
     nodes[path] = node;
 
@@ -537,32 +537,32 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
 
     if (registerChildren) {
-      for (SimpleNode c in node.children.values) {
-        setNode(c.path, c);
+      for (SimpleNode c in node.children.values.cast<SimpleNode>()) {
+        setNode(c.path!, c);
       }
     }
   }
 
   @override
-  SimpleNode addNode(String path, Map m) {
+  LocalNode? addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return null;
 
     Path p = new Path(path);
-    SimpleNode oldNode = _getNode(path, allowStubs: true);
+    SimpleNode? oldNode = _getNode(path, allowStubs: true) as SimpleNode?;
 
-    SimpleNode pnode = getNode(p.parentPath);
-    SimpleNode node;
+    SimpleNode? pnode = getNode(p.parentPath) as SimpleNode?;
+    SimpleNode? node;
 
     if (pnode != null) {
       node = pnode.onLoadChild(p.name, m, this);
     }
 
     if (node == null) {
-      String profile = m[r'$is'];
+      String? profile = m[r'$is'];
       if (_profiles.containsKey(profile)) {
-        node = _profiles[profile](path);
+        node = _profiles[profile]!(path) as SimpleNode?;
       } else {
-        node = getOrCreateNode(path, true, false);
+        node = getOrCreateNode(path, true, false) as SimpleNode?;
       }
     }
 
@@ -570,17 +570,17 @@ class SimpleNodeProvider extends NodeProviderImpl
       logger.fine("Found old node for ${path}: Copying subscriptions.");
 
       for (ValueUpdateCallback func in oldNode.callbacks.keys) {
-        node.subscribe(func, oldNode.callbacks[func]);
+        node?.subscribe(func, oldNode.callbacks[func]!);
       }
 
       if (node is SimpleNode) {
         try {
           node._listChangeController = oldNode._listChangeController;
-          node._listChangeController.onStartListen = () {
-            node.onStartListListen();
+          node._listChangeController?.onStartListen = () {
+            node?.onStartListListen();
           };
-          node._listChangeController.onAllCancel = () {
-            node.onAllListCancel();
+          node._listChangeController?.onAllCancel = () {
+            node?.onAllListCancel();
           };
         } catch (e) {}
 
@@ -590,7 +590,7 @@ class SimpleNodeProvider extends NodeProviderImpl
       }
     }
 
-    nodes[path] = node;
+    nodes[path] = node!;
     node.load(m);
     node.onCreated();
 
@@ -610,9 +610,9 @@ class SimpleNodeProvider extends NodeProviderImpl
   }
 
   @override
-  void removeNode(String path, {bool recurse: true}) {
+  void removeNode(String path, {bool recurse = true}) {
     if (path == '/' || !path.startsWith('/')) return;
-    SimpleNode node = getNode(path);
+    SimpleNode? node = getNode(path) as SimpleNode?;
 
     if (node == null) {
       return;
@@ -637,7 +637,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     }
 
     Path p = new Path(path);
-    SimpleNode pnode = getNode(p.parentPath);
+    SimpleNode? pnode = getNode(p.parentPath) as SimpleNode?;
     node.onRemoving();
     node.removed = true;
 
@@ -665,11 +665,11 @@ class SimpleNodeProvider extends NodeProviderImpl
   }
 
   @override
-  String toString({bool showInstances: false}) {
+  String toString({bool showInstances = false}) {
     var buff = new StringBuffer();
 
     void doNode(LocalNode node, [int depth = 0]) {
-      Path p = new Path(node.path);
+      Path p = new Path(node.path!);
       buff.write("${'  ' * depth}- ${p.name}");
 
       if (showInstances) {
@@ -678,7 +678,7 @@ class SimpleNodeProvider extends NodeProviderImpl
 
       buff.writeln();
       for (var child in node.children.values) {
-        doNode(child, depth + 1);
+        doNode(child as LocalNode, depth + 1);
       }
     }
 
@@ -692,11 +692,11 @@ class SimpleNodeProvider extends NodeProviderImpl
 class SimpleNode extends LocalNodeImpl {
   final SimpleNodeProvider provider;
 
-  static  AESFastEngine _encryptEngine;
-  static  KeyParameter _encryptParams;
+  static  AESFastEngine? _encryptEngine;
+  static  KeyParameter? _encryptParams;
   static initEncryption(String key) {
     _encryptEngine = new AESFastEngine();
-    _encryptParams = new KeyParameter(UTF8.encode(key).sublist(48,80));
+    _encryptParams = new KeyParameter(Uint8List.fromList(utf8.encode(key).sublist(48, 80)));
   }
   
   /// encrypt the string and prefix the value with '\u001Bpw:'
@@ -705,19 +705,20 @@ class SimpleNode extends LocalNodeImpl {
     if (str == '') {
       return '';
     }
-    _encryptEngine.reset();
-    _encryptEngine.init(true, _encryptParams);
+    _encryptEngine?.reset();
+    _encryptEngine?.init(true, _encryptParams!);
 
-    Uint8List utf8bytes = UTF8.encode(str);
+    Uint8List utf8bytes = Uint8List.fromList(utf8.encode(str));
     Uint8List block = new Uint8List((utf8bytes.length + 31 )~/32 * 32);
     block.setRange(0, utf8bytes.length, utf8bytes);
-    return '\u001Bpw:${Base64.encode(_encryptEngine.process(block))}';
+    return '\u001Bpw:${Base64.encode(_encryptEngine!.process(block))}';
   }
+
   static String decryptString(String str) {
     if (str.startsWith('\u001Bpw:')) {
-      _encryptEngine.reset();
-      _encryptEngine.init(false, _encryptParams);
-      String rslt = UTF8.decode(_encryptEngine.process(Base64.decode(str.substring(4))));
+      _encryptEngine?.reset();
+      _encryptEngine?.init(false, _encryptParams!);
+      String rslt = utf8.decode(_encryptEngine!.process(Base64.decode(str.substring(4))!));
       int pos = rslt.indexOf('\u0000');
       if (pos >= 0) rslt = rslt.substring(0, pos);
       return rslt;
@@ -726,9 +727,9 @@ class SimpleNode extends LocalNodeImpl {
       // 22 is the length of a AES block after base64 encoding
       // encoded password should always be 24 or more bytes, and a plain 22 bytes password is rare
       try{
-        _encryptEngine.reset();
-         _encryptEngine.init(false, _encryptParams);
-         String rslt = UTF8.decode(_encryptEngine.process(Base64.decode(str)));
+        _encryptEngine?.reset();
+         _encryptEngine?.init(false, _encryptParams!);
+         String rslt = utf8.decode(_encryptEngine!.process(Base64.decode(str)!));
          int pos = rslt.indexOf('\u0000');
          if (pos >= 0) rslt = rslt.substring(0, pos);
          return rslt;
@@ -747,8 +748,8 @@ class SimpleNode extends LocalNodeImpl {
   /// part of their parent.
   bool get isStubNode => _stub;
 
-  SimpleNode(String path, [SimpleNodeProvider nodeprovider]) :
-    provider = nodeprovider == null ? SimpleNodeProvider.instance : nodeprovider,
+  SimpleNode(String? path, [SimpleNodeProvider? nodeprovider]) :
+    provider = nodeprovider == null ? SimpleNodeProvider.instance! : nodeprovider,
       super(path);
 
   /// Marks a node as being removed.
@@ -773,7 +774,7 @@ class SimpleNode extends LocalNodeImpl {
       childPathPre = '$path/';
     }
 
-    m.forEach((/*String*/ key, value) {
+    m.forEach((key, value) {
       if (key.startsWith('?')) {
         if (key == '?value') {
           updateValue(value);
@@ -810,8 +811,8 @@ class SimpleNode extends LocalNodeImpl {
       rslt[str] = val;
     });
 
-    if (_lastValueUpdate != null && _lastValueUpdate.value != null) {
-      rslt['?value'] = _lastValueUpdate.value;
+    if (_lastValueUpdate != null && _lastValueUpdate?.value != null) {
+      rslt['?value'] = _lastValueUpdate?.value;
     }
 
     children.forEach((str, Node node) {
@@ -831,7 +832,7 @@ class SimpleNode extends LocalNodeImpl {
     InvokeResponse response,
     Node parentNode,
       [int maxPermission = Permission.CONFIG]) {
-    Object rslt;
+    Object? rslt;
     try {
       rslt = onInvoke(params);
     } catch (e, stack) {
@@ -843,7 +844,7 @@ class SimpleNode extends LocalNodeImpl {
       return response;
     }
 
-    var rtype = "values";
+    Object? rtype = "values";
     if (configs.containsKey(r"$result")) {
       rtype = configs[r"$result"];
     }
@@ -858,6 +859,7 @@ class SimpleNode extends LocalNodeImpl {
         rslt = [];
       }
     }
+
     if (rslt is Iterable) {
       response.updateStream(rslt.toList(), streamStatus: StreamStatus.closed);
     } else if (rslt is Map) {
@@ -877,15 +879,13 @@ class SimpleNode extends LocalNodeImpl {
         streamStatus: StreamStatus.closed
       );
     } else if (rslt is SimpleTableResult) {
-      response.updateStream(rslt.rows,
+      response.updateStream(rslt.rows!,
           columns: rslt.columns, streamStatus: StreamStatus.closed);
-    } else if (rslt is DSError) {
-      response.close(rslt);
     } else if (rslt is AsyncTableResult) {
-      (rslt as AsyncTableResult).write(response);
+      (rslt).write(response);
       response.onClose = (var response) {
         if ((rslt as AsyncTableResult).onClose != null) {
-          (rslt as AsyncTableResult).onClose(response);
+          (rslt).onClose!(response);
         }
       };
       return response;
@@ -897,14 +897,14 @@ class SimpleNode extends LocalNodeImpl {
 
       response.onClose = (var response) {
         if (r.onClose != null) {
-          r.onClose(response);
+          r.onClose!(response);
         }
       };
 
       Stream stream = rslt;
 
       if (rtype == "stream") {
-        StreamSubscription sub;
+        StreamSubscription? sub;
 
         r.onClose = (_) {
           if (sub != null) {
@@ -945,7 +945,7 @@ class SimpleNode extends LocalNodeImpl {
         return response;
       } else {
         var list = [];
-        StreamSubscription sub;
+        StreamSubscription? sub;
 
         r.onClose = (_) {
           if (sub != null) {
@@ -983,25 +983,23 @@ class SimpleNode extends LocalNodeImpl {
       r.write(response);
       return response;
     } else if (rslt is Future) {
-      var r = new AsyncTableResult();
+      AsyncTableResult? r = new AsyncTableResult();
 
       response.onClose = (var response) {
-        if (r.onClose != null) {
-          r.onClose(response);
+        if (r?.onClose != null) {
+          r?.onClose!(response);
         }
       };
 
       rslt.then((value) {
-        if (value is DSError) {
-          response.close(value);
-        } else if (value is LiveTable) {
+        if (value is LiveTable) {
           r = null;
           value.sendTo(response);
         } else if (value is Stream) {
           Stream stream = value;
-          StreamSubscription sub;
+          StreamSubscription? sub;
 
-          r.onClose = (_) {
+          r?.onClose = (_) {
             if (sub != null) {
               sub.cancel();
             }
@@ -1009,26 +1007,26 @@ class SimpleNode extends LocalNodeImpl {
 
           sub = stream.listen((v) {
             if (v is TableMetadata) {
-              r.meta = v.meta;
+              r?.meta = v.meta;
               return;
             } else if (v is TableColumns) {
-              r.columns = v.columns.map((x) => x.getData()).toList();
+              r?.columns = v.columns.map((x) => x.getData()).toList();
               return;
             }
 
             if (v is Iterable) {
-              r.update(v.toList());
+              r?.update(v.toList());
             } else if (v is Map) {
               var meta;
               if (v.containsKey("__META__")) {
                 meta = v["__META__"];
               }
-              r.update([v], StreamStatus.open, meta);
+              r?.update([v], StreamStatus.open, meta);
             } else {
               throw new Exception("Unknown Value from Stream");
             }
           }, onDone: () {
-            r.close();
+            r?.close();
           }, onError: (e, stack) {
             var error = new DSError("invokeException", msg: e.toString());
             try {
@@ -1038,12 +1036,12 @@ class SimpleNode extends LocalNodeImpl {
           }, cancelOnError: true);
         } else if (value is Table) {
           Table table = value;
-          r.columns = table.columns.map((x) => x.getData()).toList();
-          r.update(table.rows, StreamStatus.closed, table.meta);
-          r.close();
+          r?.columns = table.columns.map((x) => x.getData()).toList();
+          r?.update(table.rows, StreamStatus.closed, table.meta);
+          r?.close();
         } else {
-          r.update(value is Iterable ? value.toList() : [value]);
-          r.close();
+          r?.update(value is Iterable ? value.toList() : [value]);
+          r?.close();
         }
       }).catchError((e, stack) {
         var error = new DSError("invokeException", msg: e.toString());
@@ -1052,7 +1050,7 @@ class SimpleNode extends LocalNodeImpl {
         } catch (e) {}
         response.close(error);
       });
-      r.write(response);
+      r?.write(response);
       return response;
     } else if (rslt is LiveTable) {
       rslt.sendTo(response);
@@ -1082,7 +1080,7 @@ class SimpleNode extends LocalNodeImpl {
   }
 
   /// Gets the parent node of this node.
-  SimpleNode get parent => provider.getNode(new Path(path).parentPath);
+  SimpleNode get parent => provider.getNode(new Path(path!).parentPath) as SimpleNode;
 
   /// Callback used to accept or reject a value when it is set.
   /// Return true to reject the value, and false to accept it.
@@ -1129,28 +1127,28 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Callback to override how a child of this node is loaded.
   /// If this method returns null, the default strategy is used.
-  SimpleNode onLoadChild(String name, Map data, SimpleNodeProvider provider) {
+  SimpleNode? onLoadChild(String name, Map data, SimpleNodeProvider provider) {
     return null;
   }
 
   /// Creates a child with the given [name].
   /// If [m] is specified, the node is loaded with that map.
-  SimpleNode createChild(String name, [Map m]) {
-    var tp = new Path(path).child(name).path;
-    return provider.addNode(tp, m == null ? {} : m);
+  SimpleNode createChild(String name, [Map? m]) {
+    var tp = new Path(path!).child(name).path;
+    return provider.addNode(tp, m == null ? {} : m) as SimpleNode;
   }
 
   /// Gets the name of this node.
   /// This is the last component of this node's path.
-  String get name => new Path(path).name;
+  String get name => new Path(path!).name;
 
   /// Gets the current display name of this node.
   /// This is the $name config. If it does not exist, then null is returned.
-  String get displayName => configs[r"$name"];
+  String? get displayName => configs[r"$name"] as String?;
 
   /// Sets the display name of this node.
   /// This is the $name config. If this is set to null, then the display name is removed.
-  set displayName(String value) {
+  set displayName(String? value) {
     if (value == null) {
       configs.remove(r"$name");
     } else {
@@ -1162,11 +1160,11 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Gets the current value type of this node.
   /// This is the $type config. If it does not exist, then null is returned.
-  String get type => configs[r"$type"];
+  String get type => configs[r"$type"] as String;
 
   /// Sets the value type of this node.
   /// This is the $type config. If this is set to null, then the value type is removed.
-  set type(String value) {
+  set type(String? value) {
     if (value == null) {
       configs.remove(r"$type");
     } else {
@@ -1178,7 +1176,7 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Gets the current value of the $writable config.
   /// If it does not exist, then null is returned.
-  String get writable => configs[r"$writable"];
+  String? get writable => configs[r"$writable"] as String?;
 
   /// Sets the value of the writable config.
   /// If this is set to null, then the writable config is removed.
@@ -1210,19 +1208,19 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Remove this node from it's parent.
   void remove() {
-    provider.removeNode(path);
+    provider.removeNode(path!);
   }
 
   /// Add this node to the given node.
   /// If [input] is a String, it is interpreted as a node path and resolved to a node.
   /// If [input] is a [SimpleNode], it will be attached to that.
-  void attach(input, {String name}) {
+  void attach(input, {String? name}) {
     if (name == null) {
       name = this.name;
     }
 
     if (input is String) {
-      provider.getNode(input).addChild(name, this);
+      provider.getNode(input)?.addChild(name, this);
     } else if (input is SimpleNode) {
       input.addChild(name, this);
     } else {
@@ -1240,16 +1238,16 @@ class SimpleNode extends LocalNodeImpl {
   /// If [input] is a String, a child named with the specified [input] is removed.
   /// If [input] is a Node, the child that owns that node is removed.
   /// The name of the removed node is returned.
-  String removeChild(dynamic input) {
-    String name = super.removeChild(input);
+  String? removeChild(dynamic input) {
+    String? name = super.removeChild(input);
     if (name != null) {
       updateList(name);
     }
     return name;
   }
 
-  Response setAttribute(
-      String name, Object value, Responder responder, Response response) {
+  Response? setAttribute(
+      String name, Object value, Responder responder, Response? response) {
     if (onSetAttribute(name, value) != true) {
       // when callback returns true, value is rejected
       super.setAttribute(name, value, responder, response);
@@ -1257,8 +1255,8 @@ class SimpleNode extends LocalNodeImpl {
     return response;
   }
 
-  Response setConfig(
-      String name, Object value, Responder responder, Response response) {
+  Response? setConfig(
+      String name, Object value, Responder responder, Response? response) {
     if (onSetConfig(name, value) != true) {
       // when callback returns true, value is rejected
       super.setConfig(name, value, responder, response);
@@ -1266,7 +1264,7 @@ class SimpleNode extends LocalNodeImpl {
     return response;
   }
 
-  Response setValue(Object value, Responder responder, Response response,
+  Response? setValue(Object value, Responder? responder, Response? response,
       [int maxPermission = Permission.CONFIG]) {
     if (onSetValue(value) !=  true)
       // when callback returns true, value is rejected
@@ -1284,15 +1282,10 @@ class SimpleNode extends LocalNodeImpl {
         attributes[name] = value;
       }
     } else {
-      if (value == null) {
-          removeChild(name);
-        return;
-      } else if (value is Map) {
-          createChild(name, value);
-        return;
-      } else {
+      if (value is Node) {
         addChild(name, value);
-        return;// value;
+      } else {
+        throw ArgumentError("Invalid value type. Expected Node.");
       }
     }
   }

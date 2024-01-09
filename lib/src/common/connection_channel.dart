@@ -5,21 +5,21 @@ class PassiveChannel implements ConnectionChannel {
       new StreamController<List>();
   Stream<List> get onReceive => onReceiveController.stream;
 
-  List<Function> _processors = [];
+  // List<Function> _processors = [];
 
-  final Connection conn;
+  final Connection? conn;
 
   PassiveChannel(this.conn, [this.connected = false]) {}
 
-  ConnectionHandler handler;
+  ConnectionHandler? handler;
   void sendWhenReady(ConnectionHandler handler) {
     this.handler = handler;
-    conn.requireSend();
+    conn?.requireSend();
   }
 
-  ProcessorResult getSendingData(int currentTime, int waitingAckId){
+  ProcessorResult? getSendingData(int currentTime, int waitingAckId){
     if (handler != null) {
-      ProcessorResult rslt = handler.getSendingData(currentTime, waitingAckId);
+      ProcessorResult rslt = handler!.getSendingData(currentTime, waitingAckId);
       //handler = null;
       return rslt;
     }

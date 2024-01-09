@@ -3,9 +3,9 @@ import "dart:async";
 import "package:dslink/dslink.dart";
 import "package:dslink/src/storage/simple_storage.dart";
 
-LinkProvider link;
-int lastNum;
-SimpleNode valueNode;
+late LinkProvider link;
+late int lastNum;
+LocalNode? valueNode;
 
 
 main(List<String> args) async {
@@ -30,13 +30,13 @@ main(List<String> args) async {
     return;
   }
 
-  link.link.responder.initStorage(storage, storedNodes);
+  link.link?.responder?.initStorage(storage, storedNodes);
 
   valueNode = link.getNode('/node');
 
   new Timer.periodic(new Duration(seconds: 1), (t) {
     DateTime d = new DateTime.now();
-    valueNode.updateValue('${d.hour}:${d.minute}:${d.second}');
+    valueNode?.updateValue('${d.hour}:${d.minute}:${d.second}');
   });
 
   link.connect();

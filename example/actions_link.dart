@@ -1,10 +1,10 @@
 import "package:dslink/dslink.dart";
 
-LinkProvider link;
+late LinkProvider link;
 
 main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
-  link = new LinkProvider(args, "Actions-", defaultNodes: {
+  link = new LinkProvider(['--broker', 'http://localhost:8080/conn',], "Actions-", defaultNodes: {
     "message": {
       r"$name": "Message", // The pretty name of this node.
       r"$type": "string", // The type of the node is a string.
@@ -21,7 +21,8 @@ main(List<String> args) async {
     }
   }, profiles: {
     "reset": (String path) => new ResetNode(path) // The reset profile should use this function to create the node object.
-  }, encodePrettyJson: true);
+  }, encodePrettyJson: true,
+  defaultLogLevel: "DEBUG");
 
   // Connect to the broker.
   link.connect();
@@ -34,7 +35,7 @@ main(List<String> args) async {
 
 // A simple node that resets the message value.
 class ResetNode extends SimpleNode {
-  ResetNode(String path, [SimpleNodeProvider provider]) : super(path, provider) {
+  ResetNode(String path, [SimpleNodeProvider? provider]) : super(path, provider) {
     print("========= CREATE RESET =========");
   }
 

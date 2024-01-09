@@ -5,12 +5,12 @@ class BrokerQueryManager {
 
   BrokerQueryManager(this.provider) {}
 
-  BrokerQueryCommand parseList(List str) {
+  BrokerQueryCommand? parseList(List str) {
     // TODO: implement this
     return null;
   }
 
-  BrokerQueryCommand parseDql(String str) {
+  BrokerQueryCommand? parseDql(String str) {
     if (str.startsWith('[')) {
       return parseList(DsJson.decode(str));
     }
@@ -21,12 +21,12 @@ class BrokerQueryManager {
         commands[0].startsWith('list /data') &&
         commands[1].startsWith('subscribe')) {
       String path = commands[0].substring(5);
-      BrokerQueryCommand listcommand = new QueryCommandList(path, this);
+      BrokerQueryCommand? listcommand = new QueryCommandList(path, this);
       listcommand = _getOrAddCommand(listcommand);
       if (listcommand == null) {
         return null;
       }
-      BrokerQueryCommand subcommand = new QueryCommandSubscribe(this);
+      BrokerQueryCommand? subcommand = new QueryCommandSubscribe(this);
       subcommand.base = listcommand;
       subcommand = _getOrAddCommand(subcommand);
       return subcommand;
@@ -36,7 +36,7 @@ class BrokerQueryManager {
 
   Map<String, BrokerQueryCommand> _dict = new Map<String, BrokerQueryCommand>();
 
-  BrokerQueryCommand _getOrAddCommand(BrokerQueryCommand command) {
+  BrokerQueryCommand? _getOrAddCommand(BrokerQueryCommand command) {
     String key = command.getQueryId();
     if (_dict.containsKey(key)) {
       return _dict[key];
@@ -50,7 +50,7 @@ class BrokerQueryManager {
 
     // add to base command's next
     if (command.base != null) {
-      command.base.addNext(command);
+      command.base?.addNext(command);
     } else if (command is QueryCommandList) {
       // all list command start from root node
       command.updateFromBase([

@@ -6,7 +6,7 @@ class RequesterListUpdate extends RequesterUpdate {
   List<String> changes;
   RemoteNode node;
 
-  RequesterListUpdate(this.node, this.changes, String streamStatus)
+  RequesterListUpdate(this.node, this.changes, String? streamStatus)
       : super(streamStatus);
 }
 
@@ -14,12 +14,12 @@ class ListDefListener {
   final RemoteNode node;
   final Requester requester;
 
-  StreamSubscription listener;
+  late StreamSubscription listener;
 
   bool ready = false;
 
   ListDefListener(this.node, this.requester,
-      void callback(RequesterListUpdate)) {
+      void callback(RequesterListUpdate u)) {
     listener = requester.list(node.remotePath).listen((RequesterListUpdate update) {
       ready = update.streamStatus != StreamStatus.initialize;
       callback(update);
@@ -34,10 +34,10 @@ class ListDefListener {
 class ListController implements RequestUpdater, ConnectionProcessor {
   final RemoteNode node;
   final Requester requester;
-  BroadcastStreamController<RequesterListUpdate> _controller;
+  late BroadcastStreamController<RequesterListUpdate> _controller;
 
   Stream<RequesterListUpdate> get stream => _controller.stream;
-  Request request;
+  Request? request;
 
   ListController(this.node, this.requester) {
     _controller = new BroadcastStreamController<RequesterListUpdate>(
@@ -45,16 +45,16 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   }
 
   bool get initialized {
-    return request != null && request.streamStatus != StreamStatus.initialize;
+    return request != null && request!.streamStatus != StreamStatus.initialize;
   }
 
-  String disconnectTs;
+  late String? disconnectTs;
 
   void onDisconnect() {
     disconnectTs = ValueUpdate.getTs();
-    node.configs[r'$disconnectedTs'] = disconnectTs;
+    node.configs[r'$disconnectedTs'] = disconnectTs!;
     _controller.add(new RequesterListUpdate(
-        node, [r'$disconnectedTs'], request.streamStatus));
+        node, [r'$disconnectedTs'], request!.streamStatus));
   }
 
   void onReconnect() {
@@ -67,96 +67,90 @@ class ListController implements RequestUpdater, ConnectionProcessor {
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
 
-  void onUpdate(String streamStatus, List updates, List columns, Map meta,
-      DSError error) {
+  void onUpdate(String? streamStatus, List? updates, List? columns, Map? meta,
+      DSError? error) {
     bool reseted = false;
-    if (updates == null) {
-      if (error != null) {
-        // pass error to the requester
-        updates = [[r'$disconnectedTs', (new DateTime.now()).toIso8601String()]];
-      } else {
-        updates = [];
-      }
-    }
-
-    for (Object update in updates) {
-      String name;
-      Object value;
-      bool removed = false;
-      if (update is Map) {
-        if (update['name'] is String) {
-          name = update['name'];
-        } else {
-          continue; // invalid response
-        }
-        if (update['change'] == 'remove') {
-          removed = true;
-        } else {
-          value = update['value'];
-        }
-      } else if (update is List) {
-        if (update.length > 0 && update[0] is String) {
-          name = update[0];
-          if (update.length > 1) {
-            value = update[1];
+    // TODO implement error handling
+    if (updates != null) {
+      for (Object update in updates) {
+        String name;
+        late Object value;
+        bool removed = false;
+        if (update is Map) {
+          if (update['name'] is String) {
+            name = update['name'];
+          } else {
+            continue; // invalid response
+          }
+          if (update['change'] == 'remove') {
+            removed = true;
+          } else {
+            value = update['value'];
+          }
+        } else if (update is List) {
+          if (update.length > 0 && update[0] is String) {
+            name = update[0];
+            if (update.length > 1) {
+              value = update[1];
+            }
+          } else {
+            continue; // invalid response
           }
         } else {
           continue; // invalid response
         }
-      } else {
-        continue; // invalid response
-      }
-      if (name.startsWith(r'$')) {
-        if (!reseted &&
-            (name == r'$is' ||
-                name == r'$base' ||
-                (name == r'$disconnectedTs' && value is String))) {
-          reseted = true;
-          node.resetNodeCache();
-        }
-        if (name == r'$is') {
-          loadProfile(value);
-        }
-        changes.add(name);
-        if (removed) {
-          node.configs.remove(name);
+        if (name.startsWith(r'$')) {
+          if (!reseted &&
+              (name == r'$is' ||
+                  name == r'$base' ||
+                  (name == r'$disconnectedTs' && value is String))) {
+            reseted = true;
+            node.resetNodeCache();
+          }
+          if (name == r'$is') {
+            loadProfile(value as String);
+          }
+          changes.add(name);
+          if (removed) {
+            node.configs.remove(name);
+          } else {
+            node.configs[name] = value;
+          }
+        } else if (name.startsWith('@')) {
+          changes.add(name);
+          if (removed) {
+            node.attributes.remove(name);
+          } else {
+            node.attributes[name] = value;
+          }
         } else {
-          node.configs[name] = value;
-        }
-      } else if (name.startsWith('@')) {
-        changes.add(name);
-        if (removed) {
-          node.attributes.remove(name);
-        } else {
-          node.attributes[name] = value;
-        }
-      } else {
-        changes.add(name);
-        if (removed) {
-          node.children.remove(name);
-        } else if (value is Map) {
-          // TODO, also wait for children $is
-          node.children[name] =
-              requester.nodeCache.updateRemoteChildNode(node, name, value);
+          changes.add(name);
+          if (removed) {
+            node.children.remove(name);
+          } else if (value is Map) {
+            // TODO, also wait for children $is
+            node.children[name] =
+                requester.nodeCache.updateRemoteChildNode(node, name, value)!;
+          }
         }
       }
+      if (request?.streamStatus != StreamStatus.initialize) {
+        node.listed = true;
+      }
+      if (_pendingRemoveDef) {
+        _checkRemoveDef();
+      }
+      onProfileUpdated();
     }
-    if (request.streamStatus != StreamStatus.initialize) {
-      node.listed = true;
-    }
-    if (_pendingRemoveDef) {
-      _checkRemoveDef();
-    }
-    onProfileUpdated();
   }
 
-  ListDefListener _profileLoader;
+  ListDefListener? _profileLoader;
 
   void loadProfile(String defName) {
     _ready = true;
     String defPath = defName;
     if (!defPath.startsWith('/')) {
-      Object base = node.configs[r'$base'];
+      Object? base = node.configs[r'$base'];
       if (base is String) {
         defPath = '$base/defs/profile/$defPath';
       } else {
@@ -174,7 +168,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
       _profileLoader =
-      new ListDefListener(node.profile, requester, _onProfileUpdate);
+      new ListDefListener(node.profile as RemoteNode, requester, _onProfileUpdate);
     }
   }
 
@@ -184,15 +178,15 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     r'$settings'
   ];
 
-  void _onProfileUpdate(/*RequesterListUpdate*/ update) {
+  void _onProfileUpdate(RequesterListUpdate update) {
     if (_profileLoader == null) {
       logger.finest('warning, unexpected state of profile loading');
       return;
     }
-    _profileLoader.cancel();
+    _profileLoader?.cancel();
     _profileLoader = null;
     changes.addAll(
-        (update as RequesterListUpdate).changes.where((str) => !_ignoreProfileProps.contains(str)));
+        update.changes.where((str) => !_ignoreProfileProps.contains(str)));
     _ready = true;
     onProfileUpdated();
   }
@@ -201,12 +195,12 @@ class ListController implements RequestUpdater, ConnectionProcessor {
 
   void onProfileUpdated() {
     if (_ready) {
-      if (request.streamStatus != StreamStatus.initialize) {
+      if (request?.streamStatus != StreamStatus.initialize) {
         _controller.add(new RequesterListUpdate(
-            node, changes.toList(), request.streamStatus));
+            node, changes.toList(), request!.streamStatus));
         changes.clear();
       }
-      if (request.streamStatus == StreamStatus.closed) {
+      if (request!.streamStatus == StreamStatus.closed) {
         _controller.close();
       }
     }
@@ -252,7 +246,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
         RequesterListUpdate update = new RequesterListUpdate(
           node,
           changes,
-          request.streamStatus
+          request!.streamStatus
         );
         callback(update);
       });
@@ -266,11 +260,11 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   void _destroy() {
     waitToSend = false;
     if (_profileLoader != null) {
-      _profileLoader.cancel();
+      _profileLoader?.cancel();
       _profileLoader = null;
     }
     if (request != null) {
-      requester.closeRequest(request);
+      requester.closeRequest(request!);
       request = null;
     }
 

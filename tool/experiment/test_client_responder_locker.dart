@@ -1,10 +1,9 @@
 import 'package:dslink/client.dart';
-import 'package:dslink/src/crypto/pk.dart';
 import 'package:dslink/responder.dart';
 import 'dart:async';
 import 'dart:math';
 
-SimpleNodeProvider nodeProvider;
+late SimpleNodeProvider nodeProvider;
 
 class OpenLockerAction extends SimpleNode {
   OpenLockerAction(String path) : super(path);

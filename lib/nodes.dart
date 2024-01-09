@@ -7,28 +7,26 @@ import "dart:convert";
 import "package:dslink/common.dart";
 import "package:dslink/responder.dart";
 
-import "package:json_diff/json_diff.dart" as JsonDiff;
+import 'package:json_diff/json_diff.dart';
+
 
 import "package:dslink/utils.dart" show Producer;
-
-//FIXME:Dart2.0
-//import 'package:dslink/convert_consts.dart';
 
 part "src/nodes/json.dart";
 
 /// An Action for Deleting a Given Node
 class DeleteActionNode extends SimpleNode {
   final String targetPath;
-  final Function onDelete;
+  final Function? onDelete;
 
   /// When this action is invoked, [provider.removeNode] will be called with [targetPath].
-  DeleteActionNode(String path, MutableNodeProvider provider, this.targetPath, {
+  DeleteActionNode(String path, MutableNodeProvider? provider, this.targetPath, {
     this.onDelete
-  }) : super(path, provider);
+  }) : super(path, provider as SimpleNodeProvider?);
 
   /// When this action is invoked, [provider.removeNode] will be called with the parent of this action.
   DeleteActionNode.forParent(String path, MutableNodeProvider provider, {
-    Function onDelete
+    Function? onDelete
   }) : this(path, provider, new Path(path).parentPath, onDelete: onDelete);
 
   /// Handles an action invocation and deletes the target path.
@@ -36,7 +34,7 @@ class DeleteActionNode extends SimpleNode {
   Object onInvoke(Map<String, dynamic> params) {
     provider.removeNode(targetPath);
     if (onDelete != null) {
-      onDelete();
+      onDelete!();
     }
     return {};
   }
@@ -51,7 +49,7 @@ class SimpleActionNode extends SimpleNode {
 
   /// When this action is invoked, the given [function] will be called with the parameters
   /// and then the result of the function will be returned.
-  SimpleActionNode(String path, this.function, [SimpleNodeProvider provider]) : super(path, provider);
+  SimpleActionNode(String path, this.function, [SimpleNodeProvider? provider]) : super(path, provider);
 
   @override
   Object onInvoke(Map<String, dynamic> params) => function(params);
@@ -64,7 +62,7 @@ class SingleNodeProvider extends NodeProvider {
   SingleNodeProvider(this.node);
 
   @override
-  LocalNode getNode(String path) => node;
+  LocalNode getNode(String? path) => node;
   IPermissionManager permissions = new DummyPermissionManager();
 
   Responder createResponder(String dsId, String sessionId) {
@@ -82,14 +80,14 @@ class UpgradableNode extends SimpleNode {
   final int latestVersion;
   final NodeUpgradeFunction upgrader;
 
-  UpgradableNode(String path, this.latestVersion, this.upgrader, [SimpleNodeProvider provider]) : super(path, provider);
+  UpgradableNode(String path, this.latestVersion, this.upgrader, [SimpleNodeProvider? provider]) : super(path, provider);
 
   @override
   void onCreated() {
     if (configs.containsKey(r"$version")) {
       var version = configs[r"$version"];
       if (version != latestVersion) {
-        upgrader(version);
+        upgrader(version as int);
         configs[r"$version"] = latestVersion;
       }
     } else {
@@ -100,11 +98,11 @@ class UpgradableNode extends SimpleNode {
 
 /// A Lazy Value Node
 class LazyValueNode extends SimpleNode {
-  SimpleCallback onValueSubscribe;
-  SimpleCallback onValueUnsubscribe;
+  SimpleCallback? onValueSubscribe;
+  SimpleCallback? onValueUnsubscribe;
 
   LazyValueNode(String path, {
-    SimpleNodeProvider provider,
+    SimpleNodeProvider? provider,
     this.onValueSubscribe,
     this.onValueUnsubscribe
   }) : super(path, provider);
@@ -124,9 +122,9 @@ class LazyValueNode extends SimpleNode {
   checkSubscriptionNeeded() {
     if (subscriptionCount <= 0) {
       subscriptionCount = 0;
-      onValueUnsubscribe();
+      onValueUnsubscribe!();
     } else {
-      onValueSubscribe();
+      onValueSubscribe!();
     }
   }
 
@@ -146,14 +144,14 @@ typedef SimpleNode LoadChildCallback(
 typedef Future ResolveNodeHandler(CallbackNode node);
 
 class ResolvingNodeProvider extends SimpleNodeProvider {
-  ResolveNodeHandler handler;
+  ResolveNodeHandler? handler;
 
-  ResolvingNodeProvider([Map<String, dynamic> defaultNodes, Map<String, NodeFactory> profiles]) :
+  ResolvingNodeProvider([Map<String, dynamic>? defaultNodes, Map<String, NodeFactory>? profiles]) :
         super(defaultNodes, profiles);
 
   @override
-  LocalNode getNode(String path, {Completer<CallbackNode> onLoaded, bool forceHandle: false}) {
-    LocalNode node = super.getNode(path);
+  LocalNode? getNode(String? path, {Completer<CallbackNode?>? onLoaded, bool forceHandle = false}) {
+    LocalNode? node = super.getNode(path);
     if (path != "/" && node != null && !forceHandle) {
       if (onLoaded != null && !onLoaded.isCompleted) {
         onLoaded.complete(node as CallbackNode);
@@ -163,7 +161,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
 
     if (handler == null) {
       if (onLoaded != null && !onLoaded.isCompleted) {
-        onLoaded.complete(null);
+        onLoaded.complete();
       }
       return null;
     }
@@ -173,7 +171,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
     n.onLoadedCompleter = c;
     bool isListReady = false;
     n.isListReady = () => isListReady;
-    handler(n).then((m) {
+    handler!(n).then((m) {
       if (!m) {
         isListReady = true;
         String ts = ValueUpdate.getTs();
@@ -184,7 +182,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
           onLoaded.complete(n);
         }
 
-        if (c != null && !c.isCompleted) {
+        if (!c.isCompleted) {
           c.complete();
         }
 
@@ -196,7 +194,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
         onLoaded.complete(n);
       }
 
-      if (c != null && !c.isCompleted) {
+      if (!c.isCompleted) {
         c.complete();
       }
     }).catchError((e, stack) {
@@ -205,7 +203,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
       n.getDisconnectedStatus = () => ts;
       n.listChangeController.add(r"$is");
 
-      if (c != null && !c.isCompleted) {
+      if (!c.isCompleted) {
         c.completeError(e, stack);
       }
     });
@@ -213,13 +211,13 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
   }
 
   @override
-  SimpleNode addNode(String path, Map m) {
+  SimpleNode? addNode(String path, Map m) {
     if (path == '/' || !path.startsWith('/')) return null;
 
     Path p = new Path(path);
-    SimpleNode pnode = getNode(p.parentPath);
+    SimpleNode? pnode = getNode(p.parentPath) as SimpleNode?;
 
-    SimpleNode node;
+    SimpleNode? node;
 
     if (pnode != null) {
       node = pnode.onLoadChild(p.name, m, this);
@@ -228,19 +226,19 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
     if (node == null) {
       String profile = m[r'$is'];
       if (profileMap.containsKey(profile)) {
-        node = profileMap[profile](path);
+        node = profileMap[profile]!(path) as SimpleNode?;
       } else {
         node = new CallbackNode(path);
       }
     }
 
-    nodes[path] = node;
-    node.load(m);
+    nodes[path] = node as LocalNode;
+    node?.load(m);
 
-    node.onCreated();
+    node?.onCreated();
 
     if (pnode != null) {
-      pnode.children[p.name] = node;
+      pnode.children[p.name] = node!;
       pnode.onChildAdded(p.name, node);
       pnode.updateList(p.name);
     }
@@ -249,37 +247,37 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
   }
 
   @override
-  LocalNode getOrCreateNode(String path, [bool addToTree = true, bool init = true]) => getNode(path);
+  LocalNode getOrCreateNode(String path, [bool addToTree = true, bool init = true]) => getNode(path)!;
 }
 
 /// A Simple Node which delegates all basic methods to given functions.
 class CallbackNode extends SimpleNode implements WaitForMe {
-  SimpleCallback onCreatedCallback;
-  SimpleCallback onRemovingCallback;
-  ChildChangedCallback onChildAddedCallback;
-  ChildChangedCallback onChildRemovedCallback;
-  ActionFunction onActionInvoke;
-  LoadChildCallback onLoadChildCallback;
-  SimpleCallback onSubscribeCallback;
-  SimpleCallback onUnsubscribeCallback;
-  Producer<bool> isListReady;
-  Producer<String> getDisconnectedStatus;
-  SimpleCallback onAllListCancelCallback;
-  SimpleCallback onListStartListen;
-  Completer onLoadedCompleter;
-  ValueCallback<bool> onValueSetCallback;
+  SimpleCallback? onCreatedCallback;
+  SimpleCallback? onRemovingCallback;
+  ChildChangedCallback? onChildAddedCallback;
+  ChildChangedCallback? onChildRemovedCallback;
+  ActionFunction? onActionInvoke;
+  LoadChildCallback? onLoadChildCallback;
+  SimpleCallback? onSubscribeCallback;
+  SimpleCallback? onUnsubscribeCallback;
+  Producer<bool>? isListReady;
+  Producer<String>? getDisconnectedStatus;
+  SimpleCallback? onAllListCancelCallback;
+  SimpleCallback? onListStartListen;
+  Completer? onLoadedCompleter;
+  ValueUpdateCallback<bool>? onValueSetCallback;
 
-  CallbackNode(String path,
-      {SimpleNodeProvider provider,
+  CallbackNode(String? path,
+      {SimpleNodeProvider? provider,
         this.onActionInvoke,
-      ChildChangedCallback onChildAdded,
-      ChildChangedCallback onChildRemoved,
-      SimpleCallback onCreated,
-      SimpleCallback onRemoving,
-      LoadChildCallback onLoadChild,
-      SimpleCallback onSubscribe,
-      ValueCallback<bool> onValueSet,
-      SimpleCallback onUnsubscribe})
+      ChildChangedCallback? onChildAdded,
+      ChildChangedCallback? onChildRemoved,
+      SimpleCallback? onCreated,
+      SimpleCallback? onRemoving,
+      LoadChildCallback? onLoadChild,
+      SimpleCallback? onSubscribe,
+      ValueCallback<bool>? onValueSet,
+      SimpleCallback? onUnsubscribe})
       : onChildAddedCallback = onChildAdded,
         onChildRemovedCallback = onChildRemoved,
         onCreatedCallback = onCreated,
@@ -293,7 +291,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   @override
   onInvoke(Map<String, dynamic> params) {
     if (onActionInvoke != null) {
-      return onActionInvoke(params);
+      return onActionInvoke!(params);
     } else {
       return super.onInvoke(params);
     }
@@ -302,35 +300,35 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   @override
   void onCreated() {
     if (onCreatedCallback != null) {
-      onCreatedCallback();
+      onCreatedCallback!();
     }
   }
 
   @override
   void onRemoving() {
     if (onRemovingCallback != null) {
-      onRemovingCallback();
+      onRemovingCallback!();
     }
   }
 
   @override
   void onChildAdded(String name, Node node) {
     if (onChildAddedCallback != null) {
-      onChildAddedCallback(name, node);
+      onChildAddedCallback!(name, node);
     }
   }
 
   @override
   void onChildRemoved(String name, Node node) {
     if (onChildRemovedCallback != null) {
-      onChildRemovedCallback(name, node);
+      onChildRemovedCallback!(name, node);
     }
   }
 
   @override
-  SimpleNode onLoadChild(String name, Map data, SimpleNodeProvider provider) {
+  SimpleNode? onLoadChild(String name, Map data, SimpleNodeProvider provider) {
     if (onLoadChildCallback != null) {
-      return onLoadChildCallback(name, data, provider);
+      return onLoadChildCallback!(name, data, provider);
     } else {
       return super.onLoadChild(name, data, provider);
     }
@@ -339,14 +337,14 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   @override
   onSubscribe() {
     if (onSubscribeCallback != null) {
-      return onSubscribeCallback();
+      return onSubscribeCallback!();
     }
   }
 
   @override
   Future get onLoaded {
     if (onLoadedCompleter != null) {
-      return onLoadedCompleter.future;
+      return onLoadedCompleter!.future;
     } else {
       return new Future.sync(() => null);
     }
@@ -355,23 +353,23 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   @override
   onUnsubscribe() {
     if (onUnsubscribeCallback != null) {
-      return onUnsubscribeCallback();
+      return onUnsubscribeCallback!();
     }
   }
 
   @override
   bool get listReady {
     if (isListReady != null) {
-      return isListReady();
+      return isListReady!();
     } else {
       return true;
     }
   }
 
   @override
-  String get disconnected {
+  String? get disconnected {
     if (getDisconnectedStatus != null) {
-      return getDisconnectedStatus();
+      return getDisconnectedStatus!();
     } else {
       return null;
     }
@@ -380,7 +378,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   @override
   onStartListListen() {
     if (onListStartListen != null) {
-      onListStartListen();
+      onListStartListen!();
     }
     super.onStartListListen();
   }
@@ -388,7 +386,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   @override
   onAllListCancel() {
     if (onAllListCancelCallback != null) {
-      onAllListCancelCallback();
+      onAllListCancelCallback!();
     }
     super.onAllListCancel();
   }
@@ -396,7 +394,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   @override
   onSetValue(value) {
     if (onValueSetCallback != null) {
-      return onValueSetCallback(value);
+      return onValueSetCallback!(value as ValueUpdate);
     }
     return super.onSetValue(value);
   }
@@ -466,7 +464,7 @@ class NodeNamer {
   static String decodeName(String input) {
     var out = new StringBuffer();
     cu(String n) => const Utf8Encoder().convert(n)[0];
-    mainLoop: for (var i = 0; i < input.length; i++) {
+    for (var i = 0; i < input.length; i++) {
       String char = input[i];
 
       if (char == "%") {

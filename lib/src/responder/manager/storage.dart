@@ -36,7 +36,7 @@ abstract class ISubscriptionResponderStorage {
 abstract class ISubscriptionNodeStorage {
   final String path;
   final ISubscriptionResponderStorage storage;
-  int qos;
+  int? qos;
   ISubscriptionNodeStorage(this.path, this.storage);
 
   /// add data to List of values

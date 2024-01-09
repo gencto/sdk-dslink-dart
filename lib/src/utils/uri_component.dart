@@ -7,8 +7,8 @@ class UriComponentDecoder {
   static const int _PLUS = 0x2B;
 
   static String decode(String text) {
-    List<int> codes = new List<int>();
-    List<int> bytes = new List<int>();
+    List<int> codes = [];
+    List<int> bytes = [];
     int len = text.length;
     for (int i = 0; i < len; i++) {
       var codeUnit = text.codeUnitAt(i);

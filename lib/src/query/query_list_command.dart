@@ -6,19 +6,19 @@ class _ListNodeMatch {
   static const int MATCHPOST = 3;
   static const int NOMATCHPOST = 2;
 
-  String prefix;
-  String postfix;
+  String? prefix;
+  String? postfix;
 
   /// true for * and false for ?
   bool multiple = false;
   bool invalid = false;
-  String body;
+  String? body;
   _ListNodeMatch(String str) {
     if (str == '') {
       // only valid for root node
       return;
     }
-    List strs;
+    List? strs;
     if (str.contains('?')) {
       strs = str.split('?');
     } else if (str.contains('*')) {
@@ -47,17 +47,17 @@ class _ListNodeMatch {
         return NOMATCH;
       }
     } else {
-      if (checkPre && prefix != null && !str.startsWith(prefix)) {
+      if (checkPre && prefix != null && !str.startsWith(prefix!)) {
         return NOMATCH;
       }
       if (multiple) {
-        if (postfix == null || str.endsWith(postfix)) {
+        if (postfix == null || str.endsWith(postfix!)) {
           return MATCHPOST;
         } else {
           return NOMATCHPOST;
         }
       } else {
-        if (postfix != null && !str.startsWith(postfix)) {
+        if (postfix != null && !str.startsWith(postfix!)) {
           return NOMATCH;
         }
         return MATCHED;
@@ -74,7 +74,7 @@ class _ListingNode {
   Set<int> matchedPos = new Set<int>();
   LocalNode node;
 
-  StreamSubscription listener;
+  StreamSubscription? listener;
 
   _ListingNode(this.command, this.node, this.parsedpath) {}
 
@@ -114,7 +114,7 @@ class _ListingNode {
     if (str.startsWith('@') || str.startsWith(r'$')) {
       return;
     }
-    LocalNode child = node.children[str];
+    LocalNode? child = node.children[str] as LocalNode?;
     if (child == null) {
       deleteChild(str);
     } else {
@@ -132,10 +132,10 @@ class _ListingNode {
     bool checkpre = pos > 0;
     int match = parsedpath[abspos].match(name, checkpre);
     if (match > 0) {
-      _ListingNode childListing = command._dict[child.path];
+      _ListingNode? childListing = command._dict[child.path];
       if (childListing == null) {
         childListing = new _ListingNode(command, child, parsedpath);
-        command._dict[child.path] = childListing;
+        command._dict[child.path!] = childListing;
       }
       if (match == _ListNodeMatch.MATCHED) {
         childListing.addMatchPos(abspos + 1);
@@ -150,7 +150,7 @@ class _ListingNode {
 
   void deleteChild(String name) {
     String path = '${node.path}/$name';
-    _ListingNode childListing = command._dict[path];
+    _ListingNode? childListing = command._dict[path];
     if (childListing != null) {
       childListing.selfMatch = false;
       childListing.destroy();
@@ -160,14 +160,14 @@ class _ListingNode {
 
   void destroy() {
     if (listener != null) {
-      listener.cancel();
+      listener?.cancel();
     }
   }
 }
 
 class QueryCommandList extends BrokerQueryCommand {
-  List<String> rawpath;
-  List<_ListNodeMatch> parsedpath;
+  late List<String> rawpath;
+  late List<_ListNodeMatch> parsedpath;
   QueryCommandList(Object path, BrokerQueryManager manager) : super(manager) {
     if (path is String) {
       rawpath = path.split('/');
@@ -176,7 +176,7 @@ class QueryCommandList extends BrokerQueryCommand {
     }
   }
   void init() {
-    parsedpath = new List<_ListNodeMatch>(rawpath.length);
+    List<_ListNodeMatch> parsedpath = List<_ListNodeMatch>.filled(rawpath.length, _ListNodeMatch(''));
     for (int i = 0; i < rawpath.length; ++i) {
       parsedpath[i] = new _ListNodeMatch(rawpath[i]);
     }
@@ -184,9 +184,6 @@ class QueryCommandList extends BrokerQueryCommand {
 
   Map<String, _ListingNode> _dict = new Map<String, _ListingNode>();
 
-  Set<String> _changes = new Set<String>();
-
-  bool _pending = false;
   void updateRow(List row) {
     for (var next in nexts) {
       next.updateFromBase([row]);
@@ -213,7 +210,7 @@ class QueryCommandList extends BrokerQueryCommand {
             print('not implemented');
           } else {
             _ListingNode listing = new _ListingNode(this, node, parsedpath);
-            _dict[node.path] = listing;
+            _dict[node.path!] = listing;
             listing.addMatchPos(1);
           }
         } else if (data[1] == '-') {

@@ -3,7 +3,7 @@ part of dslink.responder;
 class Response implements ConnectionProcessor {
   final Responder responder;
   final int rid;
-  String type;
+  String? type;
   String _sentStreamStatus = StreamStatus.initialize;
 
   String get sentStreamStatus => _sentStreamStatus;
@@ -11,7 +11,7 @@ class Response implements ConnectionProcessor {
   Response(this.responder, this.rid, [this.type = null]);
 
   /// close the request from responder side and also notify the requester
-  void close([DSError err = null]) {
+  void close([DSError? err = null]) {
     _sentStreamStatus = StreamStatus.closed;
     responder.closeResponse(rid, error: err, response: this);
   }
@@ -37,7 +37,7 @@ class Response implements ConnectionProcessor {
   }
 
   /// for the broker trace action
-  ResponseTrace getTraceData([String change = '+']) {
+  ResponseTrace? getTraceData([String change = '+']) {
     return null;
   }
 }

@@ -1,19 +1,18 @@
 part of dslink.utils;
 
 class BroadcastStreamController<T> implements StreamController<T> {
-  StreamController<T> _controller;
-  CachedStreamWrapper<T> _stream;
+  late StreamController<T> _controller;
+  late CachedStreamWrapper<T> _stream;
   Stream<T> get stream => _stream;
 
-  Function onStartListen;
-  Function onAllCancel;
+  Function? onStartListen;
+  Function? onAllCancel;
 
-  BroadcastStreamController([
-    void onStartListen(),
-    void onAllCancel(),
-    void onListen(callback(T value)),
-    bool sync = false
-  ]) {
+  BroadcastStreamController(
+      [void onStartListen()?,
+      void onAllCancel()?,
+      void onListen(callback(T value))?,
+      bool sync = false]) {
     _controller = new StreamController<T>(sync: sync);
     _stream = new CachedStreamWrapper(
         _controller.stream
@@ -31,7 +30,7 @@ class BroadcastStreamController<T> implements StreamController<T> {
   void _onListen(StreamSubscription<T> subscription) {
     if (!_listenState) {
       if (onStartListen != null) {
-        onStartListen();
+        onStartListen!();
       }
       _listenState = true;
     }
@@ -54,7 +53,7 @@ class BroadcastStreamController<T> implements StreamController<T> {
   void delayedCheckCancel() {
     _delayedCheckCanceling = false;
     if (!_listening && _listenState) {
-      onAllCancel();
+      onAllCancel!();
       _listenState = false;
     }
   }
@@ -64,11 +63,11 @@ class BroadcastStreamController<T> implements StreamController<T> {
     _stream.lastValue = t;
   }
 
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(Object error, [StackTrace? stackTrace]) {
     _controller.addError(error, stackTrace);
   }
 
-  Future addStream(Stream<T> source, {bool cancelOnError: true}) {
+  Future addStream(Stream<T> source, {bool? cancelOnError = true}) {
     return _controller.addStream(source, cancelOnError: cancelOnError);
   }
 
@@ -86,59 +85,52 @@ class BroadcastStreamController<T> implements StreamController<T> {
 
   StreamSink<T> get sink => _controller.sink;
 
-  void set onCancel(onCancelHandler()) {
-    throw('BroadcastStreamController.onCancel not implemented');
+  void set onCancel(onCancelHandler()?) {
+    throw ('BroadcastStreamController.onCancel not implemented');
   }
 
-  void set onListen(void onListenHandler()) {
-    throw('BroadcastStreamController.onListen not implemented');
+  void set onListen(void onListenHandler()?) {
+    throw ('BroadcastStreamController.onListen not implemented');
   }
 
-  void set onPause(void onPauseHandler()) {
-    throw('BroadcastStreamController.onPause not implemented');
+  void set onPause(void onPauseHandler()?) {
+    throw ('BroadcastStreamController.onPause not implemented');
   }
 
-  void set onResume(void onResumeHandler()) {
-    throw('BroadcastStreamController.onResume not implemented');
+  void set onResume(void onResumeHandler()?) {
+    throw ('BroadcastStreamController.onResume not implemented');
   }
 
-  ControllerCancelCallback get onCancel => null;
-  ControllerCallback get onListen => null;
-  ControllerCallback get onPause => null;
-  ControllerCallback get onResume => null;
+  ControllerCancelCallback? get onCancel => null;
+  ControllerCallback? get onListen => null;
+  ControllerCallback? get onPause => null;
+  ControllerCallback? get onResume => null;
 }
 
 class CachedStreamWrapper<T> extends Stream<T> {
-  T lastValue;
+  late T lastValue;
 
   final Stream<T> _stream;
-  final Function _onListen;
+  final Function? _onListen;
   CachedStreamWrapper(this._stream, this._onListen);
 
   @override
   Stream<T> asBroadcastStream(
-      {void onListen(StreamSubscription<T> subscription),
-      void onCancel(StreamSubscription<T> subscription)}) {
+      {void onListen(StreamSubscription<T> subscription)?,
+      void onCancel(StreamSubscription<T> subscription)?}) {
     return this;
   }
 
   bool get isBroadcast => true;
 
   @override
-  StreamSubscription<T> listen(
-    void onData(T event), {
-    Function onError,
-    void onDone(),
-    bool cancelOnError}) {
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     if (_onListen != null) {
-      _onListen(onData);
+      _onListen!(onData);
     }
 
-    return _stream.listen(
-      onData,
-      onError: onError,
-      onDone: onDone,
-      cancelOnError: cancelOnError
-    );
+    return _stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }

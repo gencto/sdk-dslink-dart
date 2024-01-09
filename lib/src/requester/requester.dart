@@ -3,16 +3,15 @@ part of dslink.requester;
 typedef T RequestConsumer<T>(Request request);
 
 abstract class RequestUpdater {
-  void onUpdate(String status, List updates, List columns, Map meta, DSError error);
+  void onUpdate(String status, List? updates, List? columns, Map? meta, DSError? error);
   void onDisconnect();
   void onReconnect();
 }
 
 class RequesterUpdate {
-  final String streamStatus;
-  final DSError error;
+  final String? streamStatus;
 
-  RequesterUpdate(this.streamStatus, [this.error = null]);
+  RequesterUpdate(this.streamStatus);
 }
 
 class Requester extends ConnectionHandler {
@@ -21,9 +20,9 @@ class Requester extends ConnectionHandler {
   /// caching of nodes
   final RemoteNodeCache nodeCache;
 
-  SubscribeRequest _subscription;
+  late SubscribeRequest _subscription;
 
-  Requester([RemoteNodeCache cache])
+  Requester([RemoteNodeCache? cache])
       : nodeCache = cache != null ? cache : new RemoteNodeCache() {
     _subscription = new SubscribeRequest(this, 0);
     _requests[0] = _subscription;
@@ -47,7 +46,7 @@ class Requester extends ConnectionHandler {
 
   void _onReceiveUpdate(Map m) {
     if (m['rid'] is int && _requests.containsKey(m['rid'])) {
-      _requests[m['rid']]._update(m);
+      _requests[m['rid']]?._update(m);
     }
   }
 
@@ -73,12 +72,12 @@ class Requester extends ConnectionHandler {
     return rslt;
   }
 
-  Request sendRequest(Map<String, dynamic> m, RequestUpdater updater) =>
+  Request? sendRequest(Map<String, dynamic> m, RequestUpdater updater) =>
     _sendRequest(m, updater);
 
-  Request _sendRequest(Map<String, dynamic> m, RequestUpdater updater) {
+  Request? _sendRequest(Map<String, dynamic> m, RequestUpdater? updater) {
     m['rid'] = getNextRid();
-    Request req;
+    Request? req;
     if (updater != null) {
       req = new Request(this, lastRid, updater, m);
       _requests[lastRid] = req;
@@ -99,8 +98,8 @@ class Requester extends ConnectionHandler {
   }
 
   Stream<ValueUpdate> onValueChange(String path, [int qos = 0]) {
-    ReqSubscribeListener listener;
-    StreamController<ValueUpdate> controller;
+    ReqSubscribeListener? listener;
+    late StreamController<ValueUpdate> controller;
     int subs = 0;
     controller = new StreamController<ValueUpdate>.broadcast(onListen: () {
       subs++;
@@ -112,32 +111,32 @@ class Requester extends ConnectionHandler {
     }, onCancel: () {
       subs--;
       if (subs == 0) {
-        listener.cancel();
+        listener?.cancel();
         listener = null;
       }
     });
     return controller.stream;
   }
 
-  Future<ValueUpdate> getNodeValue(String path, {Duration timeout}) {
+  Future<ValueUpdate> getNodeValue(String path, {Duration? timeout}) {
     var c = new Completer<ValueUpdate>();
-    ReqSubscribeListener listener;
-    Timer to;
+    ReqSubscribeListener? listener;
+    Timer? to;
     listener = subscribe(path, (ValueUpdate update) {
       if (!c.isCompleted) {
         c.complete(update);
       }
 
       if (listener != null) {
-        listener.cancel();
+        listener?.cancel();
         listener = null;
       }
-      if (to != null && to.isActive) {
-        to.cancel();
+      if (to != null && to!.isActive) {
+        to?.cancel();
         to = null;
       }
     });
-    if (timeout != null && timeout > Duration_ZERO) {
+    if (timeout != null && timeout > Duration.zero) {
       to = new Timer(timeout, () {
         listener?.cancel();
         listener = null;
@@ -150,7 +149,7 @@ class Requester extends ConnectionHandler {
 
   Future<RemoteNode> getRemoteNode(String path) {
     var c = new Completer<RemoteNode>();
-    StreamSubscription sub;
+    StreamSubscription? sub;
     sub = list(path).listen((update) {
       if (!c.isCompleted) {
         c.complete(update.node);
@@ -178,7 +177,7 @@ class Requester extends ConnectionHandler {
   }
 
   Stream<RequesterInvokeUpdate> invoke(String path, [Map params = const {},
-      int maxPermission = Permission.CONFIG, RequestConsumer fetchRawReq]) {
+      int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
     RemoteNode node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this, maxPermission, fetchRawReq);
   }
