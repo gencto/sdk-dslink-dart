@@ -65,7 +65,7 @@ class SingleNodeProvider extends NodeProvider {
   LocalNode getNode(String? path) => node;
   IPermissionManager permissions = new DummyPermissionManager();
 
-  Responder createResponder(String dsId, String sessionId) {
+  Responder createResponder(String? dsId, String sessionId) {
     return new Responder(this, dsId);
   }
 

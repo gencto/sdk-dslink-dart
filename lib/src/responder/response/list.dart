@@ -123,12 +123,12 @@ class ListResponse extends Response {
         updateAttributes.add([name, value]);
       });
 
-      node.children.forEach((name, Node value) {
-        Map simpleMap = value.getSimpleMap();
+      node.children.forEach((name, Node? value) {
+        Map? simpleMap = value?.getSimpleMap();
         if (_permission != Permission.CONFIG) {
-          int invokePermission = Permission.parse(simpleMap[r'$invokable']);
+          int invokePermission = Permission.parse(simpleMap?[r'$invokable']);
           if (invokePermission != Permission.NEVER && invokePermission > _permission) {
-            simpleMap[r'$invokable'] = 'never';
+            simpleMap?[r'$invokable'] = 'never';
           }
         }
         updateChildren.add([name, simpleMap]);

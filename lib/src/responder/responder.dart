@@ -37,7 +37,7 @@ class Responder extends ConnectionHandler {
   }
 
   /// list of permission group
-  List<String> groups = [];
+  List<String>? groups = [];
   void updateGroups(List<String> vals, [bool ignoreId = false]) {
     if (ignoreId) {
       groups = vals.where((str)=>str != '').toList();

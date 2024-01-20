@@ -67,7 +67,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
 
   LinkedHashSet<String> changes = new LinkedHashSet<String>();
 
-  void onUpdate(String? streamStatus, List? updates, List? columns, Map? meta,
+  void onUpdate(String streamStatus, List? updates, List? columns, Map? meta,
       DSError? error) {
     bool reseted = false;
     // TODO implement error handling

@@ -23,7 +23,7 @@ class Node {
   Node? profile;
 
   /// Node Attributes
-  Map<String, Object> attributes = {};
+  Map<String, Object?> attributes = {};
 
   /// same as attributes for local node
   /// but different on remote node
@@ -62,7 +62,7 @@ class Node {
 
   /// Node Children
   /// Map of Child Name to Child Node
-  Map<String, Node> children = {};
+  Map<String, Node?> children = {};
 
   /// Adds a child to this node.
   void addChild(String name, Node node) {
@@ -111,10 +111,10 @@ class Node {
 
 
   /// Iterates over all the children of this node and passes them to the specified [callback].
-  void forEachChild(void callback(String name, Node node)) {
+  void forEachChild(void callback(String name, Node? node)) {
     children.forEach(callback);
     if (profile != null) {
-      profile?.children.forEach((String str, Node n) {
+      profile?.children.forEach((String str, Node? n) {
         if (!children.containsKey(str)) {
           callback(str, n);
         }
@@ -133,10 +133,10 @@ class Node {
     }
   }
 
-  void forEachAttribute(void callback(String name, Object value)) {
+  void forEachAttribute(void callback(String name, Object? value)) {
     attributes.forEach(callback);
     if (profile != null) {
-      profile?.attributes.forEach((String str, Object val) {
+      profile?.attributes.forEach((String str, Object? val) {
         if (!attributes.containsKey(str)) {
           callback(str, val);
         }

@@ -127,7 +127,7 @@ abstract class ServerLink extends BaseLink {
   /// dsId or username
   String get dsId;
 
-  String get session;
+  String? get session;
 
   PublicKey get publicKey;
 
@@ -154,7 +154,7 @@ abstract class ClientLink extends BaseLink {
 
 abstract class ServerLinkManager {
 
-  String getLinkPath(String dsId, String token);
+  String? getLinkPath(String dsId, String token);
 
   /// return true if link is added
   bool addLink(ServerLink link);
@@ -163,12 +163,12 @@ abstract class ServerLinkManager {
   
   void removeLink(ServerLink link, String id);
 
-  ServerLink getLinkAndConnectNode(String dsId, {String sessionId = ""});
+  ServerLink? getLinkAndConnectNode(String dsId, {String sessionId = ""});
 
-  Requester getRequester(String dsId);
+  Requester? getRequester(String dsId);
 
-  Responder getResponder(String dsId, NodeProvider nodeProvider,
-      [String sessionId = "", bool trusted = false]);
+  Responder? getResponder(String dsId, NodeProvider nodeProvider,
+      [String? sessionId = "", bool trusted = false]);
 
   void updateLinkData(String dsId, Map m);
 }

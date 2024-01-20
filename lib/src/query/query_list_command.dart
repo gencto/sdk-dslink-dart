@@ -89,7 +89,7 @@ class _ListingNode {
           listener = node.listStream.listen(onList);
         }
 
-        node.children.forEach((String name, Node node) {
+        node.children.forEach((String name, Node? node) {
           if (node is LocalNode) {
             checkChild(name, node, n);
           }

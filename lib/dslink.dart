@@ -1,6 +1,7 @@
 /// Entry Point for the DSLink SDK for the Dart VM
 library dslink;
 
+export 'package:dslink/broker_discovery.dart';
 export "package:dslink/common.dart";
 export "package:dslink/requester.dart";
 export "package:dslink/responder.dart";

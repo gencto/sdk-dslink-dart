@@ -22,7 +22,7 @@ abstract class LocalNodeImpl extends LocalNode {
         if (val is LocalNodeImpl) {
           rslt[key] = val.serialize(true);
         } else {
-          rslt[key] = val.getSimpleMap();
+          rslt[key] = val?.getSimpleMap();
         }
       }
     });
@@ -53,7 +53,7 @@ abstract class LocalNodeImpl extends LocalNode {
       } else if (key.startsWith('@')) {
         attributes[key] = value;
       } else if (value is Map) {
-        Node node = provider.getOrCreateNode('$childPathPre$key', false);
+        Node? node = provider?.getOrCreateNode('$childPathPre$key', false);
         if (node is LocalNodeImpl) {
           node.load(value);
         }

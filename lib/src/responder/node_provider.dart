@@ -35,7 +35,7 @@ abstract class LocalNode extends Node {
   bool get _hasListListener => _listChangeController?.hasListener ?? false;
 
   /// Node Provider
-  NodeProvider get provider;
+  NodeProvider? get provider;
 
   /// Node Path
   final String? path;
@@ -261,7 +261,7 @@ abstract class NodeProvider {
   LocalNode operator ~() => getOrCreateNode("/", false);
 
   /// Create a Responder
-  Responder createResponder(String dsId, String sessionId);
+  Responder createResponder(String? dsId, String sessionId);
 
   /// Get Permissions.
   IPermissionManager get permissions;

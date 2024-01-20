@@ -22,7 +22,7 @@ abstract class IStorageManager {
 /// a storage container for one dslink
 /// different dslink will have different ISubscriptionResponderStorage
 abstract class ISubscriptionResponderStorage {
-  String get responderPath;
+  String? get responderPath;
 
   ISubscriptionNodeStorage getOrCreateValue(String valuePath);
   void destroyValue(String valuePath);

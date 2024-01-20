@@ -660,7 +660,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   IPermissionManager permissions = new DummyPermissionManager();
 
   /// Creates a responder with the given [dsId].
-  Responder createResponder(String dsId, String sessionId) {
+  Responder createResponder(String? dsId, String sessionId) {
     return new Responder(this, dsId);
   }
 
@@ -815,7 +815,7 @@ class SimpleNode extends LocalNodeImpl {
       rslt['?value'] = _lastValueUpdate?.value;
     }
 
-    children.forEach((str, Node node) {
+    children.forEach((str, Node? node) {
       if (node is SimpleNode && node.serializable == true) {
         rslt[str] = node.save();
       }

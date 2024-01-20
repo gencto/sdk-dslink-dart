@@ -82,7 +82,7 @@ class PermissionList {
     }
 
     int rslt = Permission.NEVER;
-    for (String group in responder.groups) {
+    for (String group in responder.groups!) {
       if (groupMatchs.containsKey(group)) {
         int v = groupMatchs[group]!;
         if (v < rslt) {
