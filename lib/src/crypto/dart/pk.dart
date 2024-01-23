@@ -10,8 +10,6 @@ import "dart:isolate";
 
 
 
-import "package:pointycastle/block/aes.dart";
-
 import "../pk.dart";
 import "../../../utils.dart";
 import '../big_int_utils.dart';
@@ -23,6 +21,7 @@ import "package:pointycastle/digests/sha256.dart";
 import "package:pointycastle/key_generators/ec_key_generator.dart";
 import "package:pointycastle/key_generators/api.dart";
 import "package:pointycastle/random/block_ctr_random.dart";
+import "package:pointycastle/block/aes_fast.dart";
 
 
 part "isolate.dart";
@@ -227,12 +226,12 @@ class DSRandomImpl implements DSRandom, SecureRandom {
   bool get needsEntropy => true;
 
   late BlockCtrRandom _delegate;
-  late AESEngine _aes;
+  late AESFastEngine _aes;
 
   String get algorithmName => _delegate.algorithmName;
 
   DSRandomImpl([int seed = -1]) {
-    _aes = AESEngine();
+    _aes = new AESFastEngine();
     _delegate = new BlockCtrRandom(_aes);
     // use the native prng, but still need to use randmize to add more seed later
     Math.Random r = new Math.Random();
