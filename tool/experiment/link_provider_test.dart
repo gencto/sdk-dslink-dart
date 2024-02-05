@@ -1,8 +1,8 @@
-import "package:dslink/dslink.dart";
-import "package:dslink/utils.dart" show ByteDataUtil, DsTimer;
+import 'package:dslink/dslink.dart';
+import 'package:dslink/utils.dart' show ByteDataUtil, DsTimer;
 
-import "dart:async";
-import "dart:math" as Math;
+import 'dart:async';
+import 'dart:math' as Math;
 
 late LinkProvider link;
 int lastNum = 0;
@@ -12,11 +12,12 @@ late SimpleNode rootNode;
 class AddNodeAction extends SimpleNode {
   AddNodeAction(String path) : super(path);
 
+  @override
   Object onInvoke(Map params) {
     addNode.configs[r'$lastNum'] = ++lastNum;
 
-    String nodeName = '/node%2F_$lastNum';
-    link.addNode(nodeName, {
+    var nodeName = '/node%2F_$lastNum';
+    link.addNode(nodeName, <String, dynamic>{
       r'$type': 'bool[disable,enable]',
       r'$is': 'rng',
       '@unit': 'hit',
@@ -31,20 +32,29 @@ class AddNodeAction extends SimpleNode {
     });
     link.save(); // save json
 
-    AsyncTableResult tableRslt = new AsyncTableResult();
+    var tableRslt = AsyncTableResult();
     void closed(InvokeResponse resp) {
       print('closed');
     }
-    int tcount = 0;
+
+    var tcount = 0;
     tableRslt.onClose = closed;
-    tableRslt.columns = [{'name': 'a'}];
-    new Timer.periodic(new Duration(milliseconds: 50), (Timer t) {
+    tableRslt.columns = <List<Map<String, String>>>[
+      <Map<String, String>>[{'name': 'a'}]
+    ];
+    Timer.periodic(Duration(milliseconds: 50), (Timer t) {
       if (tcount++ > 5) {
         tableRslt.close();
         t.cancel();
         return;
       }
-      tableRslt.update([[1], [2]], StreamStatus.initialize, {'a': 'abc'});
+      tableRslt.update(
+          <List<int>>[
+            [1],
+            [2]
+          ],
+          StreamStatus.initialize,
+          <String, dynamic>{'a': 'abc'});
     });
     return tableRslt; //new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
   }
@@ -53,10 +63,10 @@ class AddNodeAction extends SimpleNode {
 class RemoveSelfAction extends SimpleNode {
   RemoveSelfAction(String path) : super(path);
 
+  @override
   Object? onInvoke(Map params) {
-    List p = path!.split('/')
-      ..removeLast();
-    String parentPath = p.join('/');
+    List p = path!.split('/')..removeLast();
+    var parentPath = p.join('/');
     link.removeNode(parentPath);
     link.save();
     return null;
@@ -66,7 +76,7 @@ class RemoveSelfAction extends SimpleNode {
 class RngNode extends SimpleNode {
   RngNode(String path) : super(path);
 
-  static Math.Random rng = new Math.Random();
+  static Math.Random rng = Math.Random();
 
   @override
   void onCreated() {
@@ -81,49 +91,54 @@ class RngNode extends SimpleNode {
   }
 }
 
-main(List<String> args) {
+void main() {
   var defaultNodes = <String, dynamic>{
-    'defs': { 'profile':{
-      'addNodeAction': {
-        r'$params': {
-          "name": {
-            "type": "string",
-            "placeholder": 'ccc',
-            "description": "abcd",
-            "default": 123
+    'defs': {
+      'profile': {
+        'addNodeAction': {
+          r'$params': {
+            'name': {
+              'type': 'string',
+              'placeholder': 'ccc',
+              'description': 'abcd',
+              'default': 123
+            },
+            'source': {'type': 'string', 'editor': 'password'},
+            'destination': {'type': 'string'},
+            'queueSize': {'type': 'string'},
+            'pem': {'type': 'string'},
+            'filePrefix': {'type': 'bool[disable,enable]'},
+            'copyToPath': {'type': 'enum[a,b,c]'}
           },
-          "source": {"type": "string", 'editor': "password"},
-          "destination": {"type": "string"},
-          "queueSize": {"type": "string"},
-          "pem": {"type": "string"},
-          "filePrefix": {"type": "bool[disable,enable]"},
-          "copyToPath": {"type": "enum[a,b,c]"}
-        },
-        //r'$columns':[{'name':'name','type':'string'}],
-        r'$lastNum': 0,
-        r'$result': 'stream'
-      }}
+          //r'$columns':[{'name':'name','type':'string'}],
+          r'$lastNum': 0,
+          r'$result': 'stream'
+        }
+      }
     },
-    'add': {r'$is': 'addNodeAction', r'$invokable': 'write',}
+    'add': {
+      r'$is': 'addNodeAction',
+      r'$invokable': 'write',
+    }
   };
 
   var profiles = <String, NodeFactory>{
     'addNodeAction': (String path) {
-      return new AddNodeAction(path);
+      return AddNodeAction(path);
     },
     'removeSelfAction': (String path) {
-      return new RemoveSelfAction(path);
+      return RemoveSelfAction(path);
     },
     'rng': (String path) {
-      return new RngNode(path);
+      return RngNode(path);
     }
   };
 
-  link = new LinkProvider(
-    ['-b', 'localhost:8080/conn', '--log', 'finest'], 'rick-resp-',
-    defaultNodes: defaultNodes,
-    profiles: profiles /*, home:'dgSuper'*/,
-    linkData: {'a': 1});
+  link = LinkProvider(
+      ['-b', 'dev.sviteco.ua/conn', '--log', 'finest'], 'rick-resp-',
+      defaultNodes: defaultNodes,
+      profiles: profiles /*, home:'dgSuper'*/,
+      linkData: <String, dynamic>{'a': 1});
   if (link.link == null) {
     // initialization failed
     return;
@@ -134,10 +149,7 @@ main(List<String> args) {
   lastNum = (addNode.configs[r'$lastNum'] ?? 0) as int;
 
   var node = link.provider?.getOrCreateNode('/testpoint');
-  node?.load({
-    r'$type': 'number',
-    "?value": 1
-  });
+  node?.load(<String, dynamic>{r'$type': 'number', '?value': 1});
 
   link.connect();
 }

@@ -3,22 +3,22 @@ part of dslink.requester;
 /// manage cached nodes for requester
 /// TODO: cleanup nodes that are no longer in use
 class RemoteNodeCache {
-  Map<String, RemoteNode> _nodes = new Map<String, RemoteNode>();
+  final Map<String, RemoteNode> _nodes = <String, RemoteNode>{};
 
-  RemoteNodeCache() {}
+  RemoteNodeCache();
 
   RemoteNode getRemoteNode(String path) {
     var node = _nodes[path];
 
     if (node == null) {
       if ((_nodes.length % 1000) == 0) {
-        logger.fine("Node Cache hit ${_nodes.length} nodes in size.");
+        logger.fine('Node Cache hit ${_nodes.length} nodes in size.');
       }
 
-      if (path.startsWith("defs")) {
-        node = _nodes[path] = new RemoteDefNode(path);
+      if (path.startsWith('defs')) {
+        node = _nodes[path] = RemoteDefNode(path);
       } else {
-        node = _nodes[path] = new RemoteNode(path);
+        node = _nodes[path] = RemoteNode(path);
       }
     }
 
@@ -47,7 +47,8 @@ class RemoteNodeCache {
   }
 
   /// update node with a map.
-  RemoteNode? updateRemoteChildNode(RemoteNode parent, String name, Map m) {
+  RemoteNode? updateRemoteChildNode(
+      RemoteNode parent, String name, Map<String, dynamic> m) {
     String path;
     if (parent.remotePath == '/') {
       path = '/$name';
@@ -59,7 +60,7 @@ class RemoteNodeCache {
       rslt = _nodes[path];
       rslt?.updateRemoteChildData(m, this);
     } else {
-      rslt = new RemoteNode(path);
+      rslt = RemoteNode(path);
       _nodes[path] = rslt;
       rslt.updateRemoteChildData(m, this);
     }
@@ -102,9 +103,7 @@ class RemoteNode extends Node {
     if (remotePath == '/') {
       name = '/';
     } else {
-      name = remotePath
-        .split('/')
-        .last;
+      name = remotePath.split('/').last;
     }
   }
 
@@ -126,43 +125,36 @@ class RemoteNode extends Node {
   }
 
   Stream<RequesterListUpdate> _list(Requester requester) {
-    if (_listController == null) {
-      _listController = createListController(requester);
-    }
+    _listController ??= createListController(requester);
     return _listController!.stream;
   }
 
   /// need a factory function for children class to override
   ListController createListController(Requester requester) {
-    return new ListController(this, requester);
+    return ListController(this, requester);
   }
 
-  void _subscribe(Requester requester, callback(ValueUpdate update), int qos) {
-    if (_subscribeController == null) {
-      _subscribeController = new ReqSubscribeController(this, requester);
-    }
+  void _subscribe(
+      Requester requester, Function(ValueUpdate update) callback, int qos) {
+    _subscribeController ??= ReqSubscribeController(this, requester);
     _subscribeController?.listen(callback, qos);
   }
 
-  void _unsubscribe(Requester requester, callback(ValueUpdate update)) {
+  void _unsubscribe(
+      Requester requester, Function(ValueUpdate update) callback) {
     if (_subscribeController != null) {
       _subscribeController?.unlisten(callback);
     }
   }
 
   Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester,
-    [int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
-    return new InvokeController(
-      this,
-      requester,
-      params,
-      maxPermission,
-      fetchRawReq
-    )._stream;
+      [int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
+    return InvokeController(this, requester, params, maxPermission, fetchRawReq)
+        ._stream;
   }
 
   /// used by list api to update simple data for children
-  void updateRemoteChildData(Map m, RemoteNodeCache cache) {
+  void updateRemoteChildData(Map<String, dynamic> m, RemoteNodeCache cache) {
     String childPathPre;
     if (remotePath == '/') {
       childPathPre = '/';
@@ -170,12 +162,12 @@ class RemoteNode extends Node {
       childPathPre = '$remotePath/';
     }
 
-    m.forEach((key, value) {
+    m.forEach((key, dynamic value) {
       if (key.startsWith(r'$')) {
         configs[key] = value;
       } else if (key.startsWith('@')) {
         attributes[key] = value;
-      } else if (value is Map) {
+      } else if (value is Map<String, dynamic>) {
         Node node = cache.getRemoteNode('$childPathPre/$key');
         children[key] = node;
         if (node is RemoteNode) {
@@ -193,19 +185,19 @@ class RemoteNode extends Node {
   }
 
   Map save({bool includeValue = true}) {
-    var map = {};
+    var map = <String, dynamic>{};
     map.addAll(configs);
     map.addAll(attributes);
-    for (String key in children.keys) {
-      Node? node = children[key];
+    for (var key in children.keys) {
+      var node = children[key];
       map[key] = node is RemoteNode ? node.save() : node?.getSimpleMap();
     }
 
     if (includeValue &&
-      _subscribeController != null &&
-      _subscribeController?._lastUpdate != null) {
-      map["?value"] = _subscribeController?._lastUpdate?.value;
-      map["?value_timestamp"] = _subscribeController?._lastUpdate?.ts;
+        _subscribeController != null &&
+        _subscribeController?._lastUpdate != null) {
+      map['?value'] = _subscribeController?._lastUpdate?.value;
+      map['?value_timestamp'] = _subscribeController?._lastUpdate?.ts;
     }
 
     return map;

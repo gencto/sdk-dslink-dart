@@ -1,22 +1,22 @@
 /// Shared APIs between all DSA Components.
 library dslink.common;
 
-import "dart:async";
-import "dart:collection";
+import 'dart:async';
+import 'dart:collection';
 
-import "requester.dart";
-import "responder.dart";
-import "utils.dart";
+import 'requester.dart';
+import 'responder.dart';
+import 'utils.dart';
 
-import "src/crypto/pk.dart";
+import 'src/crypto/pk.dart';
 
-part "src/common/node.dart";
-part "src/common/table.dart";
-part "src/common/value.dart";
-part "src/common/connection_channel.dart";
-part "src/common/connection_handler.dart";
-part "src/common/permission.dart";
-part "src/common/default_defs.dart";
+part 'src/common/node.dart';
+part 'src/common/table.dart';
+part 'src/common/value.dart';
+part 'src/common/connection_channel.dart';
+part 'src/common/connection_handler.dart';
+part 'src/common/permission.dart';
+part 'src/common/default_defs.dart';
 
 abstract class Connection {
   ConnectionChannel get requesterChannel;
@@ -40,12 +40,12 @@ abstract class Connection {
 
   DsCodec codec = DsCodec.defaultCodec;
 
-  ListQueue<ConnectionAckGroup> pendingAcks = new ListQueue<
+  ListQueue<ConnectionAckGroup> pendingAcks = ListQueue<
       ConnectionAckGroup>();
 
   void ack(int ackId) {
     ConnectionAckGroup? findAckGroup;
-    for (ConnectionAckGroup ackGroup in pendingAcks) {
+    for (var ackGroup in pendingAcks) {
       if (ackGroup.ackId == ackId) {
         findAckGroup = ackGroup;
         break;
@@ -55,7 +55,7 @@ abstract class Connection {
     }
 
     if (findAckGroup != null) {
-      int ts = (new DateTime.now()).millisecondsSinceEpoch;
+      var ts = (DateTime.now()).millisecondsSinceEpoch;
       late ConnectionAckGroup ackGroup;
       do {
         ackGroup = pendingAcks.removeFirst();
@@ -83,7 +83,7 @@ class ConnectionAckGroup {
   ConnectionAckGroup(this.ackId, this.startTime, this.processors);
 
   void ackAll(int ackid, int time) {
-    for (ConnectionProcessor processor in processors) {
+    for (var processor in processors) {
       processor.ackReceived(ackId, startTime, time);
     }
   }
@@ -131,6 +131,7 @@ abstract class ServerLink extends BaseLink {
 
   PublicKey get publicKey;
 
+  @override
   void close();
 }
 
@@ -138,18 +139,18 @@ abstract class ServerLink extends BaseLink {
 abstract class ClientLink extends BaseLink {
   PrivateKey get privateKey;
 
-  updateSalt(String salt);
+  void updateSalt(String salt);
 
   String? get logName => null;
 
   String formatLogMessage(String msg) {
     if (logName != null) {
-      return "[${logName}] ${msg}";
+      return '[$logName] $msg';
     }
     return msg;
   }
 
-  connect();
+  void connect();
 }
 
 abstract class ServerLinkManager {
@@ -163,12 +164,12 @@ abstract class ServerLinkManager {
   
   void removeLink(ServerLink link, String id);
 
-  ServerLink? getLinkAndConnectNode(String dsId, {String sessionId = ""});
+  ServerLink? getLinkAndConnectNode(String dsId, {String sessionId = ''});
 
   Requester? getRequester(String dsId);
 
   Responder? getResponder(String dsId, NodeProvider nodeProvider,
-      [String? sessionId = "", bool trusted = false]);
+      [String? sessionId = '', bool trusted = false]);
 
   void updateLinkData(String dsId, Map m);
 }
@@ -176,18 +177,18 @@ abstract class ServerLinkManager {
 /// DSA Stream Status
 class StreamStatus {
   /// Stream should be initialized.
-  static const String initialize = "initialize";
+  static const String initialize = 'initialize';
 
   /// Stream is open.
-  static const String open = "open";
+  static const String open = 'open';
 
   /// Stream is closed.
-  static const String closed = "closed";
+  static const String closed = 'closed';
 }
 
 class ErrorPhase {
-  static const String request = "request";
-  static const String response = "response";
+  static const String request = 'request';
+  static const String response = 'response';
 }
 
 class DSError {
@@ -202,20 +203,20 @@ class DSError {
       {this.msg, this.detail, this.path, this.phase = ErrorPhase.response});
 
   DSError.fromMap(Map m) {
-    if (m["type"] is String) {
-      type = m["type"];
+    if (m['type'] is String) {
+      type = m['type'];
     }
-    if (m["msg"] is String) {
-      msg = m["msg"];
+    if (m['msg'] is String) {
+      msg = m['msg'];
     }
-    if (m["path"] is String) {
-      path = m["path"];
+    if (m['path'] is String) {
+      path = m['path'];
     }
-    if (m["phase"] is String) {
-      phase = m["phase"];
+    if (m['phase'] is String) {
+      phase = m['phase'];
     }
-    if (m["detail"] is String) {
-      detail = m["detail"];
+    if (m['detail'] is String) {
+      detail = m['detail'];
     }
   }
 
@@ -226,7 +227,7 @@ class DSError {
     if (type != null) {
       return capitalize(type!);
     }
-    return "Error";
+    return 'Error';
   }
 
   String capitalize(String s) {
@@ -234,55 +235,55 @@ class DSError {
   }
 
   Map serialize() {
-    Map rslt = {};
+    var rslt = <String, dynamic>{};
     if (msg != null) {
-      rslt["msg"] = msg;
+      rslt['msg'] = msg;
     }
     if (type != null) {
-      rslt["type"] = type;
+      rslt['type'] = type;
     }
     if (path != null) {
-      rslt["path"] = path;
+      rslt['path'] = path;
     }
     if (phase == ErrorPhase.request) {
-      rslt["phase"] = ErrorPhase.request;
+      rslt['phase'] = ErrorPhase.request;
     }
     if (detail != null) {
-      rslt["detail"] = detail;
+      rslt['detail'] = detail;
     }
     return rslt;
   }
 
   /// Represents a permission denied error.
-  static final DSError PERMISSION_DENIED = new DSError("permissionDenied");
+  static final DSError PERMISSION_DENIED = DSError('permissionDenied');
 
   /// Represents an invalid method error.
-  static final DSError INVALID_METHOD = new DSError("invalidMethod");
+  static final DSError INVALID_METHOD = DSError('invalidMethod');
 
   /// Represents a not implemented error.
-  static final DSError NOT_IMPLEMENTED = new DSError("notImplemented");
+  static final DSError NOT_IMPLEMENTED = DSError('notImplemented');
 
   /// Represents an invalid path error.
-  static final DSError INVALID_PATH = new DSError("invalidPath");
+  static final DSError INVALID_PATH = DSError('invalidPath');
 
   /// Represents an invalid paths error.
-  static final DSError INVALID_PATHS = new DSError("invalidPaths");
+  static final DSError INVALID_PATHS = DSError('invalidPaths');
 
   /// Represents an invalid value error.
-  static final DSError INVALID_VALUE = new DSError("invalidValue");
+  static final DSError INVALID_VALUE = DSError('invalidValue');
 
   /// Represents an invalid parameter error.
-  static final DSError INVALID_PARAMETER = new DSError("invalidParameter");
+  static final DSError INVALID_PARAMETER = DSError('invalidParameter');
 
   /// Represents a disconnected error.
-  static final DSError DISCONNECTED = new DSError("disconnected", phase: ErrorPhase.request);
+  static final DSError DISCONNECTED = DSError('disconnected', phase: ErrorPhase.request);
 
   /// Represents a failed error.
-  static final DSError FAILED = new DSError("failed");
+  static final DSError FAILED = DSError('failed');
 }
 
 /// Marks something as being unspecified.
-const Unspecified unspecified = const Unspecified();
+const Unspecified unspecified = Unspecified();
 
 /// Unspecified means that something has never been set.
 class Unspecified {

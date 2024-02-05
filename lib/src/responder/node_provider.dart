@@ -7,14 +7,12 @@ abstract class LocalNode extends Node {
   /// Changes to nodes will be added to this controller's stream.
   /// See [updateList].
   BroadcastStreamController<String> get listChangeController {
-    if (_listChangeController == null) {
-      _listChangeController = new BroadcastStreamController<String>(
+    _listChangeController ??= BroadcastStreamController<String>(
         () {
           onStartListListen();
         }, () {
           onAllListCancel();
         }, null, true);
-    }
     return _listChangeController!;
   }
 
@@ -43,12 +41,12 @@ abstract class LocalNode extends Node {
   LocalNode(this.path);
 
   /// Subscription Callbacks
-  Map<ValueUpdateCallback, int> callbacks = new Map<ValueUpdateCallback, int>();
+  Map<ValueUpdateCallback, int> callbacks = <ValueUpdateCallback, int>{};
 
   /// Subscribes the given [callback] to this node.
-  RespSubscribeListener subscribe(callback(ValueUpdate update), [int qos = 0]) {
+  RespSubscribeListener subscribe(Function(ValueUpdate update) callback, [int qos = 0]) {
     callbacks[callback] = qos;
-    return new RespSubscribeListener(this, callback);
+    return RespSubscribeListener(this, callback);
   }
 
   /// Unsubscribe the given [callback] from this node.
@@ -62,9 +60,7 @@ abstract class LocalNode extends Node {
 
   /// Gets the last value update of this node.
   ValueUpdate? get lastValueUpdate {
-    if (_lastValueUpdate == null) {
-      _lastValueUpdate = new ValueUpdate(null);
-    }
+    _lastValueUpdate ??= new ValueUpdate(null);
     return _lastValueUpdate!;
   }
 
@@ -91,7 +87,7 @@ abstract class LocalNode extends Node {
     } else if (_lastValueUpdate == null ||
         _lastValueUpdate?.value != update ||
         force) {
-      _lastValueUpdate = new ValueUpdate(update);
+      _lastValueUpdate = ValueUpdate(update);
       callbacks.forEach((callback, qos) {
         callback(_lastValueUpdate!);
       });
@@ -114,7 +110,7 @@ abstract class LocalNode extends Node {
   /// Disconnected Timestamp
   String? get disconnected => null;
   List getDisconnectedListResponse() {
-    return [
+    return <dynamic>[
       [r'$disconnectedTs', disconnected]
     ];
   }
@@ -150,8 +146,8 @@ abstract class LocalNode extends Node {
     if (response != null) {
       return response..close();
     } else {
-      if (!name.startsWith("@")) {
-        name = "@${name}";
+      if (!name.startsWith('@')) {
+        name = '@$name';
       }
 
       attributes[name] = value;
@@ -170,8 +166,8 @@ abstract class LocalNode extends Node {
     if (response != null) {
       return response..close();
     } else {
-      if (!name.startsWith("@")) {
-        name = "@${name}";
+      if (!name.startsWith('@')) {
+        name = '@$name';
       }
 
       attributes.remove(name);
@@ -190,8 +186,8 @@ abstract class LocalNode extends Node {
     if (response != null) {
       return response..close();
     } else {
-      if (!name.startsWith(r"$")) {
-        name = "\$${name}";
+      if (!name.startsWith(r'$')) {
+        name = '\$$name';
       }
 
       configs[name] = value;
@@ -205,8 +201,8 @@ abstract class LocalNode extends Node {
     if (response != null) {
       return response..close();
     } else {
-      if (!name.startsWith(r"$")) {
-        name = "\$${name}";
+      if (!name.startsWith(r'$')) {
+        name = '\$$name';
       }
       configs.remove(name);
 
@@ -221,15 +217,15 @@ abstract class LocalNode extends Node {
   }
 
   /// Shortcut to [get].
-  operator [](String name) {
+  Object? operator [](String name) {
     return get(name);
   }
 
   /// Set a config, attribute, or child on this node.
   operator []=(String name, Object value) {
-    if (name.startsWith(r"$")) {
+    if (name.startsWith(r'$')) {
       configs[name] = value;
-    } else if (name.startsWith(r"@")) {
+    } else if (name.startsWith(r'@')) {
       attributes[name] = value;
     } else if (value is Node) {
       addChild(name, value);
@@ -258,7 +254,7 @@ abstract class NodeProvider {
   }
 
   /// Get the root node.
-  LocalNode operator ~() => getOrCreateNode("/", false);
+  LocalNode operator ~() => getOrCreateNode('/', false);
 
   /// Create a Responder
   Responder createResponder(String? dsId, String sessionId);

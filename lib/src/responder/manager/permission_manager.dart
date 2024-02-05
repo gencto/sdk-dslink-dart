@@ -5,6 +5,7 @@ abstract class IPermissionManager {
 }
 
 class DummyPermissionManager implements IPermissionManager {
+  @override
   int getPermission(String? path, Responder resp) {
     return Permission.CONFIG;
   }

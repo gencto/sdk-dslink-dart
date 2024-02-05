@@ -15,7 +15,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   List<List>? _rows;
 
   List<List> get rows {
-    int colLen = -1;
+    var colLen = -1;
     if (columns != null) {
       colLen = columns!.length;
     }
@@ -29,7 +29,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
         if (obj is List) {
           if (obj.length < colLen) {
             row = obj.toList();
-            for (int i = obj.length; i < colLen; ++i) {
+            for (var i = obj.length; i < colLen; ++i) {
               row.add(columns?[i].defaultValue);
             }
           } else if (obj.length > colLen) {
@@ -43,15 +43,15 @@ class RequesterInvokeUpdate extends RequesterUpdate {
             row = obj;
           }
         } else if (obj is Map) {
-          row = [];
+          row = <dynamic>[];
           if (columns == null) {
-            Map map = obj;
-            List<String> keys = map.keys.map((k) => k.toString()).toList();
-            columns = keys.map((x) => new TableColumn(x, "dynamic")).toList();
+            var map = obj;
+            var keys = map.keys.map((dynamic k) => k.toString()).toList();
+            columns = keys.map((x) => TableColumn(x, 'dynamic')).toList();
           }
 
           if (columns != null) {
-            for (TableColumn column in columns!) {
+            for (var column in columns!) {
               if (obj.containsKey(column.name)) {
                 row.add(obj[column.name]);
               } else {
@@ -69,7 +69,7 @@ class RequesterInvokeUpdate extends RequesterUpdate {
 
 class InvokeController implements RequestUpdater {
   static List<TableColumn>? getNodeColumns(RemoteNode node) {
-    Object? columns = node.getConfig(r'$columns');
+    var columns = node.getConfig(r'$columns');
     if (columns is! List && node.profile != null) {
       columns = node.profile?.getConfig(r'$columns');
     }
@@ -92,7 +92,7 @@ class InvokeController implements RequestUpdater {
 
   InvokeController(this.node, this.requester, Map params,
       [int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
-    _controller = new StreamController<RequesterInvokeUpdate>();
+    _controller = StreamController<RequesterInvokeUpdate>();
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
     var reqMap = <String, dynamic>{
@@ -117,12 +117,13 @@ class InvokeController implements RequestUpdater {
 //    }
   }
 
-  void _onUnsubscribe(obj) {
+  void _onUnsubscribe(dynamic obj) {
     if (_request != null && _request!.streamStatus != StreamStatus.closed) {
       _request?.close();
     }
   }
 
+  @override
   void onUpdate(String streamStatus, List? updates, List? columns, Map? meta,
       DSError? error) {
     if (meta != null && meta['mode'] is String) {
@@ -135,17 +136,15 @@ class InvokeController implements RequestUpdater {
       } else {
         _cachedColumns?.addAll(TableColumn.parseColumns(columns) as Iterable<TableColumn>);
       }
-    } else if (_cachedColumns == null) {
-      _cachedColumns = getNodeColumns(node);
-    }
+    } else _cachedColumns ??= getNodeColumns(node);
 
     if (error != null) {
       streamStatus = StreamStatus.closed;
       _controller.add(
-          new RequesterInvokeUpdate(
+          RequesterInvokeUpdate(
               null, null, null, streamStatus, error: error, meta: meta));
     } else if (updates != null || meta != null || streamStatus != lastStatus) {
-      _controller.add(new RequesterInvokeUpdate(
+      _controller.add(RequesterInvokeUpdate(
           updates, columns, _cachedColumns, streamStatus, meta: meta));
     }
     lastStatus = streamStatus;
@@ -154,7 +153,9 @@ class InvokeController implements RequestUpdater {
     }
   }
 
+  @override
   void onDisconnect() {}
 
+  @override
   void onReconnect() {}
 }

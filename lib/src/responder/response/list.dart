@@ -17,7 +17,7 @@ class ListResponse extends Response {
     }
   }
 
-  LinkedHashSet<String> changes = new LinkedHashSet<String>();
+  LinkedHashSet<String> changes = LinkedHashSet<String>();
   bool initialResponse = true;
 
   void changed(String key) {
@@ -55,9 +55,9 @@ class ListResponse extends Response {
 
     Object? updateIs;
     Object? updateBase;
-    List updateConfigs = [];
-    List updateAttributes = [];
-    List updateChildren = [];
+    var updateConfigs = <dynamic>[];
+    var updateAttributes = <dynamic>[];
+    var updateChildren = <dynamic>[];
 
     if (node.disconnected != null) {
       responder.updateResponse(
@@ -90,8 +90,8 @@ class ListResponse extends Response {
       initialResponse = false;
       if (_permission == Permission.NONE) return;
 
-      node.configs.forEach((name, value) {
-        Object update = [name, value];
+      node.configs.forEach((name,dynamic value) {
+        dynamic update = <dynamic>[name, value];
         if (name == r'$is') {
           updateIs = update;
         } else if (name == r'$base') {
@@ -108,7 +108,7 @@ class ListResponse extends Response {
               }
             }
             if (name == r'$invokable') {
-              int invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+              var invokePermission = Permission.parse(node.getConfig(r'$invokable'));
               if (invokePermission > _permission) {
                 updateConfigs.add([r'$invokable', 'never']);
                 return;
@@ -126,7 +126,7 @@ class ListResponse extends Response {
       node.children.forEach((name, Node? value) {
         Map? simpleMap = value?.getSimpleMap();
         if (_permission != Permission.CONFIG) {
-          int invokePermission = Permission.parse(simpleMap?[r'$invokable']);
+          var invokePermission = Permission.parse(simpleMap?[r'$invokable']);
           if (invokePermission != Permission.NEVER && invokePermission > _permission) {
             simpleMap?[r'$invokable'] = 'never';
           }
@@ -134,11 +134,9 @@ class ListResponse extends Response {
         updateChildren.add([name, simpleMap]);
       });
 
-      if (updateIs == null) {
-        updateIs = [r'$is', 'node'];
-      }
+      updateIs ??= [r'$is', 'node'];
     } else {
-      for (String change in changes) {
+      for (var change in changes) {
         Object update;
         if (change.startsWith(r'$')) {
           if (_permission != Permission.CONFIG) {
@@ -148,7 +146,7 @@ class ListResponse extends Response {
               }
             }
             if (change == r'$invokable') {
-              int invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+              var invokePermission = Permission.parse(node.getConfig(r'$invokable'));
               if (invokePermission > _permission) {
                 updateConfigs.add([r'$invokable', 'never']);
                 continue;
@@ -156,7 +154,7 @@ class ListResponse extends Response {
             } 
           }
           if (node.configs.containsKey(change)) {
-            update = [change, node.configs[change]];
+            update = <dynamic>[change, node.configs[change]];
           } else {
             update = {'name': change, 'change': 'remove'};
           }
@@ -174,7 +172,7 @@ class ListResponse extends Response {
           if (node.children.containsKey(change)) {
             Map simpleMap = node.children[change]!.getSimpleMap();
              if (_permission != Permission.CONFIG) {
-               int invokePermission = Permission.parse(simpleMap[r'$invokable']);
+               var invokePermission = Permission.parse(simpleMap[r'$invokable']);
                if (invokePermission != Permission.NEVER && invokePermission > _permission) {
                  simpleMap[r'$invokable'] = 'never';
                }
@@ -190,7 +188,7 @@ class ListResponse extends Response {
 
     changes.clear();
 
-    List updates = [];
+    var updates = <dynamic>[];
     if (updateBase != null) {
       updates.add(updateBase);
     }
@@ -210,6 +208,7 @@ class ListResponse extends Response {
   int _waitingAckCount = 0;
   int _lastWatingAckId = -1;
 
+  @override
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
     if (receiveAckId == _lastWatingAckId) {
       _waitingAckCount = 0;
@@ -225,6 +224,7 @@ class ListResponse extends Response {
 
   bool _sendingAfterAck = false;
 
+  @override
   void prepareSending() {
     if (_sendingAfterAck) {
       return;
@@ -239,12 +239,14 @@ class ListResponse extends Response {
     }
   }
 
+  @override
   void _close() {
     _nodeChangeListener.cancel();
   }
 
   /// for the broker trace action
+  @override
   ResponseTrace getTraceData([String change = '+']) {
-    return new ResponseTrace(node.path, 'list', rid, change, null);
+    return ResponseTrace(node.path, 'list', rid, change, null);
   }
 }

@@ -1,7 +1,7 @@
 part of dslink.utils;
 
-typedef Object? _Encoder(Object? input);
-typedef Object? _Reviver(Object? key, Object? input);
+typedef _Encoder = Object? Function(Object? input);
+typedef _Reviver = Object? Function(Object? key, Object? input);
 
 class BinaryData {
   /// used when only partial data is received
@@ -21,8 +21,8 @@ class BinaryData {
 
 abstract class DsCodec {
   static final Map<String, DsCodec> _codecs = {
-    "json": DsJson.instance,
-    "msgpack": DsMsgPackCodecImpl.instance
+    'json': DsJson.instance,
+    'msgpack': DsMsgPackCodecImpl.instance
   };
 
   static final DsCodec defaultCodec = DsJson.instance;
@@ -34,7 +34,7 @@ abstract class DsCodec {
   }
 
   static DsCodec getCodec(String name) {
-    DsCodec? rslt = _codecs[name];
+    var rslt = _codecs[name];
     if (rslt == null) {
       return defaultCodec;
     }
@@ -44,9 +44,7 @@ abstract class DsCodec {
   Object? _blankData;
 
   Object? get blankData {
-    if (_blankData == null) {
-      _blankData = encodeFrame({});
-    }
+    _blankData ??= encodeFrame(<String, dynamic>{});
     return _blankData;
   }
 
@@ -60,12 +58,15 @@ abstract class DsCodec {
 }
 
 abstract class DsJson {
-  static DsJsonCodecImpl instance = new DsJsonCodecImpl();
+  static DsJsonCodecImpl instance = DsJsonCodecImpl();
 
   static String encode(Object val, {bool pretty = false}) {
     return instance.encodeJson(val, pretty: pretty);
   }
 
+  /// Decodes a string using the instance's `decodeJson` method.
+  ///
+  /// Returns the decoded value.
   static dynamic decode(String str) {
     return instance.decodeJson(str);
   }
@@ -76,26 +77,29 @@ abstract class DsJson {
 }
 
 class DsJsonCodecImpl extends DsCodec implements DsJson {
-  static dynamic _safeEncoder(value) {
+  static dynamic _safeEncoder(dynamic value) {
     return null;
   }
 
-  JsonEncoder encoder = new JsonEncoder(_safeEncoder);
+  JsonEncoder encoder = JsonEncoder(_safeEncoder);
 
-  JsonDecoder decoder = new JsonDecoder();
+  JsonDecoder decoder = JsonDecoder();
   JsonEncoder? _prettyEncoder;
 
+  /// Decodes a JSON string into a dynamic object.
+  ///
+  /// The [str] parameter is the JSON string to be decoded.
+  /// Returns the decoded dynamic object.
+  @override
   dynamic decodeJson(String str) {
     return decoder.convert(str);
   }
 
+  @override
   String encodeJson(val, {bool pretty = false}) {
     JsonEncoder? e = encoder;
     if (pretty) {
-      if (_prettyEncoder == null) {
-        _prettyEncoder =
-            encoder = new JsonEncoder.withIndent("  ", _safeEncoder);
-      }
+      _prettyEncoder ??= encoder = JsonEncoder.withIndent('  ', _safeEncoder);
       e = _prettyEncoder;
     }
     return e!.convert(val);
@@ -103,14 +107,15 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
 
   JsonDecoder? _unsafeDecoder;
 
+  @override
   Map? decodeBinaryFrame(List<int> bytes) {
     return decodeStringFrame(const Utf8Decoder().convert(bytes));
   }
 
+  @override
   Map? decodeStringFrame(String str) {
-    if (_reviver == null) {
-      _reviver = (key, value) {
-        if (value is String && value.startsWith("\u001Bbytes:")) {
+    _reviver ??= (key, value) {
+        if (value is String && value.startsWith('\u001Bbytes:')) {
           try {
             return ByteDataUtil.fromUint8List(
                 Base64.decode(value.substring(7))!);
@@ -120,34 +125,28 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
         }
         return value;
       };
-    }
 
-    if (_unsafeDecoder == null) {
-      _unsafeDecoder = new JsonDecoder(_reviver);
-    }
+    _unsafeDecoder ??= JsonDecoder(_reviver);
 
-    var result = _unsafeDecoder?.convert(str);
+    Map? result = _unsafeDecoder?.convert(str);
     return result;
   }
 
   _Reviver? _reviver;
   _Encoder? _encoder;
 
+  @override
   Object? encodeFrame(Object val) {
-    if (_encoder == null) {
-      _encoder = (value) {
+    _encoder ??= (value) {
         if (value is ByteData) {
-          return "\u001Bbytes:${Base64.encode(ByteDataUtil.toUint8List(value))}";
+          return '\u001Bbytes:${Base64.encode(ByteDataUtil.toUint8List(value))}';
         }
         return null;
       };
-    }
 
     JsonEncoder? c;
 
-    if (_unsafeEncoder == null) {
-      _unsafeEncoder = new JsonEncoder(_encoder);
-    }
+    _unsafeEncoder ??= JsonEncoder(_encoder);
     c = _unsafeEncoder;
 
     var result = c?.convert(val);
@@ -158,27 +157,30 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
 }
 
 class DsMsgPackCodecImpl extends DsCodec {
-  static DsMsgPackCodecImpl instance = new DsMsgPackCodecImpl();
+  static DsMsgPackCodecImpl instance = DsMsgPackCodecImpl();
 
+  @override
   Map decodeBinaryFrame(List<int> input) {
-    Uint8List data = ByteDataUtil.list2Uint8List(input);
+    var data = ByteDataUtil.list2Uint8List(input);
 
-    _unpacker = new Deserializer(data);
-    
+    _unpacker = Deserializer(data);
+
     Object rslt = _unpacker?.decode();
     if (rslt is Map) {
       return rslt;
     }
-    return {};
+    return <String, dynamic>{};
   }
 
   Deserializer? _unpacker;
 
+  @override
   Map decodeStringFrame(String input) {
     // not supported
-    return {};
+    return <String, dynamic>{};
   }
 
+  @override
   Object? encodeFrame(Map val) {
     return serialize(val);
   }

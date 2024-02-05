@@ -13,7 +13,7 @@ class Request {
 
   /// The callback function for updating the request status.
   final RequestUpdater updater;
-  bool _isClosed = false;
+  final bool _isClosed = false;
   bool get isClosed => _isClosed;
 
   Request(this.requester, this.rid, this.updater, this.data);
@@ -33,32 +33,32 @@ class Request {
   /// This method adds the request ID and parameters to the send list
   /// of the requester to be sent later.
   void addReqParams(Map m) {
-    requester.addToSendList({'rid': rid, 'params': m});
+    requester.addToSendList(<String, dynamic>{'rid': rid, 'params': m});
   }
 
   void _update(Map m) {
-    if (m["stream"] is String) {
-      streamStatus = m["stream"];
+    if (m['stream'] is String) {
+      streamStatus = m['stream'];
     }
     List? updates;
     List? columns;
     Map? meta;
-    if (m["updates"] is List) {
-      updates = m["updates"];
+    if (m['updates'] is List) {
+      updates = m['updates'];
     }
-    if (m["columns"] is List) {
-      columns = m["columns"];
+    if (m['columns'] is List) {
+      columns = m['columns'];
     }
-    if (m["meta"] is Map) {
-      meta = m["meta"];
+    if (m['meta'] is Map) {
+      meta = m['meta'];
     }
     // remove the request from global Map
     if (streamStatus == StreamStatus.closed) {
       requester._requests.remove(rid);
     }
     DSError? error;
-    if (m.containsKey("error") && m["error"] is Map) {
-      error = new DSError.fromMap(m["error"]);
+    if (m.containsKey('error') && m['error'] is Map) {
+      error = DSError.fromMap(m['error']);
       requester._errorController.add(error);
     }
 

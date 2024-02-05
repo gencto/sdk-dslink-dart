@@ -19,7 +19,7 @@ class Permission {
   /// something that can never happen
   static const int NEVER = 5;
 
-  static const List<String> names = const [
+  static const List<String> names = [
     'none',
     'list',
     'read',
@@ -28,7 +28,7 @@ class Permission {
     'never'
   ];
 
-  static const Map<String, int> nameParser = const {
+  static const Map<String, int> nameParser = {
     'none': NONE,
     'list': LIST,
     'read': READ,
@@ -70,7 +70,7 @@ class PermissionList {
     }
   }
 
-  bool _FORCE_CONFIG = true;
+  final bool _FORCE_CONFIG = true;
 
   int? getPermission(Responder responder) {
     // TODO Permission temp workaround before user permission is implemented
@@ -81,10 +81,10 @@ class PermissionList {
       return idMatchs[responder.reqId];
     }
 
-    int rslt = Permission.NEVER;
-    for (String group in responder.groups!) {
+    var rslt = Permission.NEVER;
+    for (var group in responder.groups!) {
       if (groupMatchs.containsKey(group)) {
-        int v = groupMatchs[group]!;
+        var v = groupMatchs[group]!;
         if (v < rslt) {
           // choose the lowest permission from all matched group
           rslt = v;

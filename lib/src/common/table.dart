@@ -9,12 +9,12 @@ class TableColumn {
 
   Map<String, dynamic> getData() {
     var rslt = <String, dynamic>{
-      "type": type,
-      "name": name
+      'type': type,
+      'name': name
     };
 
     if (defaultValue != null) {
-      rslt["default"] = defaultValue;
+      rslt['default'] = defaultValue;
     }
     return rslt;
   }
@@ -34,14 +34,14 @@ class TableColumn {
 
   /// parse List of Map into TableColumn
   static List<TableColumn>? parseColumns(List list) {
-    List<TableColumn> rslt = <TableColumn>[];
+    var rslt = <TableColumn>[];
     for (Object m in list) {
-      if (m is Map && m["name"] is String) {
-        String type = "string";
-        if (m["type"] is String) {
-          type = m["type"];
+      if (m is Map && m['name'] is String) {
+        var type = 'string';
+        if (m['type'] is String) {
+          type = m['type'];
         }
-        rslt.add(new TableColumn(m["name"], type, m["default"]));
+        rslt.add(TableColumn(m['name'], type, m['default']));
       } else if (m is TableColumn) {
         rslt.add(m);
       } else {

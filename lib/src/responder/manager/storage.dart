@@ -76,7 +76,7 @@ abstract class IValueStorageBucket {
 /// basic value storage
 abstract class IValueStorage {
   String get key;
-  void setValue(Object value);
+  void setValue(Object? value);
   Future getValueAsync();
   void destroy();
 }

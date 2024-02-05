@@ -1,20 +1,20 @@
 /// Base API for DSA in the Browser
 library dslink.browser_client;
 
-import "dart:async";
-import "dart:html";
-import "dart:typed_data";
+import 'dart:async';
+import 'dart:html';
+import 'dart:typed_data';
 
-import "common.dart";
-import "utils.dart";
-import "requester.dart";
-import "responder.dart";
+import 'common.dart';
+import 'utils.dart';
+import 'requester.dart';
+import 'responder.dart';
 
-import "src/crypto/pk.dart";
+import 'src/crypto/pk.dart';
 
-part "src/browser/browser_user_link.dart";
-part "src/browser/browser_ecdh_link.dart";
-part "src/browser/browser_ws_conn.dart";
+part 'src/browser/browser_user_link.dart';
+part 'src/browser/browser_ecdh_link.dart';
+part 'src/browser/browser_ws_conn.dart';
 
 /// A Storage System for DSA Data
 abstract class DataStorage {
@@ -48,12 +48,12 @@ abstract class SynchronousDataStorage {
 
 /// Storage for DSA in Local Storage
 class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
-  static final LocalDataStorage INSTANCE = new LocalDataStorage();
+  static final LocalDataStorage INSTANCE = LocalDataStorage();
 
   LocalDataStorage();
 
   @override
-  Future<String> get(String key) async => await window.localStorage[key] ?? '';
+  Future<String> get(String key) async => window.localStorage[key] ?? '';
 
   @override
   Future<bool> has(String key) async => window.localStorage.containsKey(key);
@@ -61,12 +61,12 @@ class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
   @override
   Future store(String key, String value) {
     window.localStorage[key] = value;
-    return new Future.value();
+    return Future<void>.value();
   }
 
   @override
   Future<String> remove(String key) async {
-    return await window.localStorage.remove(key) ?? '';
+    return window.localStorage.remove(key) ?? '';
   }
 
   @override
@@ -94,17 +94,15 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
     return _cachedPrivateKey;
   }
 
-  if (storage == null) {
-    storage = LocalDataStorage.INSTANCE;
-  }
+  storage ??= LocalDataStorage.INSTANCE;
 
-  String keyPath = "dsa_key:${window.location.pathname}";
-  String? keyLockPath = "dsa_key_lock:${window.location.pathname}";
-  String randomToken = "${new DateTime.now().millisecondsSinceEpoch}"
-    " ${DSRandom.instance.nextUint16()}"
-    " ${DSRandom.instance.nextUint16()}";
+  var keyPath = 'dsa_key:${window.location.pathname}';
+  String? keyLockPath = 'dsa_key_lock:${window.location.pathname}';
+  var randomToken = '${DateTime.now().millisecondsSinceEpoch}'
+    ' ${DSRandom.instance.nextUint16()}'
+    ' ${DSRandom.instance.nextUint16()}';
 
-  bool hasKeyPath = false;
+  var hasKeyPath = false;
 
   if (storage is SynchronousDataStorage) {
     hasKeyPath = (storage as SynchronousDataStorage).hasSync(keyPath);
@@ -119,7 +117,7 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
       await storage.store(keyLockPath, randomToken);
     }
 
-    await new Future.delayed(const Duration(milliseconds: 20));
+    await Future<void>.delayed(const Duration(milliseconds: 20));
     String existingToken;
     String existingKey;
 
@@ -135,7 +133,7 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
       if (storage is LocalDataStorage) {
         _startStorageLock(keyLockPath, randomToken);
       }
-      _cachedPrivateKey = new PrivateKey.loadFromString(existingKey);
+      _cachedPrivateKey = PrivateKey.loadFromString(existingKey);
       return _cachedPrivateKey;
     } else {
       // use temp key, don't lock it;

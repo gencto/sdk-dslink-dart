@@ -1,16 +1,16 @@
 /// DSA Broker Server
 library dslink.server;
 
-import "dart:io";
+import 'dart:io';
 
-export "src/crypto/pk.dart";
+export 'src/crypto/pk.dart';
 
 abstract class IRemoteRequester {
   /// user when the requester is proxied to another responder
   String get responderPath;
 }
 
-ContentType _jsonContentType = new ContentType("application", "json", charset: "utf-8");
+ContentType _jsonContentType = ContentType('application', 'json', charset: 'utf-8');
 
 void updateResponseBeforeWrite(HttpRequest request,
     [int? statusCode = HttpStatus.ok,
@@ -22,24 +22,20 @@ void updateResponseBeforeWrite(HttpRequest request,
     response.statusCode = statusCode;
   }
 
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-  String? origin = request.headers.value("origin");
+  response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS, GET');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  var origin = request.headers.value('origin');
 
-  if (request.headers.value("x-proxy-origin") != null) {
-    origin = request.headers.value("x-proxy-origin");
+  if (request.headers.value('x-proxy-origin') != null) {
+    origin = request.headers.value('x-proxy-origin');
   }
 
-  if (origin == null) {
-    origin = "*";
-  }
+  origin ??= '*';
 
-  response.headers.set("Access-Control-Allow-Origin", origin);
+  response.headers.set('Access-Control-Allow-Origin', origin);
 
   if (!noContentType) {
-    if (contentType == null) {
-      contentType = _jsonContentType;
-    }
+    contentType ??= _jsonContentType;
     response.headers.contentType = contentType;
   }
 }

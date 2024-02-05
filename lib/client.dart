@@ -1,28 +1,28 @@
 /// Provides the base APIs for the DSLink SDK on the Dart VM.
 library dslink.client;
 
-import "dart:async";
-import "dart:io";
-import "dart:convert";
+import 'dart:async';
+import 'dart:io';
+import 'dart:convert';
 
-import "package:args/args.dart";
+import 'package:args/args.dart';
 
-import "common.dart";
-import "requester.dart";
-import "responder.dart";
-import "utils.dart";
-import "io.dart";
-import "src/crypto/pk.dart";
-import "src/http/websocket_conn.dart";
+import 'common.dart';
+import 'requester.dart';
+import 'responder.dart';
+import 'utils.dart';
+import 'io.dart';
+import 'src/crypto/pk.dart';
+import 'src/http/websocket_conn.dart';
 
-import "package:logging/logging.dart";
+import 'package:logging/logging.dart';
 
-export "src/crypto/pk.dart";
+export 'src/crypto/pk.dart';
 
-part "src/http/client_link.dart";
+part 'src/http/client_link.dart';
 
 /// A Handler for Argument Results
-typedef void OptionResultsHandler(ArgResults results);
+typedef OptionResultsHandler = void Function(ArgResults results);
 
 /// Main Entry Point for DSLinks on the Dart VM
 class LinkProvider {
@@ -49,7 +49,7 @@ class LinkProvider {
   bool isRequester = false;
 
   /// The Command Name
-  String command = "link";
+  String command = 'link';
 
   /// Are we a responder?
   bool isResponder = true;
@@ -79,7 +79,7 @@ class LinkProvider {
   bool strictTls = false;
 
   /// Default Log Level.
-  String defaultLogLevel = "INFO";
+  String defaultLogLevel = 'INFO';
 
   /// Log Tag
   String? logTag;
@@ -117,33 +117,29 @@ class LinkProvider {
   /// [defaultLogLevel] specifies the default log level.
   /// [nodeProvider] is the same as [provider]. It is provided for backwards compatibility.
   /// [commandLineOptions] specifies a map of an option name to a default value, for use in expanding the command parameters.
-  LinkProvider(
-      this.args,
-      this.prefix,
-      {
-        this.isRequester = false,
-        this.command = "link",
-        this.isResponder = true,
-        this.defaultNodes,
-        Map<String, dynamic>? nodes,
-        this.profiles,
-        this.provider,
-        this.enableHttp = true,
-        this.encodePrettyJson = false,
-        bool autoInitialize = true,
-        this.strictOptions = false,
-        this.exitOnFailure = true,
-        this.loadNodesJson = true,
-        this.strictTls = false,
-        this.defaultLogLevel = "INFO",
-        this.savePrivateKey = true,
-        this.overrideRequester,
-        this.overrideResponder,
-        NodeProvider? nodeProvider, // For Backwards Compatibility
-        this.linkData,
-        Map<String, String>? commandLineOptions
-      }) {
-    exitOnFailure = Zone.current["dslink.runtime.config"] is! Map;
+  LinkProvider(this.args, this.prefix,
+      {this.isRequester = false,
+      this.command = 'link',
+      this.isResponder = true,
+      this.defaultNodes,
+      Map<String, dynamic>? nodes,
+      this.profiles,
+      this.provider,
+      this.enableHttp = true,
+      this.encodePrettyJson = false,
+      bool autoInitialize = true,
+      this.strictOptions = false,
+      this.exitOnFailure = true,
+      this.loadNodesJson = true,
+      this.strictTls = false,
+      this.defaultLogLevel = 'INFO',
+      this.savePrivateKey = true,
+      this.overrideRequester,
+      this.overrideResponder,
+      NodeProvider? nodeProvider, // For Backwards Compatibility
+      this.linkData,
+      Map<String, String>? commandLineOptions}) {
+    exitOnFailure = Zone.current['dslink.runtime.config'] is! Map;
 
     if (nodeProvider != null) {
       provider = nodeProvider;
@@ -154,7 +150,7 @@ class LinkProvider {
     }
 
     if (commandLineOptions != null) {
-      for (String key in commandLineOptions.keys) {
+      for (var key in commandLineOptions.keys) {
         addCommandLineOption(key, commandLineOptions[key]!);
       }
     }
@@ -172,7 +168,7 @@ class LinkProvider {
 
   bool _configured = false;
 
-  ArgParser? _argp = new ArgParser();
+  ArgParser? _argp = ArgParser();
   ArgResults? _parsedArguments;
   ArgResults? get parsedArguments => _parsedArguments;
 
@@ -180,13 +176,13 @@ class LinkProvider {
     return level.name.toLowerCase();
   }
 
-  void addCommandLineOption(String name, [String defaultValue = ""]) {
-    _argp = _argp == null ? new ArgParser(allowTrailingOptions: !strictOptions) : _argp;
+  void addCommandLineOption(String name, [String defaultValue = '']) {
+    _argp = _argp ?? ArgParser(allowTrailingOptions: !strictOptions);
     _argp?.addOption(name, defaultsTo: defaultValue);
   }
-  
+
   String getCommandLineValue(String name) =>
-    parsedArguments == null ? null : parsedArguments?[name];
+      parsedArguments == null ? null : parsedArguments?[name];
 
   /// Configure the link.
   /// If [argp] is provided for argument parsing, it is used.
@@ -203,75 +199,74 @@ class LinkProvider {
       link = null;
     }
 
-    if (argp == null) {
-      argp = _argp == null ? _argp = new ArgParser(allowTrailingOptions: !strictOptions) : _argp;
-    }
+    argp ??= _argp ?? (_argp = ArgParser(allowTrailingOptions: !strictOptions));
 
-    argp?.addOption("broker",
-        abbr: "b",
-        help: "Broker URL",
-        defaultsTo: "http://127.0.0.1:8080/conn");
-    argp?.addOption("name", abbr: "n", help: "Link Name");
-    argp?.addOption("home", help: "Home");
-    argp?.addOption("token", help: "Token");
-    argp?.addOption("base-path", help: "Base Path for DSLink");
-    argp?.addOption("watch-file", help: "Watch File for DSLink", hide: true);
-    argp?.addOption("log-file", help: "Log File for DSLink");
+    argp.addOption('broker',
+        abbr: 'b',
+        help: 'Broker URL',
+        defaultsTo: 'http://127.0.0.1:8080/conn');
+    argp.addOption('name', abbr: 'n', help: 'Link Name');
+    argp.addOption('home', help: 'Home');
+    argp.addOption('token', help: 'Token');
+    argp.addOption('base-path', help: 'Base Path for DSLink');
+    argp.addOption('watch-file', help: 'Watch File for DSLink', hide: true);
+    argp.addOption('log-file', help: 'Log File for DSLink');
 
-    List<String> logLevelNames = Level.LEVELS.map(_logLevelToName).toList();
-    logLevelNames.addAll(["auto", "debug"]);
+    var logLevelNames = Level.LEVELS.map(_logLevelToName).toList();
+    logLevelNames.addAll(['auto', 'debug']);
 
-    argp?.addOption("log",
-        abbr: "l",
+    argp.addOption('log',
+        abbr: 'l',
         allowed: logLevelNames,
-        help: "Log Level",
-        defaultsTo: "AUTO");
-    argp?.addFlag("help",
-        abbr: "h", help: "Displays this Help Message", negatable: false);
-    argp?.addFlag("discover",
-        abbr: "d", help: "Automatically Discover a Broker", negatable: false);
-    argp?.addFlag("strictTls",
-        help: "Enforces valid SSL/TLS certificates for secure connections to " +
-            "broker.");
+        help: 'Log Level',
+        defaultsTo: 'AUTO');
+    argp.addFlag('help',
+        abbr: 'h', help: 'Displays this Help Message', negatable: false);
+    argp.addFlag('discover',
+        abbr: 'd', help: 'Automatically Discover a Broker', negatable: false);
+    argp.addFlag('strictTls',
+        help: 'Enforces valid SSL/TLS certificates for secure connections to '
+            'broker.');
 
-    ArgResults? opts = _parsedArguments = argp?.parse(args);
+    var opts = _parsedArguments = argp.parse(args);
 
-    if (opts?["log"] == "auto") {
+    if (opts['log'] == 'auto') {
       if (DEBUG_MODE) {
-        updateLogLevel("all");
+        updateLogLevel('all');
       } else {
         updateLogLevel(defaultLogLevel);
       }
     } else {
-      updateLogLevel(opts?["log"]);
+      updateLogLevel(opts['log']);
     }
 
-    if (opts?["base-path"] != null) {
-      _basePath = opts?["base-path"];
+    if (opts['base-path'] != null) {
+      _basePath = opts['base-path'];
 
-      if (_basePath.endsWith("/")) {
+      if (_basePath.endsWith('/')) {
         _basePath = _basePath.substring(0, _basePath.length - 1);
       }
     }
 
-    if (opts?["watch-file"] != null) {
-      _watchFile = opts?["watch-file"];
+    if (opts['watch-file'] != null) {
+      _watchFile = opts['watch-file'];
     }
 
-    _logFile = opts?["log-file"];
-    if (opts?["strictTls"]) {
+    _logFile = opts['log-file'];
+    if (opts['strictTls']) {
       strictTls = true;
     }
 
     if (_logFile != null) {
-      var file = new File(_logFile!);
+      var file = File(_logFile!);
       if (!file.existsSync()) {
         file.createSync(recursive: true);
       }
       logger.clearListeners();
-      IOSink out = _logFileOut = file.openWrite(mode: FileMode.append);
+      var out = _logFileOut = file.openWrite(mode: FileMode.append);
       logger.onRecord.listen((record) {
-        out.writeln("[${new DateTime.now()}][${record.level.name}] ${record.message}");
+        out.writeln(
+            '[${DateTime.now()}][${record.level.name}] ${record.message}');
         if (record.error != null) {
           out.writeln(record.error);
         }
@@ -285,7 +280,7 @@ class LinkProvider {
     }
 
     if (_watchFile != null) {
-      var file = new File(_watchFile!);
+      var file = File(_watchFile!);
       StreamSubscription? sub;
       sub = file.watch(events: FileSystemEvent.delete).listen((_) {
         close();
@@ -294,40 +289,44 @@ class LinkProvider {
         if (_logFileOut != null) {
           try {
             _logFileOut?.close();
-          } catch (e) {}
+          } catch (e) {
+            logger.finest('Error closing log file.', e);
+          }
         }
       });
     }
 
-    if (const bool.fromEnvironment("dslink.debugger.console", defaultValue: false)) {
+    if (const bool.fromEnvironment('dslink.debugger.console',
+        defaultValue: false)) {
       readStdinLines().listen((String cmd) {
-        if (cmd == "list-stored-nodes") {
+        if (cmd == 'list-stored-nodes') {
           if (provider is SimpleNodeProvider) {
-            SimpleNodeProvider prov = provider as SimpleNodeProvider;
-            print(prov.nodes.keys.join("\n"));
+            var prov = provider as SimpleNodeProvider;
+            print(prov.nodes.keys.join('\n'));
           } else {
-            print("Not a SimpleNodeProvider.");
+            print('Not a SimpleNodeProvider.');
           }
-        } else if (cmd == "list-stub-nodes") {
+        } else if (cmd == 'list-stub-nodes') {
           if (provider is SimpleNodeProvider) {
-            SimpleNodeProvider prov = provider as SimpleNodeProvider;
+            var prov = provider as SimpleNodeProvider;
             for (var node in prov.nodes.values) {
-              Path p = new Path(node.path!);
+              var p = Path(node.path!);
               if (prov.nodes[p.parentPath] == null) {
                 print(node.path);
-              } else if (!prov.nodes[p.parentPath]!.children.containsKey(p.name)) {
+              } else if (!prov.nodes[p.parentPath]!.children
+                  .containsKey(p.name)) {
                 print(node.path);
               }
             }
           } else {
-            print("Not a SimpleNodeProvider.");
+            print('Not a SimpleNodeProvider.');
           }
         }
       });
     }
 
     {
-      var runtimeConfig = Zone.current["dslink.runtime.config"];
+      dynamic runtimeConfig = Zone.current['dslink.runtime.config'];
 
       if (runtimeConfig != null) {
         var closeHandler = () {
@@ -336,20 +335,22 @@ class LinkProvider {
           if (_logFileOut != null) {
             try {
               _logFileOut?.close();
-            } catch (e) {}
+            } catch (e) {
+              logger.finest('Error closing log file.', e);
+            }
           }
         };
 
-        runtimeConfig["closeHandler"] = closeHandler;
+        runtimeConfig['closeHandler'] = closeHandler;
       }
     }
 
-    String helpStr =
-        "usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]";
+    var helpStr =
+        'usage: $command [--broker URL] [--log LEVEL] [--name NAME] [--discover]';
 
-    if (opts?["help"]) {
+    if (opts['help']) {
       print(helpStr);
-      print(argp?.usage);
+      print(argp.usage);
       if (exitOnFailure) {
         exit(1);
       } else {
@@ -357,12 +358,12 @@ class LinkProvider {
       }
     }
 
-    brokerUrl = opts?["broker"];
-    if (brokerUrl == null && !opts?["discover"]) {
+    brokerUrl = opts['broker'];
+    if (brokerUrl == null && !opts['discover']) {
       print(
-          "No Broker URL Specified. One of [--broker, --discover] is required.");
+          'No Broker URL Specified. One of [--broker, --discover] is required.');
       print(helpStr);
-      print(argp?.usage);
+      print(argp.usage);
       if (exitOnFailure) {
         exit(1);
       } else {
@@ -370,32 +371,32 @@ class LinkProvider {
       }
     }
 
-    String? name = opts?["name"];
-    home = opts?["home"];
-    token = opts?["token"];
+    String? name = opts['name'];
+    home = opts['home'];
+    token = opts['token'];
 
     if (name != null) {
-      if (name.endsWith("-")) {
+      if (name.endsWith('-')) {
         prefix = name;
       } else {
-        prefix = "${name}-";
+        prefix = '$name-';
       }
     }
 
     // load configs
-    File dslinkFile = new File("${_basePath}/dslink.json");
+    var dslinkFile = File('$_basePath/dslink.json');
 
     if (dslinkFile.existsSync()) {
-      var e;
+      dynamic e;
       try {
-        String configStr = dslinkFile.readAsStringSync();
+        var configStr = dslinkFile.readAsStringSync();
         dslinkJson = DsJson.decode(configStr);
       } catch (err) {
         e = err;
       }
 
       if (dslinkJson == null) {
-        logger.severe("Invalid dslink.json", e);
+        logger.severe('Invalid dslink.json', e);
         if (exitOnFailure) {
           exit(1);
         } else {
@@ -403,24 +404,26 @@ class LinkProvider {
         }
       }
     } else {
-      dslinkJson = {};
+      dslinkJson = <String, dynamic>{};
     }
 
     if (brokerUrl != null) {
-      if (!brokerUrl!.startsWith("http")) {
-        brokerUrl = "http://$brokerUrl";
+      if (!brokerUrl!.startsWith('http')) {
+        brokerUrl = 'http://$brokerUrl';
       }
     }
 
-    File keyFile = getConfig("key") == null
-        ? new File("${_basePath}/.dslink.key")
-        : new File.fromUri(Uri.parse(getConfig("key") as String));
+    var keyFile = getConfig('key') == null
+        ? File('$_basePath/.dslink.key')
+        : File.fromUri(Uri.parse(getConfig('key') as String));
     String? key;
 
     try {
       key = keyFile.readAsStringSync();
-      privateKey = new PrivateKey.loadFromString(key);
-    } catch (err) {}
+      privateKey = PrivateKey.loadFromString(key);
+    } catch (err) {
+      logger.warning('Invalid Private Key', err);
+    }
 
     if (key == null || key.length != 131) {
       // 43 bytes d, 87 bytes Q, 1 space
@@ -428,24 +431,26 @@ class LinkProvider {
       if (DSRandom.instance.needsEntropy) {
         late String macs;
         if (Platform.isWindows) {
-          macs = Process.runSync("getmac", []).stdout.toString();
+          macs = Process.runSync('getmac', []).stdout.toString();
         } else {
           try {
-            macs = Process.runSync("arp", ["-an"]).stdout.toString();
+            macs = Process.runSync('arp', ['-an']).stdout.toString();
           } catch (e) {
             try {
-              var envs = "";
+              var envs = '';
               for (var i in Platform.environment.keys) {
-                envs += "${i}=${Platform.environment[i]}\n";
+                envs += '$i=${Platform.environment[i]}\n';
               }
               macs = envs;
-            } catch (e) {}
+            } catch (e) {
+              logger.finest('Cant get macs:', e);
+            }
           }
         }
         // randomize the PRNG with the system mac (as well as timestamp)
         DSRandom.instance.addEntropy(macs);
       }
-      privateKey = new PrivateKey.generateSync();
+      privateKey = PrivateKey.generateSync();
       key = privateKey.saveToString();
       if (savePrivateKey) {
         keyFile.writeAsStringSync(key);
@@ -453,9 +458,9 @@ class LinkProvider {
     }
 
     SimpleNode.initEncryption(privateKey.saveToString());
-    
+
     if (optionsHandler != null) {
-      optionsHandler(opts!);
+      optionsHandler(opts);
     }
 
     return true;
@@ -473,14 +478,12 @@ class LinkProvider {
   Stream<ValueUpdate> onValueChange(String path, {int cacheLevel = 1}) {
     RespSubscribeListener? listener;
     late StreamController<ValueUpdate> controller;
-    int subs = 0;
-    controller = new StreamController<ValueUpdate>.broadcast(onListen: () {
+    var subs = 0;
+    controller = StreamController<ValueUpdate>.broadcast(onListen: () {
       subs++;
-      if (listener == null) {
-        listener = this[path]?.subscribe((ValueUpdate update) {
-          controller.add(update);
-        }, cacheLevel);
-      }
+      listener ??= this[path]?.subscribe((ValueUpdate update) {
+        controller.add(update);
+      }, cacheLevel);
     }, onCancel: () {
       subs--;
       if (subs == 0) {
@@ -527,7 +530,7 @@ class LinkProvider {
     _initialized = true;
 
     if (provider == null) {
-      provider = new SimpleNodeProvider(null, profiles);
+      provider = SimpleNodeProvider(null, profiles);
       (provider as SimpleNodeProvider).setPersistFunction(saveAsync);
     }
 
@@ -546,44 +549,41 @@ class LinkProvider {
   }
 
   HttpClientLink createHttpLink() {
-    var client = new HttpClientLink(
-      brokerUrl,
-      prefix,
-      privateKey,
-      isRequester: isRequester,
-      isResponder: isResponder,
-      nodeProvider: provider,
-      overrideRequester: overrideRequester,
-      overrideResponder: overrideResponder,
-      strictTls: strictTls,
-      home: home,
-      token: token,
-      linkData: linkData
-    );
+    var client = HttpClientLink(brokerUrl, prefix, privateKey,
+        isRequester: isRequester,
+        isResponder: isResponder,
+        nodeProvider: provider,
+        overrideRequester: overrideRequester,
+        overrideResponder: overrideResponder,
+        strictTls: strictTls,
+        home: home,
+        token: token,
+        linkData: linkData);
     client.logName = logTag;
     return client;
   }
 
   void loadNodesFile() {
-    if (provider is SerializableNodeProvider &&
-      !_reconnecting) {
-      _nodesFile = getConfig("nodes") == null
-        ? new File("${_basePath}/nodes.json")
-        : new File.fromUri(Uri.parse(getConfig("nodes") as String));
+    if (provider is SerializableNodeProvider && !_reconnecting) {
+      _nodesFile = getConfig('nodes') == null
+          ? File('$_basePath/nodes.json')
+          : File.fromUri(Uri.parse(getConfig('nodes') as String));
       Map<String, dynamic>? loadedNodesData;
 
       if (loadNodesJson) {
-        _nodesFile = getConfig("nodes") == null
-          ? new File("${_basePath}/nodes.json")
-          : new File.fromUri(Uri.parse(getConfig("nodes") as String));
+        _nodesFile = getConfig('nodes') == null
+            ? File('$_basePath/nodes.json')
+            : File.fromUri(Uri.parse(getConfig('nodes') as String));
         try {
-          String nodesStr = _nodesFile!.readAsStringSync();
-          var json = DsJson.decode(nodesStr);
+          var nodesStr = _nodesFile!.readAsStringSync();
+          Map<String, dynamic>? json = DsJson.decode(nodesStr);
 
           if (json is Map<String, dynamic>) {
             loadedNodesData = json;
           }
-        } catch (err) {}
+        } catch (err) {
+          logger.warning('Invalid nodes.json', err);
+        }
       }
 
       if (loadedNodesData != null) {
@@ -601,10 +601,10 @@ class LinkProvider {
   /// Gets a configuration value from the dslink.json
   Object? getConfig(String key) {
     if (dslinkJson != null &&
-        dslinkJson?["configs"] is Map &&
-        dslinkJson?["configs"][key] is Map &&
-        dslinkJson?["configs"][key].containsKey("value")) {
-      return dslinkJson?["configs"][key]["value"];
+        dslinkJson?['configs'] is Map &&
+        dslinkJson?['configs'][key] is Map &&
+        dslinkJson?['configs'][key].containsKey('value')) {
+      return dslinkJson?['configs'][key]['value'];
     }
     return null;
   }
@@ -618,9 +618,7 @@ class LinkProvider {
 
   /// Connects the link to the broker.
   Future connect() {
-    if (_connectedCompleter == null) {
-      _connectedCompleter = new Completer();
-    }
+    _connectedCompleter ??= Completer<void>();
 
     if (!_configured || !_initialized) {
       init();
@@ -671,11 +669,9 @@ class LinkProvider {
         return;
       }
 
-      _nodesFile!.writeAsStringSync(
-        DsJson.encode(
+      _nodesFile!.writeAsStringSync(DsJson.encode(
           (provider as SerializableNodeProvider).save(),
-          pretty: encodePrettyJson)
-      );
+          pretty: encodePrettyJson));
     }
   }
 
@@ -688,7 +684,7 @@ class LinkProvider {
 
       var count = 0;
       while (_isAsyncSave) {
-        await new Future.delayed(const Duration(milliseconds: 5));
+        await Future<void>.delayed(const Duration(milliseconds: 5));
         count++;
 
         if (count == 100) {
@@ -696,10 +692,8 @@ class LinkProvider {
         }
       }
 
-      var encoded = DsJson.encode(
-        (provider as SerializableNodeProvider).save(),
-        pretty: encodePrettyJson
-      );
+      var encoded = DsJson.encode((provider as SerializableNodeProvider).save(),
+          pretty: encodePrettyJson);
 
       _isAsyncSave = true;
 
@@ -719,9 +713,9 @@ class LinkProvider {
   /// Adds a node with the given configuration in [m] at the given [path].
   /// In order for this method to work, the node provider must be mutable.
   /// If you did not specify a custom node provider, the created provider is mutable.
-  LocalNode? addNode(String path, Map m) {
+  LocalNode? addNode(String path, Map<String, dynamic> m) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     return (provider as MutableNodeProvider).addNode(path, m);
   }
@@ -731,7 +725,7 @@ class LinkProvider {
   /// If you did not specify a custom node provider, the created provider is mutable.
   void removeNode(String path) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     (provider as MutableNodeProvider).removeNode(path);
   }
@@ -741,7 +735,7 @@ class LinkProvider {
   /// If you did not specify a custom node provider, the created provider is mutable.
   void updateValue(String path, dynamic value) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     (provider as MutableNodeProvider).updateValue(path, value);
   }
@@ -750,12 +744,12 @@ class LinkProvider {
   LocalNode? operator [](String path) => provider?[path];
 
   /// Gets the root node.
-  LocalNode? operator ~() => this["/"];
+  LocalNode? operator ~() => this['/'];
 
   /// If only [path] is specified, this method fetches the value of the node at the given path.
   /// If [value] is also specified, it will set the value of the
   /// node at the given path to the specified value, and return that value.
-  dynamic val(String path, [value = unspecified]) {
+  dynamic val(String path, [dynamic value = unspecified]) {
     if (value is Unspecified) {
       return this[path]!.lastValueUpdate!.value!;
     } else {
@@ -766,16 +760,21 @@ class LinkProvider {
 
   /// persist value setting to disk, default to true;
   bool get valuePersistenceEnabled {
-    if (dslinkJson is Map && dslinkJson?['configs'] is Map && dslinkJson?['configs']['valuePersistenceEnabled'] is Map
-        && dslinkJson?['configs']['valuePersistenceEnabled']['value'] == false) {
+    if (dslinkJson is Map &&
+        dslinkJson?['configs'] is Map &&
+        dslinkJson?['configs']['valuePersistenceEnabled'] is Map &&
+        dslinkJson?['configs']['valuePersistenceEnabled']['value'] == false) {
       return false;
     }
     return true;
   }
+
   /// persist qos2 and qos3 subscription to disk, default to false;
   bool get qosPersistenceEnabled {
-    if (dslinkJson is Map && dslinkJson?['configs'] is Map && dslinkJson?['configs']['qosPersistenceEnabled'] is Map
-        && dslinkJson?['configs']['qosPersistenceEnabled']['value'] == true) {
+    if (dslinkJson is Map &&
+        dslinkJson?['configs'] is Map &&
+        dslinkJson?['configs']['qosPersistenceEnabled'] is Map &&
+        dslinkJson?['configs']['qosPersistenceEnabled']['value'] == true) {
       return true;
     }
     return false;

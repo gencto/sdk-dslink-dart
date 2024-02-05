@@ -1,15 +1,16 @@
 part of dslink.responder;
 
-typedef InvokeResponse InvokeCallback(Map params, Responder responder,
+typedef InvokeCallback = InvokeResponse Function(Map params, Responder responder,
     InvokeResponse response, LocalNode? parentNode);
 
 /// definition nodes are serializable node that won"t change
 /// the only change will be a global upgrade
 class DefinitionNode extends LocalNodeImpl {
+  @override
   final NodeProvider provider;
 
   DefinitionNode(String path, this.provider) : super(path) {
-    this.configs[r"$is"] = "static";
+    configs[r'$is'] = 'static';
   }
 
   InvokeCallback? _invokeCallback;
@@ -29,9 +30,9 @@ class DefinitionNode extends LocalNodeImpl {
       return response..close(DSError.NOT_IMPLEMENTED);
     }
 
-    String? parentPath = parentNode is LocalNode ? parentNode.path : null;
+    var parentPath = parentNode is LocalNode ? parentNode.path : null;
 
-    int permission = responder.nodeProvider.permissions.getPermission(
+    var permission = responder.nodeProvider.permissions.getPermission(
       parentPath,
       responder
     );

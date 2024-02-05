@@ -1,10 +1,10 @@
 part of dslink.responder;
 
-typedef void OnInvokeClosed(InvokeResponse response);
-typedef void OnInvokeSend(InvokeResponse response, Map m);
+typedef OnInvokeClosed = void Function(InvokeResponse response);
+typedef OnInvokeSend = void Function(InvokeResponse response, Map m);
 
 /// return true if params are valid
-typedef bool OnReqParams(InvokeResponse resp, Map m);
+typedef OnReqParams = bool Function(InvokeResponse resp, Map m);
 
 class _InvokeResponseUpdate {
   String? status;
@@ -16,9 +16,9 @@ class _InvokeResponseUpdate {
 }
 
 class InvokeResponse extends Response {
-  final LocalNode? parentNode;
+  final LocalNode parentNode;
   final LocalNode? node;
-  final String? name;
+  final String name;
 
   InvokeResponse(Responder responder, int rid, this.parentNode, this.node, this.name)
       : super(responder, rid, 'invoke');
@@ -39,8 +39,8 @@ class InvokeResponse extends Response {
       if (columns == null &&
         autoSendColumns &&
         node != null &&
-        node?.configs[r"$columns"] is List) {
-        columns = node!.configs[r"$columns"] as List?;
+        node?.configs[r'$columns'] is List) {
+        columns = node!.configs[r'$columns'] as List?;
       }
     }
 
@@ -49,7 +49,7 @@ class InvokeResponse extends Response {
     }
 
     pendingData.add(
-      new _InvokeResponseUpdate(streamStatus, updates, columns, meta)
+      _InvokeResponseUpdate(streamStatus, updates, columns, meta)
     );
     prepareSending();
   }
@@ -73,7 +73,7 @@ class InvokeResponse extends Response {
       return;
     }
 
-    for (_InvokeResponseUpdate update in pendingData) {
+    for (var update in pendingData) {
       List<Map<String, dynamic>>? outColumns;
       if (update.columns != null) {
         outColumns = TableColumn.serializeColumns(update.columns!);
@@ -99,15 +99,16 @@ class InvokeResponse extends Response {
   }
 
   /// close the request from responder side and also notify the requester
-  void close([DSError? err = null]) {
+  @override
+  void close([DSError? err]) {
     if (err != null) {
       _err = err;
     }
-    if (!pendingData.isEmpty) {
+    if (pendingData.isNotEmpty) {
       pendingData.last.status = StreamStatus.closed;
     } else {
       pendingData.add(
-        new _InvokeResponseUpdate(StreamStatus.closed, null, null, null)
+        _InvokeResponseUpdate(StreamStatus.closed, null, null, null)
       );
       prepareSending();
     }
@@ -118,6 +119,7 @@ class InvokeResponse extends Response {
   OnInvokeClosed? onClose;
   OnInvokeSend? onSendUpdate;
 
+  @override
   void _close() {
     if (onClose != null) {
       onClose!(this);
@@ -125,7 +127,8 @@ class InvokeResponse extends Response {
   }
 
   /// for the broker trace action
+  @override
   ResponseTrace getTraceData([String change = '+']) {
-    return new ResponseTrace(parentNode?.path, 'invoke', rid, change, name);
+    return ResponseTrace(parentNode.path, 'invoke', rid, change, name);
   }
 }

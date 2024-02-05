@@ -1,20 +1,20 @@
-import "dart:async";
+import 'dart:async';
 
-import "package:dslink/dslink.dart";
+import 'package:dslink/dslink.dart';
 
 late LinkProvider link;
 late int lastNum;
 late SimpleNode valueNode;
 
-main(List<String> args) {
+void main() {
   var defaultNodes = <String, dynamic>{
     'node': {
       r'$type':'string'
     }
   };
 
-  link = new LinkProvider(
-    ['-b', 'localhost:8080/conn', '--log', 'finest'], 'streamset-req',
+  link = LinkProvider(
+    ['-b', 'dev.sviteco.ua/conn', '--log', 'finest'], 'streamset-req',
     defaultNodes: defaultNodes, isResponder: false, isRequester: true);
   if (link.link == null) {
     // initialization failed
@@ -26,13 +26,13 @@ main(List<String> args) {
     Request rawreq;
     void fetchReq(Request v) {
       rawreq = v;
-      int i = 0;
-      new Timer.periodic(new Duration(seconds: 1), (Timer t) {
-        rawreq.addReqParams({'Path':'/data/m1', 'Value':++i});
+      var i = 0;
+      Timer.periodic(Duration(seconds: 1), (Timer t) {
+        rawreq.addReqParams(<String, dynamic>{'Path':'/data/m1', 'Value':++i});
       });
     }
     req?.invoke(
-      '/data/streamingSet', {'Path':'/data/m1', 'Value':0}, Permission.CONFIG,
+      '/data/streamingSet', <String, dynamic>{'Path':'/data/m1', 'Value':0}, Permission.CONFIG,
       fetchReq).listen((update) {
       print(update.updates);
     });

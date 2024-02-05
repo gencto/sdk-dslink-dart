@@ -1,15 +1,15 @@
-import "package:dslink/utils.dart" show Scheduler;
-import "package:dslink/worker.dart";
+import 'package:dslink/utils.dart' show Scheduler;
+import 'package:dslink/worker.dart';
 
-main(List<String> args, message) async {
-  Worker worker = buildWorkerForScript(message as Map<String, dynamic>);
-  WorkerSocket socket = await worker.init(methods: {
-    "hello": (_) => print("Hello World")
+void main(List<String> args,Map<String, dynamic> message) async {
+  var worker = buildWorkerForScript(message);
+  var socket = await worker.init(methods: {
+    'hello': (dynamic _) => print('Hello World')
   });
 
-  print("Worker Started");
+  print('Worker Started');
 
-  Scheduler.after(new Duration(seconds: 2), () {
-    socket.callMethod("stop");
+  await Scheduler.after(Duration(seconds: 2), () {
+    socket.callMethod('stop');
   });
 }

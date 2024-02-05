@@ -7,17 +7,17 @@ class UriComponentDecoder {
   static const int _PLUS = 0x2B;
 
   static String decode(String text) {
-    List<int> codes = [];
-    List<int> bytes = [];
-    int len = text.length;
-    for (int i = 0; i < len; i++) {
+    var codes = <int>[];
+    var bytes = <int>[];
+    var len = text.length;
+    for (var i = 0; i < len; i++) {
       var codeUnit = text.codeUnitAt(i);
       if (codeUnit == _PERCENT) {
         if (i + 3 > text.length) {
           bytes.add(_PERCENT);
           continue;
         }
-        int hexdecoded = _hexCharPairToByte(text, i + 1);
+        var hexdecoded = _hexCharPairToByte(text, i + 1);
         if (hexdecoded > 0) {
           bytes.add(hexdecoded);
           i += 2;
@@ -25,7 +25,7 @@ class UriComponentDecoder {
           bytes.add(_PERCENT);
         }
       } else {
-        if (!bytes.isEmpty) {
+        if (bytes.isNotEmpty) {
           codes.addAll(
             const Utf8Decoder(allowMalformed: true)
               .convert(bytes)
@@ -40,19 +40,19 @@ class UriComponentDecoder {
       }
     }
 
-    if (!bytes.isEmpty) {
+    if (bytes.isNotEmpty) {
       codes.addAll(const Utf8Decoder()
         .convert(bytes)
         .codeUnits);
       bytes.clear();
     }
-    return new String.fromCharCodes(codes);
+    return String.fromCharCodes(codes);
   }
 
   static int _hexCharPairToByte(String s, int pos) {
-    int byte = 0;
-    for (int i = 0; i < 2; i++) {
-      int charCode = s.codeUnitAt(pos + i);
+    var byte = 0;
+    for (var i = 0; i < 2; i++) {
+      var charCode = s.codeUnitAt(pos + i);
       if (0x30 <= charCode && charCode <= 0x39) {
         byte = byte * 16 + charCode - 0x30;
       } else if ((charCode >= 0x41 && charCode <= 0x46) ||

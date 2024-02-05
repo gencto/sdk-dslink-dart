@@ -1,12 +1,12 @@
-import "package:dslink/worker.dart";
+import 'package:dslink/worker.dart';
 
-main() async {
+void main() async {
   var worker = await createWorker(transformStringWorker).init();
-  print(await worker.callMethod("transform", "Hello World"));
+  print(await worker.callMethod('transform', 'Hello World'));
 }
 
-transformStringWorker(Worker worker) async {
+void transformStringWorker(Worker worker) async {
   await worker.init(methods: {
-    "transform": (/*String*/ input) => input.toLowerCase()
+    'transform': (/*String*/ dynamic input) => input.toLowerCase()
   });
 }

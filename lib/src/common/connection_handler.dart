@@ -82,14 +82,14 @@ abstract class ConnectionHandler {
   /// gather all the changes from
   ProcessorResult getSendingData(int currentTime, int waitingAckId) {
     _pendingSend = false;
-    List<ConnectionProcessor> processors = _processors;
+    var processors = _processors;
     _processors = [];
-    for (ConnectionProcessor proc in processors) {
+    for (var proc in processors) {
       proc.startSendingData(currentTime, waitingAckId);
     }
-    List<Map> rslt = _toSendList;
+    var rslt = _toSendList;
     _toSendList = [];
-    return new ProcessorResult(rslt, processors);
+    return ProcessorResult(rslt, processors);
   }
 
   void clearProcessors() {

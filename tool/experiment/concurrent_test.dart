@@ -1,30 +1,35 @@
-import "dart:math";
+import 'dart:math';
 
-import "package:dslink/dslink.dart";
-import "package:dslink/utils.dart";
-import "package:logging/logging.dart";
+import 'package:dslink/dslink.dart';
+import 'package:dslink/utils.dart';
+import 'package:logging/logging.dart';
 
-import "package:args/args.dart";
+import 'package:args/args.dart';
 
 class TestNodeProvider extends NodeProvider {
   late TestNode onlyNode;
   TestNodeProvider(){
-    onlyNode = new TestNode('/', this);
+    onlyNode = TestNode('/', this);
   }
 
+  @override
   LocalNode? getNode(String? path) {
     return onlyNode;
   }
-  IPermissionManager permissions = new DummyPermissionManager();
+  @override
+  IPermissionManager permissions = DummyPermissionManager();
+  @override
   Responder createResponder(String? dsId, String sessionId) {
-    return new Responder(this, dsId);
+    return Responder(this, dsId);
   }
+  @override
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
     return onlyNode;
   }
 }
 
 class TestNode extends LocalNodeImpl {
+  @override
   NodeProvider provider;
   TestNode(String path, this.provider) : super(path) {
     configs[r'$is'] = 'node';
@@ -37,34 +42,34 @@ class TestNode extends LocalNodeImpl {
 int pairCount = 1000;
 
 Stopwatch? stopwatch;
-Random random = new Random();
+Random random = Random();
 
-main(List<String> args) async {
-  var argp = new ArgParser();
-  argp.addOption("pairs", abbr: "p", help: "Number of Link Pairs", defaultsTo: "1000", valueHelp: "pairs");
-  var opts = argp.parse(args);
+Future<void> main() async {
+  var argp = ArgParser();
+  argp.addOption('pairs', abbr: 'p', help: 'Number of Link Pairs', defaultsTo: '1000', valueHelp: 'pairs');
+  var opts = argp.parse(['https://dev.sviteco.ua/conn']);
 
   try {
-    pairCount = int.parse(opts["pairs"]);
+    pairCount = int.parse(opts['pairs']);
   } catch (e) {
-    print("Invalid Number of Pairs.");
+    print('Invalid Number of Pairs.');
     return;
   }
 
   logger.level = Level.WARNING;
 
-  stopwatch = new Stopwatch();
+  stopwatch = Stopwatch();
 
   await createLinks();
-  int mm = 0;
-  bool ready = false;
+  var mm = 0;
+  var ready = false;
 
   Scheduler.every(Interval.TWO_SECONDS, () {
     if (connectedCount != pairCount) {
       mm++;
 
       if (mm == 2) {
-        print("${connectedCount} of ${pairCount} link pairs are ready.");
+        print('$connectedCount of $pairCount link pairs are ready.');
         mm = 0;
       }
 
@@ -72,7 +77,7 @@ main(List<String> args) async {
     }
 
     if (!ready) {
-      print("All link pairs are now ready. Subscribing requesters to values and starting value updates.");
+      print('All link pairs are now ready. Subscribing requesters to values and starting value updates.');
       ready = true;
     }
 
@@ -91,32 +96,32 @@ int getRandomPair() {
   return random.nextInt(pairCount - 1) + 1;
 }
 
-void changeValue(value, int idx) {
+void changeValue(dynamic value, int idx) {
   (pairs[idx][2] as TestNodeProvider).getNode('/node')?.updateValue(value);
 }
 
-createLinks() async {
-  print("Creating ${pairCount} link pairs.");
+Future<void> createLinks() async {
+  print('Creating $pairCount link pairs.');
   while (true) {
-    await createLinkPair();
+    createLinkPair();
     if (pairIndex > pairCount) {
       return;
     }
   }
 }
 
-List pairs = [null];
+List pairs = <dynamic>[null];
 int pairIndex = 1;
 
 PrivateKey key =
-  new PrivateKey.loadFromString(
+  PrivateKey.loadFromString(
       '9zaOwGO2iXimn4RXTNndBEpoo32qFDUw72d8mteZP9I BJSgx1t4pVm8VCs4FHYzRvr14BzgCBEm8wJnMVrrlx1u1dnTsPC0MlzAB1LhH2sb6FXnagIuYfpQUJGT_yYtoJM');
 
-createLinkPair() async {
-  TestNodeProvider provider = new TestNodeProvider();
-  var linkResp = new HttpClientLink('http://localhost:8080/conn', 'responder-$pairIndex-', key, isRequester: false, isResponder: true, nodeProvider: provider);
+void createLinkPair() async {
+  var provider = TestNodeProvider();
+  var linkResp = HttpClientLink('https://dev.sviteco.ua/conn', 'responder-$pairIndex-', key, isRequester: false, isResponder: true, nodeProvider: provider);
 
-  var linkReq = new HttpClientLink('http://localhost:8080/conn', 'requester-$pairIndex-', key, isRequester: true);
+  var linkReq = HttpClientLink('https://dev.sviteco.ua/conn', 'requester-$pairIndex-', key, isRequester: true);
   linkReq.connect();
 
   pairs.add([linkResp, linkReq, provider]);
@@ -126,10 +131,10 @@ createLinkPair() async {
   changeValue(0, pairIndex);
   pairIndex++;
 
-  linkResp.connect().then((_) {
-    print("Link Pair ${mine} is now ready.");
+  await linkResp.connect().then((dynamic _) {
+    print('Link Pair $mine is now ready.');
     connectedCount++;
-    linkReq.requester!.subscribe("/conns/responder-$mine/node", (ValueUpdate val) {
+    linkReq.requester!.subscribe('/conns/responder-$mine/node', (ValueUpdate val) {
     });
   });
 }

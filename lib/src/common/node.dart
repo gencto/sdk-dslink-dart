@@ -7,7 +7,7 @@ class Node {
     if (nameOrPath.contains('/')) {
       List names = nameOrPath.split('/');
       nameOrPath = names.removeLast();
-      while (nameOrPath == '' && !names.isEmpty) {
+      while (nameOrPath == '' && names.isNotEmpty) {
         nameOrPath = names.removeLast();
       }
     }
@@ -46,7 +46,7 @@ class Node {
   }
 
   /// Node Configs
-  Map<String, Object?> configs = {r'$is': 'node'};
+  Map<String, dynamic> configs = <String, dynamic>{r'$is': 'node'};
 
   /// Get a Config
   Object? getConfig(String name) {
@@ -62,7 +62,7 @@ class Node {
 
   /// Node Children
   /// Map of Child Name to Child Node
-  Map<String, Node?> children = {};
+  Map<String, Node> children = {};
 
   /// Adds a child to this node.
   void addChild(String name, Node node) {
@@ -78,7 +78,7 @@ class Node {
     } else if (input is Node) {
       children.remove(input);
     } else {
-      throw new Exception("Invalid Input");
+      throw Exception('Invalid Input');
     }
     return null;
   }
@@ -111,7 +111,7 @@ class Node {
 
 
   /// Iterates over all the children of this node and passes them to the specified [callback].
-  void forEachChild(void callback(String name, Node? node)) {
+  void forEachChild(void Function(String name, Node? node) callback) {
     children.forEach(callback);
     if (profile != null) {
       profile?.children.forEach((String str, Node? n) {
@@ -122,7 +122,7 @@ class Node {
     }
   }
 
-  void forEachConfig(void callback(String name, Object? value)) {
+  void forEachConfig(void Function(String name, Object? value) callback) {
     configs.forEach(callback);
     if (profile != null) {
       profile?.configs.forEach((String str, Object? val) {
@@ -133,7 +133,7 @@ class Node {
     }
   }
 
-  void forEachAttribute(void callback(String name, Object? value)) {
+  void forEachAttribute(void Function(String name, Object? value) callback) {
     attributes.forEach(callback);
     if (profile != null) {
       profile?.attributes.forEach((String str, Object? val) {
@@ -190,10 +190,10 @@ class Node {
 /// Utility class for node and config/attribute paths.
 class Path {
   /// Regular Expression for invalid characters in paths.
-  static final RegExp invalidChar = new RegExp(r'[\\\?\*|"<>:]');
+  static final RegExp invalidChar = RegExp(r'[\\\?\*|"<>:]');
 
   /// Regular Expression for invalid characters in names.
-  static final RegExp invalidNameChar = new RegExp(r'[\/\\\?\*|"<>:]');
+  static final RegExp invalidNameChar = RegExp(r'[\/\\\?\*|"<>:]');
 
   static String escapeName(String str) {
     if (str.contains(invalidNameChar)) {
@@ -204,7 +204,7 @@ class Path {
 
   static Path? getValidPath(Object path, [String? basePath]) {
     if (path is String) {
-      Path p = new Path(path);
+      var p = Path(path);
       if (p.valid) {
         return p..mergeBasePath(basePath);
       }
@@ -214,7 +214,7 @@ class Path {
 
   static Path? getValidNodePath(Object path, [String? basePath]) {
     if (path is String) {
-      Path p = new Path(path);
+      var p = Path(path);
       if (p.valid && p.isNode) {
         return p..mergeBasePath(basePath);
       }
@@ -224,7 +224,7 @@ class Path {
 
   static Path? getValidAttributePath(Object path, [String? basePath]) {
     if (path is String) {
-      Path p = new Path(path);
+      var p = Path(path);
       if (p.valid && p.isAttribute) {
         return p..mergeBasePath(basePath);
       }
@@ -234,7 +234,7 @@ class Path {
 
   static Path? getValidConfigPath(Object path, [String? basePath]) {
     if (path is String) {
-      Path p = new Path(path);
+      var p = Path(path);
       if (p.valid && p.isConfig) {
         return p..mergeBasePath(basePath);
       }
@@ -249,14 +249,14 @@ class Path {
   late String parentPath;
 
   /// Get the parent of this path.
-  Path get parent => new Path(parentPath);
+  Path get parent => Path(parentPath);
 
   /// Get a child of this path.
   Path child(String name) =>
-      new Path(
-          (path.endsWith("/") ? path.substring(0, path.length - 1) : path) +
-              "/" +
-              (name.startsWith("/") ? name.substring(1) : name));
+      Path(
+          (path.endsWith('/') ? path.substring(0, path.length - 1) : path) +
+              '/' +
+              (name.startsWith('/') ? name.substring(1) : name));
 
   /// The name of this path.
   /// This is the last component of the path.
@@ -283,7 +283,7 @@ class Path {
     if (path.endsWith('/')) {
       path = path.substring(0, path.length - 1);
     }
-    int pos = path.lastIndexOf('/');
+    var pos = path.lastIndexOf('/');
     if (pos < 0) {
       name = path;
       parentPath = '';

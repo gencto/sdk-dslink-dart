@@ -1,7 +1,7 @@
 import 'package:dslink/src/crypto/pk.dart';
 import 'dart:io';
 
- main() async{
+ void main() async{
   String rslt;
 
   if (Platform.isWindows) {
@@ -13,13 +13,14 @@ import 'dart:io';
   // randomize the PRNG with the system mac
   DSRandom.instance.addEntropy(rslt);
 
-  var t1 = (new DateTime.now()).millisecondsSinceEpoch;
+  var t1 = (DateTime.now()).millisecondsSinceEpoch;
   late PrivateKey key ;
-  for (int i=0; i< 50; ++i)
-  // generate private key
+  for (var i=0; i< 50; ++i) {
+    // generate private key
   key = await PrivateKey.generate();
+  }
 
-  var t2 = (new DateTime.now()).millisecondsSinceEpoch;
+  var t2 = (DateTime.now()).millisecondsSinceEpoch;
 
   print('takes ${t2-t1} ms to generate key');
   print('dsaId: ${key.publicKey.getDsId('my-dsa-test-')}');

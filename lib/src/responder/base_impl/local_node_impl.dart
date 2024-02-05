@@ -1,15 +1,15 @@
 part of dslink.responder;
 
 abstract class NodeProviderImpl extends NodeProvider {
-  Map<String, LocalNode> get nodes;
+  Map<String, LocalNode?> get nodes;
 }
 
 abstract class LocalNodeImpl extends LocalNode {
   LocalNodeImpl(String? path) : super(path);
 
   Map serialize(bool withChildren) {
-    var rslt = {};
-    configs.forEach((key, val) {
+    var rslt = <String, dynamic>{};
+    configs.forEach((key, dynamic val) {
       rslt[key] = val;
     });
 
@@ -22,7 +22,7 @@ abstract class LocalNodeImpl extends LocalNode {
         if (val is LocalNodeImpl) {
           rslt[key] = val.serialize(true);
         } else {
-          rslt[key] = val?.getSimpleMap();
+          rslt[key] = val.getSimpleMap();
         }
       }
     });
@@ -34,7 +34,8 @@ abstract class LocalNodeImpl extends LocalNode {
 
   bool get loaded => _loaded;
 
-  void load(Map m) {
+  @override
+  void load(Map<String, dynamic> m) {
     if (_loaded) {
       configs.clear();
       attributes.clear();
@@ -47,13 +48,14 @@ abstract class LocalNodeImpl extends LocalNode {
       childPathPre = '$path/';
     }
 
-    m.forEach((key, value) {
+    m.forEach((key, dynamic value) {
       if (key.startsWith(r'$')) {
         configs[key] = value;
       } else if (key.startsWith('@')) {
         attributes[key] = value;
-      } else if (value is Map) {
-        Node? node = provider?.getOrCreateNode('$childPathPre$key', false);
+      } else if (value is Map<String, dynamic>) {
+        var node =
+            provider?.getOrCreateNode('$childPathPre$key', false) as Node;
         if (node is LocalNodeImpl) {
           node.load(value);
         }
@@ -67,8 +69,9 @@ abstract class LocalNodeImpl extends LocalNode {
     listChangeController.add(name);
   }
 
-  Response? setAttribute(String name, Object value, Responder responder,
-      Response? response) {
+  @override
+  Response? setAttribute(
+      String name, Object value, Responder responder, Response? response) {
     if (!attributes.containsKey(name) || attributes[name] != value) {
       attributes[name] = value;
       updateList(name);
@@ -80,8 +83,9 @@ abstract class LocalNodeImpl extends LocalNode {
     return response?..close();
   }
 
-  Response? removeAttribute(String name, Responder responder,
-      Response? response) {
+  @override
+  Response? removeAttribute(
+      String name, Responder responder, Response? response) {
     if (attributes.containsKey(name)) {
       attributes.remove(name);
       updateList(name);
@@ -93,23 +97,25 @@ abstract class LocalNodeImpl extends LocalNode {
     return response?..close();
   }
 
-  Response? setConfig(String name, Object value, Responder responder,
-      Response? response) {
+  @override
+  Response? setConfig(
+      String name, Object value, Responder responder, Response? response) {
     var config = Configs.getConfig(name, profile);
-    response?.close((config as ConfigSetting).setConfig(value, this, responder));
+    response
+        ?.close((config as ConfigSetting).setConfig(value, this, responder));
     return response;
   }
 
+  @override
   Response? removeConfig(String name, Responder responder, Response? response) {
     var config = Configs.getConfig(name, profile);
-    return response?..close((config as ConfigSetting).removeConfig(this, responder));
+    return response
+      ?..close((config as ConfigSetting).removeConfig(this, responder));
   }
 
-  Response? setValue(
-    Object value,
-    Responder? responder,
-    Response? response,
-    [int maxPermission = Permission.CONFIG]) {
+  @override
+  Response? setValue(Object? value, Responder? responder, Response? response,
+      [int maxPermission = Permission.CONFIG]) {
     updateValue(value);
     // TODO: check value type
     return response?..close();

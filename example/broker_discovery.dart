@@ -1,11 +1,11 @@
-import "package:dslink/dslink.dart";
+import 'package:dslink/dslink.dart';
 
-main() async {
-  var client = new BrokerDiscoveryClient();
+void main() async {
+  var client = BrokerDiscoveryClient();
 
   await client.init();
 
   await for (var url in client.discover()) {
-    print("Discovered Broker at ${url}");
+    print('Discovered Broker at $url');
   }
 }

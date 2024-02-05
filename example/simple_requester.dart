@@ -1,26 +1,25 @@
-import "package:dslink/dslink.dart";
+import 'package:dslink/dslink.dart';
 
 late LinkProvider link;
 
-main(List<String> args) async {
-  link = new LinkProvider(
-    ['--broker', 'http://localhost:8080/conn',],
-    "Simple-Requester-", // DSLink Prefix
-    defaultLogLevel: "DEBUG",
+void main(List<String> args) async {
+  link = LinkProvider(
+    [
+      '--broker',
+      'https://dev.sviteco.ua/conn',
+    ],
+    'Simple-Requester-', // DSLink Prefix
+    defaultLogLevel: 'DEBUG',
     isResponder: false,
     isRequester: true, // We are just a requester.
   );
 
-  link.connect(); // Connect to the broker.
-  Requester? requester =
+  await link.connect(); // Connect to the broker.
+  var requester =
       await link.onRequesterReady; // Wait for the requester to be ready.
 
-  await for (RequesterListUpdate update in requester!.list("/data")) {
+  await for (RequesterListUpdate update in requester!.list('/')) {
     // List the nodes in /
-    for (var n in update.node.children.values) {
-      var newN = n as RemoteNode;
-      print(newN.remotePath);
-      // Print the path of each node.
-    }
+    print("- ${update.node.children.values.join(", ")}");
   } // This will not end until you break the for loop. Whenever a node is added or removed to/from the given path, it will receive an update.
 }

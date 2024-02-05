@@ -13,7 +13,7 @@ class Base64 {
   static const int SLASH = 47; // '/'
 
   static const String _encodeTable =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
   /// Lookup table used for finding Base 64 alphabet index of a given byte.
   /// -2 : Outside Base 64 alphabet.
@@ -21,11 +21,11 @@ class Base64 {
   /// 0 : = (Padding character).
   /// >=0 : Base 64 alphabet index of given byte.
   static final List<int> _decodeTable = (() {
-    List<int> table = List<int>.filled(256, 0);
+    var table = List<int>.filled(256, 0);
     table.fillRange(0, 256, -2);
-    List<int> charCodes = _encodeTable.codeUnits;
-    int len = charCodes.length;
-    for (int i = 0; i < len; ++i) {
+    var charCodes = _encodeTable.codeUnits;
+    var len = charCodes.length;
+    for (var i = 0; i < len; ++i) {
       table[charCodes[i]] = i;
     }
     table[PLUS] = 62;
@@ -49,31 +49,31 @@ class Base64 {
 
   static String encode(List<int> bytes,
       [int lineSize = 0, int paddingSpace = 0]) {
-    int len = bytes.length;
+    var len = bytes.length;
     if (len == 0) {
-      return "";
+      return '';
     }
     // Size of 24 bit chunks.
-    final int remainderLength = len.remainder(3);
-    final int chunkLength = len - remainderLength;
+    final remainderLength = len.remainder(3);
+    final chunkLength = len - remainderLength;
     // Size of base output.
-    int outputLen =
+    var outputLen =
         ((len ~/ 3) * 4) + ((remainderLength > 0) ? 4 : 0) + paddingSpace;
     // Add extra for line separators.
-    int lineSizeGroup = lineSize >> 2;
+    var lineSizeGroup = lineSize >> 2;
     if (lineSizeGroup > 0) {
       outputLen +=
           ((outputLen - 1) ~/ (lineSizeGroup << 2)) * (1 + paddingSpace);
     }
-    List<int> out = List<int>.filled(outputLen, 0);
+    var out = List<int>.filled(outputLen, 0);
 
     // Encode 24 bit chunks.
     int j = 0, i = 0, c = 0;
-    for (int i = 0; i < paddingSpace; ++i) {
+    for (var i = 0; i < paddingSpace; ++i) {
       out[j++] = SP;
     }
     while (i < chunkLength) {
-      int x = (((bytes[i++] % 256) << 16) & 0xFFFFFF) |
+      var x = (((bytes[i++] % 256) << 16) & 0xFFFFFF) |
           (((bytes[i++] % 256) << 8) & 0xFFFFFF) |
           (bytes[i++] % 256);
       out[j++] = _encodeTable.codeUnitAt(x >> 18);
@@ -83,7 +83,7 @@ class Base64 {
       // Add optional line separator for each 76 char output.
       if (lineSizeGroup > 0 && ++c == lineSizeGroup && j < outputLen - 2) {
         out[j++] = LF;
-        for (int i = 0; i < paddingSpace; ++i) {
+        for (var i = 0; i < paddingSpace; ++i) {
           out[j++] = SP;
         }
         c = 0;
@@ -93,39 +93,39 @@ class Base64 {
     // If input length if not a multiple of 3, encode remaining bytes and
     // add padding.
     if (remainderLength == 1) {
-      int x = bytes[i] % 256;
+      var x = bytes[i] % 256;
       out[j++] = _encodeTable.codeUnitAt(x >> 2);
       out[j++] = _encodeTable.codeUnitAt((x << 4) & 0x3F);
 //     out[j++] = PAD;
 //     out[j++] = PAD;
-      return new String.fromCharCodes(out.sublist(0, outputLen - 2));
+      return String.fromCharCodes(out.sublist(0, outputLen - 2));
     } else if (remainderLength == 2) {
-      int x = bytes[i] % 256;
-      int y = bytes[i + 1] % 256;
+      var x = bytes[i] % 256;
+      var y = bytes[i + 1] % 256;
       out[j++] = _encodeTable.codeUnitAt(x >> 2);
       out[j++] = _encodeTable.codeUnitAt(((x << 4) | (y >> 4)) & 0x3F);
       out[j++] = _encodeTable.codeUnitAt((y << 2) & 0x3F);
 //     out[j++] = PAD;
-      return new String.fromCharCodes(out.sublist(0, outputLen - 1));
+      return String.fromCharCodes(out.sublist(0, outputLen - 1));
     }
 
-    return new String.fromCharCodes(out);
+    return String.fromCharCodes(out);
   }
 
   static Uint8List? decode(String? input) {
     if (input == null) {
       return null;
     }
-    int len = input.length;
+    var len = input.length;
     if (len == 0) {
-      return new Uint8List(0);
+      return Uint8List(0);
     }
 
     // Count '\r', '\n' and illegal characters, For illegal characters,
     // throw an exception.
-    int extrasLen = 0;
-    for (int i = 0; i < len; i++) {
-      int c = _decodeTable[input.codeUnitAt(i)];
+    var extrasLen = 0;
+    for (var i = 0; i < len; i++) {
+      var c = _decodeTable[input.codeUnitAt(i)];
       if (c < 0) {
         extrasLen++;
         if (c == -2) {
@@ -134,7 +134,7 @@ class Base64 {
       }
     }
 
-    int lenmis = (len - extrasLen) % 4;
+    var lenmis = (len - extrasLen) % 4;
     if (lenmis == 2) {
       input = '$input==';
       len += 2;
@@ -146,20 +146,20 @@ class Base64 {
     }
 
     // Count pad characters.
-    int padLength = 0;
-    for (int i = len - 1; i >= 0; i--) {
-      int currentCodeUnit = input.codeUnitAt(i);
+    var padLength = 0;
+    for (var i = len - 1; i >= 0; i--) {
+      var currentCodeUnit = input.codeUnitAt(i);
       if (_decodeTable[currentCodeUnit] > 0) break;
       if (currentCodeUnit == PAD) padLength++;
     }
-    int outputLen = (((len - extrasLen) * 6) >> 3) - padLength;
-    Uint8List out = new Uint8List(outputLen);
+    var outputLen = (((len - extrasLen) * 6) >> 3) - padLength;
+    var out = Uint8List(outputLen);
 
     for (int i = 0, o = 0; o < outputLen;) {
       // Accumulate 4 valid 6 bit Base 64 characters into an int.
-      int x = 0;
-      for (int j = 4; j > 0;) {
-        int c = _decodeTable[input.codeUnitAt(i++)];
+      var x = 0;
+      for (var j = 4; j > 0;) {
+        var c = _decodeTable[input.codeUnitAt(i++)];
         if (c >= 0) {
           x = ((x << 6) & 0xFFFFFF) | c;
           j--;

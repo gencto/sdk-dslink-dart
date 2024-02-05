@@ -1,24 +1,24 @@
 /// Main DSLink API for Browsers
 library dslink.browser;
 
-import "dart:async";
-import "dart:html";
+import 'dart:async';
+import 'dart:html';
 
-import "dart:typed_data";
+import 'dart:typed_data';
 
-import "package:dslink/requester.dart";
-import "package:dslink/responder.dart";
-import "package:dslink/browser_client.dart";
-import "package:dslink/common.dart";
+import 'package:dslink/requester.dart';
+import 'package:dslink/responder.dart';
+import 'package:dslink/browser_client.dart';
+import 'package:dslink/common.dart';
 
-import "package:dslink/src/crypto/pk.dart";
-import "package:dslink/utils.dart";
+import 'package:dslink/src/crypto/pk.dart';
+import 'package:dslink/utils.dart';
 
-export "package:dslink/common.dart";
-export "package:dslink/requester.dart";
-export "package:dslink/responder.dart";
-export "package:dslink/browser_client.dart";
-export "package:dslink/utils.dart"
+export 'package:dslink/common.dart';
+export 'package:dslink/requester.dart';
+export 'package:dslink/responder.dart';
+export 'package:dslink/browser_client.dart';
+export 'package:dslink/utils.dart'
     show
         Scheduler,
         Interval,
@@ -27,7 +27,7 @@ export "package:dslink/utils.dart"
         buildEnumType,
         buildActionIO,
         ByteDataUtil;
-export "package:dslink/src/crypto/pk.dart" show PrivateKey;
+export 'package:dslink/src/crypto/pk.dart' show PrivateKey;
 
 /// DSLink Provider for the Browser
 class LinkProvider {
@@ -53,9 +53,7 @@ class LinkProvider {
       this.isRequester = true,
       this.isResponder = true,
       this.token}) {
-    if (dataStore == null) {
-      dataStore = LocalDataStorage.INSTANCE;
-    }
+    dataStore ??= LocalDataStorage.INSTANCE;
   }
 
   bool _initCalled = false;
@@ -68,15 +66,15 @@ class LinkProvider {
     _initCalled = true;
 
     if (provider == null) {
-      provider = new SimpleNodeProvider(null, profiles);
+      provider = SimpleNodeProvider(null, profiles);
       (provider as SimpleNodeProvider).setPersistFunction(save);
     }
 
     if (loadNodes && provider is SerializableNodeProvider) {
-      if (!(await dataStore!.has("dsa_nodes"))) {
+      if (!(await dataStore!.has('dsa_nodes'))) {
         (provider as SerializableNodeProvider).init(defaultNodes!);
       } else {
-        var decoded = DsJson.decode(await dataStore!.get("dsa_nodes"));
+        Map decoded = DsJson.decode(await dataStore!.get('dsa_nodes'));
 
         if (decoded is Map<String, dynamic>) {
           (provider as SerializableNodeProvider).init(decoded);
@@ -94,7 +92,7 @@ class LinkProvider {
 
   Future initLinkWithPrivateKey() async {
     privateKey = (await getPrivateKey(storage: dataStore))!;
-    link = new BrowserECDHLink(brokerUrl, prefix, privateKey,
+    link = BrowserECDHLink(brokerUrl, prefix, privateKey,
         nodeProvider: provider,
         isRequester: isRequester,
         isResponder: isResponder,
@@ -103,20 +101,18 @@ class LinkProvider {
   }
 
   Future resetSavedNodes() async {
-    await dataStore!.remove("dsa_nodes");
+    await dataStore!.remove('dsa_nodes');
   }
 
   Stream<ValueUpdate> onValueChange(String path, {int cacheLevel = 1}) {
     RespSubscribeListener? listener;
     StreamController<ValueUpdate>? controller;
-    int subs = 0;
-    controller = new StreamController<ValueUpdate>.broadcast(onListen: () {
+    var subs = 0;
+    controller = StreamController<ValueUpdate>.broadcast(onListen: () {
       subs++;
-      if (listener == null) {
-        listener = this[path]!.subscribe((ValueUpdate update) {
+      listener ??= this[path]!.subscribe((ValueUpdate update) {
           controller?.add(update);
         }, cacheLevel);
-      }
     }, onCancel: () {
       subs--;
       if (subs == 0) {
@@ -132,7 +128,7 @@ class LinkProvider {
       return;
     }
 
-    await dataStore?.store("dsa_nodes",
+    await dataStore?.store('dsa_nodes',
       DsJson.encode(
         (provider as SerializableNodeProvider).save()
       )
@@ -154,7 +150,7 @@ class LinkProvider {
     }
 
     if (!_initCalled) {
-      return init().then((_) => run());
+      return init().then<void>((dynamic _) => run());
     } else {
       return run();
     }
@@ -171,28 +167,28 @@ class LinkProvider {
     return provider?.getNode(path);
   }
 
-  LocalNode? addNode(String path, Map m) {
+  LocalNode? addNode(String path, Map<String, dynamic> m) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     return (provider as MutableNodeProvider).addNode(path, m);
   }
 
   void removeNode(String path) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     (provider as MutableNodeProvider).removeNode(path);
   }
 
   void updateValue(String path, dynamic value) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     (provider as MutableNodeProvider).updateValue(path, value);
   }
 
-  dynamic val(String path, [value = unspecified]) {
+  dynamic val(String path, [dynamic value = unspecified]) {
     if (value is Unspecified) {
       return this[path]?.lastValueUpdate?.value;
     } else {
@@ -207,7 +203,7 @@ class LinkProvider {
 
   Future<Requester>? get onRequesterReady => link?.onRequesterReady;
 
-  LocalNode? operator ~() => this["/"];
+  LocalNode? operator ~() => this['/'];
 }
 
 class BrowserUtils {
@@ -221,8 +217,8 @@ class BrowserUtils {
   }
 
   static String createBinaryUrl(ByteData input,
-      {String type = "application/octet-stream"}) {
-    Uint8List data = ByteDataUtil.toUint8List(input);
-    return "data:${type};base64,${Base64.encode(data)}";
+      {String type = 'application/octet-stream'}) {
+    var data = ByteDataUtil.toUint8List(input);
+    return 'data:$type;base64,${Base64.encode(data)}';
   }
 }

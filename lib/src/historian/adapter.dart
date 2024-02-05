@@ -15,6 +15,6 @@ abstract class HistorianDatabaseAdapter {
 
   Future close();
 
-  addWatchPathExtensions(WatchPathNode node) {}
-  addWatchGroupExtensions(WatchGroupNode node) {}
+  void addWatchPathExtensions(WatchPathNode node) {}
+  void addWatchGroupExtensions(WatchGroupNode node) {}
 }

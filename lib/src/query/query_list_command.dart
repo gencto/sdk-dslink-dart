@@ -71,23 +71,21 @@ class _ListingNode {
   List<_ListNodeMatch> parsedpath;
 
   /// negtive value in the pos means partial matched already
-  Set<int> matchedPos = new Set<int>();
+  Set<int> matchedPos = <int>{};
   LocalNode node;
 
   StreamSubscription? listener;
 
-  _ListingNode(this.command, this.node, this.parsedpath) {}
+  _ListingNode(this.command, this.node, this.parsedpath);
 
   void addMatchPos(int n) {
     if (!matchedPos.contains(n)) {
       matchedPos.add(n);
-      int absn = n.abs();
+      var absn = n.abs();
       if (absn == parsedpath.length) {
         selfMatch = true;
       } else if (absn < parsedpath.length) {
-        if (listener == null) {
-          listener = node.listStream.listen(onList);
-        }
+        listener ??= node.listStream.listen(onList);
 
         node.children.forEach((String name, Node? node) {
           if (node is LocalNode) {
@@ -99,13 +97,13 @@ class _ListingNode {
   }
 
   bool _selfMatch = false;
-  void set selfMatch(bool val) {
+  set selfMatch(bool val) {
     if (_selfMatch != val) {
       _selfMatch = val;
       if (_selfMatch) {
-        command.updateRow([node, '+']);
+        command.updateRow(<dynamic>[node, '+']);
       } else {
-        command.updateRow([node, '-']);
+        command.updateRow(<dynamic>[node, '-']);
       }
     }
   }
@@ -114,27 +112,27 @@ class _ListingNode {
     if (str.startsWith('@') || str.startsWith(r'$')) {
       return;
     }
-    LocalNode? child = node.children[str] as LocalNode?;
+    var child = node.children[str] as LocalNode?;
     if (child == null) {
       deleteChild(str);
     } else {
-      for (int pos in matchedPos) {
+      for (var pos in matchedPos) {
         checkChild(str, child, pos);
       }
     }
   }
 
   void checkChild(String name, LocalNode child, int pos) {
-    int abspos = pos.abs();
+    var abspos = pos.abs();
     if (abspos >= parsedpath.length) {
       return;
     }
-    bool checkpre = pos > 0;
-    int match = parsedpath[abspos].match(name, checkpre);
+    var checkpre = pos > 0;
+    var match = parsedpath[abspos].match(name, checkpre);
     if (match > 0) {
-      _ListingNode? childListing = command._dict[child.path];
+      var childListing = command._dict[child.path];
       if (childListing == null) {
-        childListing = new _ListingNode(command, child, parsedpath);
+        childListing = _ListingNode(command, child, parsedpath);
         command._dict[child.path!] = childListing;
       }
       if (match == _ListNodeMatch.MATCHED) {
@@ -149,8 +147,8 @@ class _ListingNode {
   }
 
   void deleteChild(String name) {
-    String path = '${node.path}/$name';
-    _ListingNode? childListing = command._dict[path];
+    var path = '${node.path}/$name';
+    var childListing = command._dict[path];
     if (childListing != null) {
       childListing.selfMatch = false;
       childListing.destroy();
@@ -175,24 +173,26 @@ class QueryCommandList extends BrokerQueryCommand {
       rawpath = path;
     }
   }
+  @override
   void init() {
-    List<_ListNodeMatch> parsedpath = List<_ListNodeMatch>.filled(rawpath.length, _ListNodeMatch(''));
-    for (int i = 0; i < rawpath.length; ++i) {
-      parsedpath[i] = new _ListNodeMatch(rawpath[i]);
+    var parsedpath = List<_ListNodeMatch>.filled(rawpath.length, _ListNodeMatch(''));
+    for (var i = 0; i < rawpath.length; ++i) {
+      parsedpath[i] = _ListNodeMatch(rawpath[i]);
     }
   }
 
-  Map<String, _ListingNode> _dict = new Map<String, _ListingNode>();
+  final Map<String, _ListingNode> _dict = <String, _ListingNode>{};
 
-  void updateRow(List row) {
+  void updateRow(List<dynamic> row) {
     for (var next in nexts) {
-      next.updateFromBase([row]);
+      next.updateFromBase(<dynamic>[row]);
     }
   }
 
+  @override
   void addNext(BrokerQueryCommand next) {
     super.addNext(next);
-    List rows = [];
+    var rows = <dynamic>[];
     _dict.forEach((String path, _ListingNode listing) {
       if (listing._selfMatch) {
         rows.add([listing.node, '+']);
@@ -201,6 +201,7 @@ class QueryCommandList extends BrokerQueryCommand {
     next.updateFromBase(rows);
   }
 
+  @override
   void updateFromBase(List updates) {
     for (List data in updates) {
       if (data[0] is LocalNode) {
@@ -209,7 +210,7 @@ class QueryCommandList extends BrokerQueryCommand {
           if (_dict.containsKey(node.path)) {
             print('not implemented');
           } else {
-            _ListingNode listing = new _ListingNode(this, node, parsedpath);
+            var listing = _ListingNode(this, node, parsedpath);
             _dict[node.path!] = listing;
             listing.addMatchPos(1);
           }
@@ -220,10 +221,12 @@ class QueryCommandList extends BrokerQueryCommand {
     }
   }
 
+  @override
   String toString() {
     return 'list ${rawpath.join("/")}';
   }
 
+  @override
   void destroy() {
     super.destroy();
     _dict.forEach((String key, _ListingNode listing) {

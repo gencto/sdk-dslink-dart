@@ -3,19 +3,23 @@ part of dslink.browser_client;
 class WebSocketConnection extends Connection {
   late PassiveChannel _responderChannel;
 
+  @override
   ConnectionChannel get responderChannel => _responderChannel;
 
   late PassiveChannel _requesterChannel;
 
+  @override
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> _onRequestReadyCompleter =
-      new Completer<ConnectionChannel>();
+  final Completer<ConnectionChannel> _onRequestReadyCompleter =
+      Completer<ConnectionChannel>();
 
+  @override
   Future<ConnectionChannel> get onRequesterReady =>
       _onRequestReadyCompleter.future;
 
-  Completer<bool> _onDisconnectedCompleter = new Completer<bool>();
+  final Completer<bool> _onDisconnectedCompleter = Completer<bool>();
+  @override
   Future<bool> get onDisconnected => _onDisconnectedCompleter.future;
 
   final ClientLink clientLink;
@@ -37,37 +41,38 @@ class WebSocketConnection extends Connection {
     if (!enableAck) {
       nextMsgId = -1;
     }
-    socket.binaryType = "arraybuffer";
-    _responderChannel = new PassiveChannel(this);
-    _requesterChannel = new PassiveChannel(this);
+    socket.binaryType = 'arraybuffer';
+    _responderChannel = PassiveChannel(this);
+    _requesterChannel = PassiveChannel(this);
     socket.onMessage.listen(_onData, onDone: _onDone);
     socket.onClose.listen(_onDone);
     socket.onOpen.listen(_onOpen);
     // TODO, when it's used in client link, wait for the server to send {allowed} before complete this
-    _onRequestReadyCompleter.complete(new Future.value(_requesterChannel));
+    _onRequestReadyCompleter.complete(Future.value(_requesterChannel));
 
-    pingTimer = new Timer.periodic(const Duration(seconds: 20), onPingTimer);
+    pingTimer = Timer.periodic(const Duration(seconds: 20), onPingTimer);
   }
 
   Timer? pingTimer;
 
-  int _dataReceiveTs = new DateTime.now().millisecondsSinceEpoch;
-  int _dataSentTs = new DateTime.now().millisecondsSinceEpoch;
+  int _dataReceiveTs = DateTime.now().millisecondsSinceEpoch;
+  int _dataSentTs = DateTime.now().millisecondsSinceEpoch;
 
   void onPingTimer(Timer? t) {
-    int currentTs = new DateTime.now().millisecondsSinceEpoch;
-    if (currentTs - this._dataReceiveTs >= 65000) {
+    var currentTs = DateTime.now().millisecondsSinceEpoch;
+    if (currentTs - _dataReceiveTs >= 65000) {
       // close the connection if no message received in the last 65 seconds
       close();
       return;
     }
 
-    if (currentTs - this._dataSentTs > 21000) {
+    if (currentTs - _dataSentTs > 21000) {
       // add message if no data was sent in the last 21 seconds
-      this.addConnCommand(null, null);
+      addConnCommand(null, null);
     }
   }
 
+  @override
   void requireSend() {
     if (!_sending) {
       _sending = true;
@@ -76,14 +81,14 @@ class WebSocketConnection extends Connection {
   }
 
   // sometimes setTimeout and setInterval is not run due to browser throttling
-  checkBrowserThrottling() {
-    int currentTs = new DateTime.now().millisecondsSinceEpoch;
-    if (currentTs - this._dataSentTs > 25000) {
+  void checkBrowserThrottling() {
+    var currentTs = DateTime.now().millisecondsSinceEpoch;
+    if (currentTs - _dataSentTs > 25000) {
       logger.finest('Throttling detected');
       // timer is supposed to be run every 20 seconds, if that passes 25 seconds, force it to run
-      this.onPingTimer(null);
-      if (this._sending) {
-        this._send();
+      onPingTimer(null);
+      if (_sending) {
+        _send();
       }
     }
   }
@@ -92,14 +97,14 @@ class WebSocketConnection extends Connection {
   bool get opened => _opened;
 
   void _onOpen(Event e) {
-    logger.info("Connected");
+    logger.info('Connected');
     _opened = true;
     if (onConnect != null) {
       onConnect!();
     }
     _responderChannel.updateConnect();
     _requesterChannel.updateConnect();
-    socket.sendString("{}");
+    socket.sendString('{}');
     requireSend();
   }
 
@@ -108,10 +113,9 @@ class WebSocketConnection extends Connection {
   Map? _msgCommand;
 
   /// add server command, will be called only when used as server connection
+  @override
   void addConnCommand(String? key, Object? value) {
-    if (_msgCommand == null) {
-      _msgCommand = {};
-    }
+    _msgCommand ??= <dynamic, dynamic>{};
     if (key != null) {
       _msgCommand![key] = value;
     }
@@ -119,71 +123,71 @@ class WebSocketConnection extends Connection {
   }
 
   void _onData(MessageEvent e) {
-    logger.fine("onData:");
-    this._dataReceiveTs = new DateTime.now().millisecondsSinceEpoch;
+    logger.fine('onData:');
+    _dataReceiveTs = DateTime.now().millisecondsSinceEpoch;
     Map m;
     if (e.data is ByteBuffer) {
       try {
-        Uint8List bytes = (e.data as ByteBuffer).asUint8List();
+        var bytes = (e.data as ByteBuffer).asUint8List();
 
         m = codec.decodeBinaryFrame(bytes)!;
-        logger.fine("$m");
+        logger.fine('$m');
         checkBrowserThrottling();
 
-        if (m["salt"] is String) {
-          clientLink.updateSalt(m["salt"]);
+        if (m['salt'] is String) {
+          clientLink.updateSalt(m['salt']);
         }
-        bool needAck = false;
-        if (m["responses"] is List && (m["responses"] as List).length > 0) {
+        var needAck = false;
+        if (m['responses'] is List && (m['responses'] as List).isNotEmpty) {
           needAck = true;
           // send responses to requester channel
-          _requesterChannel.onReceiveController.add(m["responses"]);
+          _requesterChannel.onReceiveController.add(m['responses']);
         }
 
-        if (m["requests"] is List && (m["requests"] as List).length > 0) {
+        if (m['requests'] is List && (m['requests'] as List).isNotEmpty) {
           needAck = true;
           // send requests to responder channel
-          _responderChannel.onReceiveController.add(m["requests"]);
+          _responderChannel.onReceiveController.add(m['requests']);
         }
-        if (m["ack"] is int) {
-          ack(m["ack"]);
+        if (m['ack'] is int) {
+          ack(m['ack']);
         }
         if (needAck) {
-          Object? msgId = m["msg"];
+          Object? msgId = m['msg'];
           if (msgId != null) {
-            addConnCommand("ack", msgId);
+            addConnCommand('ack', msgId);
           }
         }
       } catch (err, stack) {
-        logger.severe("error in onData", err, stack);
+        logger.severe('error in onData', err, stack);
         close();
         return;
       }
     } else if (e.data is String) {
       try {
         m = codec.decodeStringFrame(e.data)!;
-        logger.fine("$m");
+        logger.fine('$m');
         checkBrowserThrottling();
 
-        bool needAck = false;
-        if (m["responses"] is List && (m["responses"] as List).length > 0) {
+        var needAck = false;
+        if (m['responses'] is List && (m['responses'] as List).isNotEmpty) {
           needAck = true;
           // send responses to requester channel
-          _requesterChannel.onReceiveController.add(m["responses"]);
+          _requesterChannel.onReceiveController.add(m['responses']);
         }
 
-        if (m["requests"] is List && (m["requests"] as List).length > 0) {
+        if (m['requests'] is List && (m['requests'] as List).isNotEmpty) {
           needAck = true;
           // send requests to responder channel
-          _responderChannel.onReceiveController.add(m["requests"]);
+          _responderChannel.onReceiveController.add(m['requests']);
         }
-        if (m["ack"] is int) {
-          ack(m["ack"]);
+        if (m['ack'] is int) {
+          ack(m['ack']);
         }
         if (needAck) {
-          Object? msgId = m["msg"];
+          Object? msgId = m['msg'];
           if (msgId != null) {
-            addConnCommand("ack", msgId);
+            addConnCommand('ack', msgId);
           }
         }
       } catch (err) {
@@ -202,47 +206,47 @@ class WebSocketConnection extends Connection {
     if (socket.readyState != WebSocket.OPEN) {
       return;
     }
-    logger.fine("browser sending");
-    bool needSend = false;
+    logger.fine('browser sending');
+    var needSend = false;
     Map? m;
     if (_msgCommand != null) {
       m = _msgCommand;
       needSend = true;
       _msgCommand = null;
     } else {
-      m = {};
+      m = <dynamic, dynamic>{};
     }
 
     var pendingAck = <ConnectionProcessor>[];
 
-    int ts = (new DateTime.now()).millisecondsSinceEpoch;
-    ProcessorResult? rslt = _responderChannel.getSendingData(ts, nextMsgId);
+    var ts = (DateTime.now()).millisecondsSinceEpoch;
+    var rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
-      if (rslt.messages.length > 0) {
-        m?["responses"] = rslt.messages;
+      if (rslt.messages.isNotEmpty) {
+        m?['responses'] = rslt.messages;
         needSend = true;
       }
-      if (rslt.processors.length > 0) {
+      if (rslt.processors.isNotEmpty) {
         pendingAck.addAll(rslt.processors);
       }
     }
     rslt = _requesterChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
-      if (rslt.messages.length > 0) {
-        m?["requests"] = rslt.messages;
+      if (rslt.messages.isNotEmpty) {
+        m?['requests'] = rslt.messages;
         needSend = true;
       }
-      if (rslt.processors.length > 0) {
+      if (rslt.processors.isNotEmpty) {
         pendingAck.addAll(rslt.processors);
       }
     }
 
     if (needSend) {
       if (nextMsgId != -1) {
-        if (pendingAck.length > 0) {
-          pendingAcks.add(new ConnectionAckGroup(nextMsgId, ts, pendingAck));
+        if (pendingAck.isNotEmpty) {
+          pendingAcks.add(ConnectionAckGroup(nextMsgId, ts, pendingAck));
         }
-        m?["msg"] = nextMsgId;
+        m?['msg'] = nextMsgId;
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
@@ -251,10 +255,10 @@ class WebSocketConnection extends Connection {
       }
 
 
-      logger.fine("send: $m");
+      logger.fine('send: $m');
       var encoded = codec.encodeFrame(m!);
       if (encoded is List<int>) {
-        encoded = ByteDataUtil.list2Uint8List(encoded as List<int>);
+        encoded = ByteDataUtil.list2Uint8List(encoded);
       }
       try {
         socket.send(encoded);
@@ -262,20 +266,20 @@ class WebSocketConnection extends Connection {
         logger.severe('Unable to send on socket', e);
         close();
       }
-      _dataSentTs = new DateTime.now().millisecondsSinceEpoch;
+      _dataSentTs = DateTime.now().millisecondsSinceEpoch;
     }
   }
 
   bool _authError = false;
   void _onDone([Object? o]) {
     if (o is CloseEvent) {
-      CloseEvent e = o;
+      var e = o;
       if (e.code == 1006) {
         _authError = true;
       }
     }
 
-    logger.fine("socket disconnected");
+    logger.fine('socket disconnected');
 
     if (!_requesterChannel.onReceiveController.isClosed) {
       _requesterChannel.onReceiveController.close();
@@ -301,6 +305,7 @@ class WebSocketConnection extends Connection {
     }
   }
 
+  @override
   void close() {
     if (socket.readyState == WebSocket.OPEN ||
         socket.readyState == WebSocket.CONNECTING) {

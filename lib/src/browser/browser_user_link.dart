@@ -2,32 +2,38 @@ part of dslink.browser_client;
 
 /// a client link for both http and ws
 class BrowserUserLink extends ClientLink {
-  Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
+  final Completer<Requester> _onRequesterReadyCompleter = Completer<Requester>();
 
+  @override
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   static String session = DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16);
+  @override
   final Requester? requester;
+  @override
   final Responder? responder;
 
+  @override
   final ECDH nonce = const DummyECDH();
+  @override
   late PrivateKey privateKey;
 
   WebSocketConnection? _wsConnection;
 
   bool enableAck;
 
-  static const Map<String, int> saltNameMap = const {"salt": 0, "saltS": 1,};
+  static const Map<String, int> saltNameMap = {'salt': 0, 'saltS': 1,};
 
-  updateSalt(String salt) {
+  @override
+  void updateSalt(String salt) {
     // TODO: implement updateSalt
   }
 
   late String wsUpdateUri;
-  String format = "json";
+  String format = 'json';
 
   BrowserUserLink({NodeProvider? nodeProvider,
   bool isRequester = true,
@@ -35,23 +41,24 @@ class BrowserUserLink extends ClientLink {
   required this.wsUpdateUri,
   this.enableAck = false,
   String? format})
-      : requester = isRequester ? new Requester() : null,
+      : requester = isRequester ? Requester() : null,
         responder = (isResponder && nodeProvider != null)
-            ? new Responder(nodeProvider)
+            ? Responder(nodeProvider)
             : null {
-    if (wsUpdateUri.startsWith("http")) {
-      wsUpdateUri = "ws${wsUpdateUri.substring(4)}";
+    if (wsUpdateUri.startsWith('http')) {
+      wsUpdateUri = 'ws${wsUpdateUri.substring(4)}';
     }
 
     if (format != null) {
       this.format = format;
     }
 
-    if (window.location.hash.contains("dsa_json")) {
-      this.format = "json";
+    if (window.location.hash.contains('dsa_json')) {
+      this.format = 'json';
     }
   }
 
+  @override
   void connect() {
     lockCryptoProvider();
     initWebsocket(false);
@@ -59,9 +66,9 @@ class BrowserUserLink extends ClientLink {
 
   int _wsDelay = 1;
 
-  initWebsocket([bool reconnect = true]) {
-    var socket = new WebSocket("$wsUpdateUri?session=$session&format=$format");
-    _wsConnection = new WebSocketConnection(
+  void initWebsocket([bool reconnect = true]) {
+    var socket = WebSocket('$wsUpdateUri?session=$session&format=$format');
+    _wsConnection = WebSocketConnection(
         socket, this, enableAck: enableAck, useCodec: DsCodec.getCodec(format));
 
     if (responder != null) {
@@ -77,7 +84,7 @@ class BrowserUserLink extends ClientLink {
       });
     }
     _wsConnection!.onDisconnected.then((connection) {
-      logger.info("Disconnected");
+      logger.info('Disconnected');
       if (_wsConnection == null) {
         // connection is closed
         return;
@@ -99,6 +106,7 @@ class BrowserUserLink extends ClientLink {
       _wsConnection!.socket.close();
     }
   }
+  @override
   void close() {
     if (_wsConnection != null) {
       _wsConnection!.close();

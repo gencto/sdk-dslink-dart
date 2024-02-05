@@ -2,11 +2,11 @@ part of dslink.query;
 
 abstract class BrokerQueryCommand {
   final BrokerQueryManager _manager;
-  BrokerQueryCommand(this._manager) {}
+  BrokerQueryCommand(this._manager);
 
   BrokerQueryCommand? base;
-  Set<BrokerQueryCommand> nexts = new Set<BrokerQueryCommand>();
-  Set<InvokeResponse> responses = new Set<InvokeResponse>();
+  Set<BrokerQueryCommand> nexts = <BrokerQueryCommand>{};
+  Set<InvokeResponse> responses = <InvokeResponse>{};
 
   void addResponse(InvokeResponse response) {
     response.onClose = _onResponseClose;
@@ -37,7 +37,7 @@ abstract class BrokerQueryCommand {
   void updateFromBase(List updats);
 
   void destroy() {
-    for (InvokeResponse resp in responses) {
+    for (var resp in responses) {
       resp.close;
     }
     if (base != null) {

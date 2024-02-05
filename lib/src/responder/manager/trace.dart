@@ -1,6 +1,6 @@
 part of dslink.responder;
 
-typedef ResponseTraceCallback(ResponseTrace update);
+typedef ResponseTraceCallback = Function(ResponseTrace update);
 
 class ResponseTrace {
   /// data path for trace
@@ -21,7 +21,7 @@ class ResponseTrace {
 //  {'name': 'rid', 'type': 'number'},
 //  {'name': 'action', 'type': 'string'},
 //  {'name': 'change', 'type': 'string'},
-  List get rowData => [path, type, rid, action, change];
+  List get rowData => <dynamic>[path, type, rid, action, change];
 
   ResponseTrace(this.path, this.type, this.rid, [this.change = '', this.action]);
 }

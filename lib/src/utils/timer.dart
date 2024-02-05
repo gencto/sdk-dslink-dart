@@ -3,7 +3,7 @@ part of dslink.utils;
 final class TimerFunctions extends LinkedListEntry<TimerFunctions> {
   /// for better performance, use a low accuracy timer, ts50 is the floor of ts/50
   final int ts50;
-  List<Function> _functions = [];
+  final List<Function> _functions = [];
 
   TimerFunctions(this.ts50);
 
@@ -20,11 +20,11 @@ final class TimerFunctions extends LinkedListEntry<TimerFunctions> {
 
 class DsTimer {
   static int millisecondsSinceEpoch() {
-    return new DateTime.now().millisecondsSinceEpoch;
+    return DateTime.now().millisecondsSinceEpoch;
   }
 
-  static Future waitAndRun(Duration time, action()) {
-    return new Future.delayed(time, action);
+  static Future waitAndRun(Duration time, Function() action) {
+    return Future<void>.delayed(time, action);
   }
 
   // TODO: does it need to use another hashset for quick search?
@@ -58,21 +58,21 @@ class DsTimer {
 //    }
 //  }
 
-  static LinkedList<TimerFunctions> _pendingTimer =
-      new LinkedList<TimerFunctions>();
-  static Map<int, TimerFunctions> _pendingTimerMap =
-      new Map<int, TimerFunctions>();
-  static Map<Function, TimerFunctions> _functionsMap =
-      new Map<Function, TimerFunctions>();
+  static final LinkedList<TimerFunctions> _pendingTimer =
+      LinkedList<TimerFunctions>();
+  static final Map<int, TimerFunctions> _pendingTimerMap =
+      <int, TimerFunctions>{};
+  static final Map<Function, TimerFunctions> _functionsMap =
+      <Function, TimerFunctions>{};
 
   static TimerFunctions _getTimerFunctions(int time50) {
-    TimerFunctions? tf = _pendingTimerMap[time50];
+    var tf = _pendingTimerMap[time50];
 
     if (tf != null) {
       return tf;
     }
 
-    tf = new TimerFunctions(time50);
+    tf = TimerFunctions(time50);
     _pendingTimerMap[time50] = tf;
     TimerFunctions? it;
     if (_pendingTimer.isNotEmpty) {
@@ -102,15 +102,15 @@ class DsTimer {
 
   static TimerFunctions? _removeTimerFunctions(int time50) {
     if (_pendingTimer.isNotEmpty && _pendingTimer.first.ts50 <= time50) {
-      TimerFunctions rslt = _pendingTimer.first;
+      var rslt = _pendingTimer.first;
       _pendingTimerMap.remove(rslt.ts50);
       rslt.unlink();
-      for (Function fun in rslt._functions) {
+      for (var fun in rslt._functions) {
         _functionsMap.remove(fun);
         try{
           fun();
         } catch(err,stack) {
-          print("callback error; $err\n$stack");
+          print('callback error; $err\n$stack');
         }
       }
       return rslt;
@@ -122,10 +122,10 @@ class DsTimer {
 
   /// do nothing if the callback is already in the list and will get called after 0 ~ N ms
   static void timerOnceBefore(Function callback, int ms) {
-    int desiredTime50 =
-        (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
+    var desiredTime50 =
+        (((DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
-      TimerFunctions existTf = _functionsMap[callback]!;
+      var existTf = _functionsMap[callback]!;
       if (existTf.ts50 <= desiredTime50) {
         return;
       } else {
@@ -137,17 +137,17 @@ class DsTimer {
       callLater(callback);
       return;
     }
-    TimerFunctions tf = _getTimerFunctions(desiredTime50);
+    var tf = _getTimerFunctions(desiredTime50);
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
 
   /// do nothing if the callback is already in the list and will get called after N or more ms
   static void timerOnceAfter(Function callback, int ms) {
-    int desiredTime50 =
-        (((new DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
+    var desiredTime50 =
+        (((DateTime.now()).millisecondsSinceEpoch + ms) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
-      TimerFunctions existTf = _functionsMap[callback]!;
+      var existTf = _functionsMap[callback]!;
       if (existTf.ts50 >= desiredTime50) {
         return;
       } else {
@@ -158,19 +158,19 @@ class DsTimer {
       callLater(callback);
       return;
     }
-    TimerFunctions tf = _getTimerFunctions(desiredTime50);
+    var tf = _getTimerFunctions(desiredTime50);
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
 
   /// do nothing if the callback is already in the list and will get called after M to N ms
   static void timerOnceBetween(Function callback, int after, int before) {
-    int desiredTime50_0 =
-        (((new DateTime.now()).millisecondsSinceEpoch + after) / 50).ceil();
-    int desiredTime50_1 =
-        (((new DateTime.now()).millisecondsSinceEpoch + before) / 50).ceil();
+    var desiredTime50_0 =
+        (((DateTime.now()).millisecondsSinceEpoch + after) / 50).ceil();
+    var desiredTime50_1 =
+        (((DateTime.now()).millisecondsSinceEpoch + before) / 50).ceil();
     if (_functionsMap.containsKey(callback)) {
-      TimerFunctions existTf = _functionsMap[callback]!;
+      var existTf = _functionsMap[callback]!;
       if (existTf.ts50 >= desiredTime50_0 && existTf.ts50 <= desiredTime50_1) {
         return;
       } else {
@@ -181,14 +181,14 @@ class DsTimer {
       callLater(callback);
       return;
     }
-    TimerFunctions tf = _getTimerFunctions(desiredTime50_1);
+    var tf = _getTimerFunctions(desiredTime50_1);
     tf.add(callback);
     _functionsMap[callback] = tf;
   }
 
   static void timerCancel(Function callback) {
     // TODO: what if timerCancel is called from another timer of group?
-    TimerFunctions? existTf = _functionsMap[callback];
+    var existTf = _functionsMap[callback];
 
     if (existTf != null) {
       existTf.remove(callback);
@@ -203,7 +203,7 @@ class DsTimer {
     _pending = false;
     _looping = true;
 
-    List<Function> runnings = _callbacks;
+    var runnings = _callbacks;
 
     _callbacks = [];
 
@@ -211,11 +211,11 @@ class DsTimer {
       try{
         f();
       } catch(err,stack) {
-        print("callback error; $err\n$stack");
+        print('callback error; $err\n$stack');
       }
     }
 
-    int currentTime = (new DateTime.now()).millisecondsSinceEpoch;
+    var currentTime = (DateTime.now()).millisecondsSinceEpoch;
     _lastTimeRun = (currentTime / 50).floor();
     while (_removeTimerFunctions(_lastTimeRun) != null) {
       // run the timer functions, empty loop
@@ -234,8 +234,8 @@ class DsTimer {
           if (timerTimer != null && timerTimer!.isActive) {
             timerTimer?.cancel();
           }
-          var duration = new Duration(milliseconds: timerTs50 * 50 + 1 - currentTime);
-          timerTimer = new Timer(duration, _startTimer);
+          var duration = Duration(milliseconds: timerTs50 * 50 + 1 - currentTime);
+          timerTimer = Timer(duration, _startTimer);
         }
       }
     } else if (timerTimer != null) {

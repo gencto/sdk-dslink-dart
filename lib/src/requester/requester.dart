@@ -1,6 +1,6 @@
 part of dslink.requester;
 
-typedef T RequestConsumer<T>(Request request);
+typedef RequestConsumer<T> = T Function(Request request);
 
 abstract class RequestUpdater {
   void onUpdate(String status, List? updates, List? columns, Map? meta, DSError? error);
@@ -15,7 +15,7 @@ class RequesterUpdate {
 }
 
 class Requester extends ConnectionHandler {
-  Map<int, Request> _requests = new Map<int, Request>();
+  Map<int, Request> _requests = <int, Request>{};
 
   /// caching of nodes
   final RemoteNodeCache nodeCache;
@@ -23,8 +23,8 @@ class Requester extends ConnectionHandler {
   late SubscribeRequest _subscription;
 
   Requester([RemoteNodeCache? cache])
-      : nodeCache = cache != null ? cache : new RemoteNodeCache() {
-    _subscription = new SubscribeRequest(this, 0);
+      : nodeCache = cache ?? RemoteNodeCache() {
+    _subscription = SubscribeRequest(this, 0);
     _requests[0] = _subscription;
   }
 
@@ -36,6 +36,7 @@ class Requester extends ConnectionHandler {
     return _requests.length;
   }
 
+  @override
   void onData(List list) {
     for (Object resp in list) {
       if (resp is Map) {
@@ -50,8 +51,8 @@ class Requester extends ConnectionHandler {
     }
   }
 
-  StreamController<DSError> _errorController =
-    new StreamController<DSError>.broadcast();
+  final StreamController<DSError> _errorController =
+    StreamController<DSError>.broadcast();
 
   Stream<DSError> get onError => _errorController.stream;
 
@@ -67,8 +68,9 @@ class Requester extends ConnectionHandler {
     return lastRid;
   }
 
+  @override
   ProcessorResult getSendingData(int currentTime, int waitingAckId) {
-    ProcessorResult rslt = super.getSendingData(currentTime, waitingAckId);
+    var rslt = super.getSendingData(currentTime, waitingAckId);
     return rslt;
   }
 
@@ -79,7 +81,7 @@ class Requester extends ConnectionHandler {
     m['rid'] = getNextRid();
     Request? req;
     if (updater != null) {
-      req = new Request(this, lastRid, updater, m);
+      req = Request(this, lastRid, updater, m);
       _requests[lastRid] = req;
     }
     addToSendList(m);
@@ -90,24 +92,22 @@ class Requester extends ConnectionHandler {
     return nodeCache.isNodeCached(path);
   }
 
-  ReqSubscribeListener subscribe(String path, callback(ValueUpdate update),
+  ReqSubscribeListener subscribe(String path, Function(ValueUpdate update) callback,
       [int qos = 0]) {
-    RemoteNode node = nodeCache.getRemoteNode(path);
+    var node = nodeCache.getRemoteNode(path);
     node._subscribe(this, callback, qos);
-    return new ReqSubscribeListener(this, path, callback);
+    return ReqSubscribeListener(this, path, callback);
   }
 
   Stream<ValueUpdate> onValueChange(String path, [int qos = 0]) {
     ReqSubscribeListener? listener;
     late StreamController<ValueUpdate> controller;
-    int subs = 0;
-    controller = new StreamController<ValueUpdate>.broadcast(onListen: () {
+    var subs = 0;
+    controller = StreamController<ValueUpdate>.broadcast(onListen: () {
       subs++;
-      if (listener == null) {
-        listener = subscribe(path, (ValueUpdate update) {
+      listener ??= subscribe(path, (ValueUpdate update) {
           controller.add(update);
         }, qos);
-      }
     }, onCancel: () {
       subs--;
       if (subs == 0) {
@@ -119,7 +119,7 @@ class Requester extends ConnectionHandler {
   }
 
   Future<ValueUpdate> getNodeValue(String path, {Duration? timeout}) {
-    var c = new Completer<ValueUpdate>();
+    var c = Completer<ValueUpdate>();
     ReqSubscribeListener? listener;
     Timer? to;
     listener = subscribe(path, (ValueUpdate update) {
@@ -137,18 +137,18 @@ class Requester extends ConnectionHandler {
       }
     });
     if (timeout != null && timeout > Duration.zero) {
-      to = new Timer(timeout, () {
+      to = Timer(timeout, () {
         listener?.cancel();
         listener = null;
 
-        c.completeError(new TimeoutException("failed to receive value", timeout));
+        c.completeError(TimeoutException('failed to receive value', timeout));
       });
     }
     return c.future;
   }
 
   Future<RemoteNode> getRemoteNode(String path) {
-    var c = new Completer<RemoteNode>();
+    var c = Completer<RemoteNode>();
     StreamSubscription? sub;
     sub = list(path).listen((update) {
       if (!c.isCompleted) {
@@ -158,7 +158,7 @@ class Requester extends ConnectionHandler {
       if (sub != null) {
         sub.cancel();
       }
-    }, onError: (e, stack) {
+    }, onError: (dynamic e, StackTrace stack) {
       if (!c.isCompleted) {
         c.completeError(e, stack);
       }
@@ -166,36 +166,36 @@ class Requester extends ConnectionHandler {
     return c.future;
   }
 
-  void unsubscribe(String path, callback(ValueUpdate update)) {
-    RemoteNode node = nodeCache.getRemoteNode(path);
+  void unsubscribe(String path, Function(ValueUpdate update) callback) {
+    var node = nodeCache.getRemoteNode(path);
     node._unsubscribe(this, callback);
   }
 
   Stream<RequesterListUpdate> list(String path) {
-    RemoteNode node = nodeCache.getRemoteNode(path);
+    var node = nodeCache.getRemoteNode(path);
     return node._list(this);
   }
 
-  Stream<RequesterInvokeUpdate> invoke(String path, [Map params = const {},
+  Stream<RequesterInvokeUpdate> invoke(String path, [Map params = const <dynamic, dynamic>{},
       int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
-    RemoteNode node = nodeCache.getRemoteNode(path);
+    var node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this, maxPermission, fetchRawReq);
   }
 
-  Future<RequesterUpdate> set(String path, Object value,
+  Future<RequesterUpdate> set(String path, Object? value,
       [int maxPermission = Permission.CONFIG]) {
-    return new SetController(this, path, value, maxPermission).future;
+    return SetController(this, path, value, maxPermission).future;
   }
 
   Future<RequesterUpdate> remove(String path) {
-    return new RemoveController(this, path).future;
+    return RemoveController(this, path).future;
   }
 
   /// close the request from requester side and notify responder
   void closeRequest(Request request) {
     if (_requests.containsKey(request.rid)) {
       if (request.streamStatus != StreamStatus.closed) {
-        addToSendList({'method': 'close', 'rid': request.rid});
+        addToSendList(<String, dynamic>{'method': 'close', 'rid': request.rid});
       }
       _requests.remove(request.rid);
       request._close();
@@ -204,11 +204,12 @@ class Requester extends ConnectionHandler {
 
   bool _connected = false;
 
+  @override
   void onDisconnected() {
     if (!_connected) return;
     _connected = false;
 
-    var newRequests = new Map<int, Request>();
+    var newRequests = <int, Request>{};
     newRequests[0] = _subscription;
     _requests.forEach((n, req) {
       if (req.rid <= lastRid && req.updater is! ListController) {
@@ -221,6 +222,7 @@ class Requester extends ConnectionHandler {
     _requests = newRequests;
   }
 
+  @override
   void onReconnected() {
     if (_connected) return;
     _connected = true;

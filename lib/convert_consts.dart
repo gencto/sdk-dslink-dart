@@ -2,7 +2,7 @@ library util.consts;
 
 import 'dart:math' as Math;
 import 'dart:convert';
-import "package:pointycastle/export.dart" hide PublicKey, PrivateKey;
+import 'package:pointycastle/export.dart' hide PublicKey, PrivateKey;
 import 'dart:typed_data';
 
 const double_NAN = double.nan;
@@ -22,23 +22,21 @@ const BASE64 = base64;
 const UTF8 = utf8;
 const Duration_ZERO = Duration.zero;
 
-
-
 void socketJoinMulticast(Object socket, Object group, [Object? interface]) {
   //socket.joinMulticast(group, interface);
 }
 
-List<int> bigIntegerToByteArray(data) {
-  return _bigIntToByteArray(data as BigInt);
+List<int> bigIntegerToByteArray(BigInt data) {
+  return _bigIntToByteArray(data);
 }
 
-String bigIntegerToRadix(value, int radix) {
-  return (value as BigInt).toRadixString(radix);
+String bigIntegerToRadix(BigInt value, int radix) {
+  return value.toRadixString(radix);
 }
 
-dynamic newBigInteger([a, b, c]) {
-  if (a is num && b==null && c==null) {
-    return new BigInt.from(a);
+dynamic newBigInteger([dynamic a, dynamic b, dynamic c]) {
+  if (a is num && b == null && c == null) {
+    return BigInt.from(a);
   }
   if (a is String && b is int) {
     return BigInt.parse(a, radix: b);
@@ -52,23 +50,23 @@ dynamic newBigIntegerFromBytes(int signum, List<int> magnitude) {
 
 List<int> _bigIntToByteArray(BigInt data) {
   String str;
-  bool neg = false;
+  var neg = false;
   if (data < BigInt.zero) {
     str = (~data).toRadixString(16);
     neg = true;
   } else {
     str = data.toRadixString(16);
   }
-  int p = 0;
-  int len = str.length;
-  int blen = (len + 1) ~/ 2;
-  int boff = 0;
-  List bytes;
+  var p = 0;
+  var len = str.length;
+  var blen = (len + 1) ~/ 2;
+  var boff = 0;
+  List<int> bytes;
   if (neg) {
     if (len & 1 == 1) {
       p = -1;
     }
-    int byte0 = ~int.parse(str.substring(0, p + 2), radix: 16);
+    var byte0 = ~int.parse(str.substring(0, p + 2), radix: 16);
     if (byte0 < -128) byte0 += 256;
     if (byte0 >= 0) {
       boff = 1;
@@ -76,11 +74,13 @@ List<int> _bigIntToByteArray(BigInt data) {
       bytes[0] = -1;
       bytes[1] = byte0;
     } else {
-      bytes = List<int>.filled(blen, 0);;
+      bytes = List<int>.filled(blen, 0);
+      ;
       bytes[0] = byte0;
     }
-    for (int i = 1; i < blen; ++i) {
-      int byte = ~int.parse(str.substring(p + (i << 1), p + (i << 1) + 2), radix: 16);
+    for (var i = 1; i < blen; ++i) {
+      var byte =
+          ~int.parse(str.substring(p + (i << 1), p + (i << 1) + 2), radix: 16);
       if (byte < -128) byte += 256;
       bytes[i + boff] = byte;
     }
@@ -88,7 +88,7 @@ List<int> _bigIntToByteArray(BigInt data) {
     if (len & 1 == 1) {
       p = -1;
     }
-    int byte0 = int.parse(str.substring(0, p + 2), radix: 16);
+    var byte0 = int.parse(str.substring(0, p + 2), radix: 16);
     if (byte0 > 127) byte0 -= 256;
     if (byte0 < 0) {
       boff = 1;
@@ -96,46 +96,48 @@ List<int> _bigIntToByteArray(BigInt data) {
       bytes[0] = 0;
       bytes[1] = byte0;
     } else {
-      bytes = List<int>.filled(blen, 0);;
+      bytes = List<int>.filled(blen, 0);
+      ;
       bytes[0] = byte0;
     }
-    for (int i = 1; i < blen; ++i) {
-      int byte = int.parse(str.substring(p + (i << 1), p + (i << 1) + 2), radix: 16);
+    for (var i = 1; i < blen; ++i) {
+      var byte =
+          int.parse(str.substring(p + (i << 1), p + (i << 1) + 2), radix: 16);
       if (byte > 127) byte -= 256;
       bytes[i + boff] = byte;
     }
   }
 
-
-  List<int> b = [];
-  bytes.forEach((e) {b.insert(0, e);});
+  var b = <int>[];
+  bytes.forEach((dynamic e) {
+    b.insert(0, e);
+  });
   return b;
 }
-
 
 BigInt _bytesToBigInt(List<int> bytes) {
   BigInt read(int start, int end) {
     if (end - start <= 4) {
-      int result = 0;
-      for (int i = end - 1; i >= start; i--) {
+      var result = 0;
+      for (var i = end - 1; i >= start; i--) {
         result = result * 256 + bytes[i];
       }
-      return new BigInt.from(result);
+      return BigInt.from(result);
     }
-    int mid = start + ((end - start) >> 1);
-    var result = read(start, mid) + read(mid, end) * (BigInt.one << ((mid - start) * 8));
+    var mid = start + ((end - start) >> 1);
+    var result =
+        read(start, mid) + read(mid, end) * (BigInt.one << ((mid - start) * 8));
     return result;
   }
 
   if ((bytes[0] & 0x80) != 0) {
-    bytes = new Uint8List(1 + bytes.length)
+    bytes = Uint8List(1 + bytes.length)
       ..[0] = 0
       ..setRange(1, 1 + bytes.length, bytes);
   }
 
   return read(0, bytes.length);
 }
-
 
 const _MASK_16 = 0xFFFF;
 const _MASK_32 = 0xFFFFFFFF;
@@ -144,12 +146,14 @@ int clip16(int x) => (x & _MASK_16);
 int clip32(int x) => (x & _MASK_32);
 
 abstract class SecureRandomBase implements SecureRandom {
+  @override
   int nextUint16() {
     var b0 = nextUint8();
     var b1 = nextUint8();
     return clip16((b1 << 8) | b0);
   }
 
+  @override
   int nextUint32() {
     var b0 = nextUint8();
     var b1 = nextUint8();
@@ -158,12 +162,14 @@ abstract class SecureRandomBase implements SecureRandom {
     return clip32((b3 << 24) | (b2 << 16) | (b1 << 8) | b0);
   }
 
+  @override
   BigInt nextBigInteger(int bitLength) {
     return newBigIntegerFromBytes(1, _randomBits(bitLength));
   }
 
+  @override
   Uint8List nextBytes(int count) {
-    var bytes = new Uint8List(count);
+    var bytes = Uint8List(count);
     for (var i = 0; i < count; i++) {
       bytes[i] = nextUint8();
     }
@@ -172,18 +178,18 @@ abstract class SecureRandomBase implements SecureRandom {
 
   List<int> _randomBits(int numBits) {
     if (numBits < 0) {
-      throw new ArgumentError("numBits must be non-negative");
+      throw ArgumentError('numBits must be non-negative');
     }
 
     var numBytes = (numBits + 7) ~/ 8; // avoid overflow
-    var randomBits = new Uint8List(numBytes);
+    var randomBits = Uint8List(numBytes);
 
     // Generate random bytes and mask out any excess bits
     if (numBytes > 0) {
       for (var i = 0; i < numBytes; i++) {
         randomBits[i] = nextUint8();
       }
-      int excessBits = 8 * numBytes - numBits;
+      var excessBits = 8 * numBytes - numBits;
       randomBits[0] &= (1 << (8 - excessBits)) - 1;
     }
     return randomBits;

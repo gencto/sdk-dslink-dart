@@ -13,7 +13,7 @@ class ConfigSetting {
   ConfigSetting(this.name, this.type, {this.defaultValue});
   ConfigSetting.fromMap(this.name, Map m)
       : type = m.containsKey('type') ? m['type'] : 'string',
-        defaultValue = m.containsKey('default') ? m['default'] : null {}
+        defaultValue = m.containsKey('default') ? m['default'] : null;
 
   DSError? setConfig(Object value, LocalNodeImpl node, Responder responder) {
     if (node.configs[name] != value) {
@@ -33,46 +33,46 @@ class ConfigSetting {
 }
 
 class Configs {
-  static const Map _globalConfigs = const {
-    r'$is': const {'type': 'profile'},
-    r'$interface': const {'type': 'interface'},
+  static const Map<String, dynamic> _globalConfigs = <String, dynamic>{
+    r'$is': {'type': 'profile'},
+    r'$interface': {'type': 'interface'},
 
     /// list of permissions
-    r'$permissions': const {
+    r'$permissions': {
       'type': 'list',
       'require': Permission.CONFIG,
       'writable': Permission.CONFIG,
     },
 
     /// the display name
-    r'$name': const {'type': 'string'},
+    r'$name': {'type': 'string'},
 
     /// type of subscription stream
-    r'$type': const {'type': 'type'},
+    r'$type': {'type': 'type'},
 
     /// permission needed to invoke
-    r'$invokable': const {'type': 'permission', 'default': 'read'},
+    r'$invokable': {'type': 'permission', 'default': 'read'},
 
     /// permission needed to set
-    r'$writable': const {'type': 'permission', 'default': 'never'},
+    r'$writable': {'type': 'permission', 'default': 'never'},
 
     /// config settings, only used by profile nodes
-    r'$settings': const {'type': 'map'},
+    r'$settings': {'type': 'map'},
 
     /// params of invoke method
-    r'$params': const {'type': 'list'},
+    r'$params': {'type': 'list'},
 
     /// stream columns of invoke method
-    r'$columns': const {'type': 'list'},
+    r'$columns': {'type': 'list'},
 
     /// stream meta of invoke method
-    r'$streamMeta': const {'type': 'list'}
+    r'$streamMeta': {'type': 'list'}
     // not serializable
   };
 
-  static final Configs global = new Configs()..load(_globalConfigs);
+  static final Configs global = Configs()..load(_globalConfigs);
   static final ConfigSetting defaultConfig =
-      new ConfigSetting.fromMap('', const {});
+      ConfigSetting.fromMap('', const <dynamic, dynamic>{});
 
   static Object? getConfig(String name, Node? profile) {
     if (global.configs.containsKey(name)) {
@@ -85,10 +85,10 @@ class Configs {
   }
 
   Map<String, ConfigSetting> configs = {};
-  void load(Map inputs) {
-    inputs.forEach((name, m) {
+  void load(Map<String, dynamic> inputs) {
+    inputs.forEach((name, dynamic m) {
       if (m is Map) {
-        configs[name] = new ConfigSetting.fromMap(name, m);
+        configs[name] = ConfigSetting.fromMap(name, m);
       }
     });
   }
