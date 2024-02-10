@@ -232,7 +232,7 @@ abstract class LocalNode extends Node {
     }
   }
 
-  void load(Map<String, dynamic> map) {
+  void load(Map map) {
   }
 }
 
