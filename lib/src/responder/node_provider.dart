@@ -133,7 +133,7 @@ abstract class LocalNode extends Node {
 
   /// Called by the link internals to invoke this node.
   InvokeResponse invoke(
-    Map<String, dynamic> params,
+    Map params,
     Responder responder,
     InvokeResponse response,
     Node parentNode, [int maxPermission = Permission.CONFIG]) {

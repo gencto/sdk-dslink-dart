@@ -21,7 +21,7 @@ class DefinitionNode extends LocalNodeImpl {
 
   @override
   InvokeResponse invoke(
-    Map<String, dynamic> params,
+    Map params,
     Responder responder,
     InvokeResponse response,
     Node? parentNode,
