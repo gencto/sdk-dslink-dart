@@ -2,7 +2,8 @@ part of dslink.client;
 
 /// a client link for both http and ws
 class HttpClientLink extends ClientLink {
-  final Completer<Requester> _onRequesterReadyCompleter = Completer<Requester>();
+  final Completer<Requester> _onRequesterReadyCompleter =
+      Completer<Requester>();
   Completer<void> _onConnectedCompleter = Completer<void>();
 
   @override
@@ -108,7 +109,6 @@ class HttpClientLink extends ClientLink {
 
   int _connDelay = 0;
 
-
   void connDelay() {
     reconnectWSCount = 0;
     DsTimer.timerOnceAfter(connect, (_connDelay == 0 ? 20 : _connDelay * 500));
@@ -124,19 +124,13 @@ class HttpClientLink extends ClientLink {
     lockCryptoProvider();
     DsTimer.timerCancel(initWebsocket);
 
-    var client = HttpClient();
-
-    client.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      logger.info(formatLogMessage('Bad certificate for $host:$port'));
-      logger.finest(formatLogMessage(
-          'Cert Issuer: ${cert.issuer}, ' 'Subject: ${cert.subject}'));
-      return !strictTls;
+    var headers = {
+      'Content-Type': 'application/json',
     };
 
     var connUrl = '$_conn?dsId=${Uri.encodeComponent(dsId)}';
     if (home != null) {
-      connUrl = '$connUrl&home=$home';
+      connUrl += '&home=$home';
     }
     if (tokenHash != null) {
       connUrl = '$connUrl$tokenHash';
@@ -144,90 +138,69 @@ class HttpClientLink extends ClientLink {
     var connUri = Uri.parse(connUrl);
     logger.info(formatLogMessage('Connecting to $_conn'));
 
-    // TODO: This runZoned is due to a bug in the DartVM
-    // https://github.com/dart-lang/sdk/issues/31275
-    // When it is fixed, we should go back to a regular try-catch
     try {
-      await runZoned(() async {
-        await () async {
-          var request = await client.postUrl(connUri);
-          var requestJson = {
-            'publicKey': privateKey.publicKey.qBase64,
-            'isRequester': requester != null,
-            'isResponder': responder != null,
-            'formats': formats,
-            'version': DSA_VERSION,
-            'enableWebSocketCompression': true
-          };
-
-          if (linkData != null) {
-            requestJson['linkData'] = linkData!;
-          }
-
-          logger.finest(formatLogMessage('Handshake Request: $requestJson'));
-          logger.fine(formatLogMessage('ID: $dsId'));
-
-          request.add(toUTF8(DsJson.encode(requestJson)));
-          var response = await request.close();
-          if (response.statusCode == 301 || response.statusCode == 302) {
-            var newUrl = response.headers.value('location');
-            if (newUrl != null) {
-              request = await client.postUrl(Uri.parse(newUrl));
-              request.add(toUTF8(DsJson.encode(requestJson)));
-              response = await request.close();
-            } else {
-              logger.finest(formatLogMessage(
-                  'Handshake Response: ${response.statusCode}'));
-            }
-          }
-          var merged = await response.fold(<int>[], foldList);
-          var rslt = const Utf8Decoder().convert(merged);
-          Map serverConfig = DsJson.decode(rslt);
-
-          logger
-              .finest(formatLogMessage('Handshake Response: $serverConfig'));
-          //read salt
-          salt = serverConfig['salt'];
-
-          String? tempKey = serverConfig['tempKey'];
-          if (tempKey == null) {
-            // trusted client, don't do ECDH handshake
-            _nonce = const DummyECDH();
-          } else {
-            _nonce = await privateKey.getSecret(tempKey);
-          }
-          // server start to support version since 1.0.4
-          // and this is the version ack is added
-          enableAck = serverConfig.containsKey('version');
-          remotePath = serverConfig['path'];
-
-          if (serverConfig['wsUri'] is String) {
-            _wsUpdateUri =
-                '${connUri.resolve(serverConfig['wsUri'])}?dsId=${Uri.encodeComponent(dsId)}'
-                    .replaceFirst('http', 'ws');
-            if (home != null) {
-              _wsUpdateUri = '$_wsUpdateUri&home=$home';
-            }
-          }
-
-          if (serverConfig['format'] is String) {
-            format = serverConfig['format'];
-          }
-        }()
-            .timeout(Duration(minutes: 1), onTimeout: () {
-          client.close(force: true);
-          throw TimeoutException(
-              'Connection to $_conn', const Duration(minutes: 1));
-        });
-        await initWebsocket(false);
+      var handshakePayload = jsonEncode({
+        'publicKey': privateKey.publicKey.qBase64,
+        'isRequester': requester != null,
+        'isResponder': responder != null,
+        'formats': formats,
+        'version': DSA_VERSION,
+        'enableWebSocketCompression': true,
+        if (linkData != null) 'linkData': linkData,
       });
-    } catch (e, s) {
-      if (logger.level <= Level.FINER) {
-        logger.warning('Client socket crashed: $e $s');
-      } else {
-        logger.warning('Client socket crashed: $e');
+
+      http.Response response = await http
+          .post(connUri, headers: headers, body: handshakePayload)
+          .timeout(Duration(minutes: 1));
+
+      if (response.statusCode == 301 || response.statusCode == 302) {
+        var newUrl = response.headers['location'];
+        if (newUrl != null) {
+          response = await http.post(Uri.parse(newUrl),
+              headers: headers, body: handshakePayload);
+        } else {
+          logger.finest(
+              formatLogMessage('Handshake Response: ${response.statusCode}'));
+        }
       }
-      client.close();
+
+      if (response.statusCode != 200) {
+        logger.warning(
+            'Handshake failed with status code: ${response.statusCode}');
+        return;
+      }
+
+      var serverConfig = jsonDecode(response.body);
+      logger.finest(formatLogMessage('Handshake Response: $serverConfig'));
+
+      salt = serverConfig['salt'];
+
+      String? tempKey = serverConfig['tempKey'];
+      if (tempKey == null) {
+        _nonce = const DummyECDH();
+      } else {
+        _nonce = await privateKey.getSecret(tempKey);
+      }
+
+      enableAck = serverConfig.containsKey('version');
+      remotePath = serverConfig['path'];
+
+      if (serverConfig['wsUri'] is String) {
+        _wsUpdateUri =
+            '${connUri.resolve(serverConfig['wsUri'])}?dsId=${Uri.encodeComponent(dsId)}'
+                .replaceFirst('http', 'ws');
+        if (home != null) {
+          _wsUpdateUri = '$_wsUpdateUri&home=$home';
+        }
+      }
+
+      if (serverConfig['format'] is String) {
+        format = serverConfig['format'];
+      }
+
+      await initWebsocket(false);
+    } catch (e, stackTrace) {
+      logger.warning('Client socket crashed: $e\n$stackTrace');
       connDelay();
     }
   }
