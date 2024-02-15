@@ -145,8 +145,8 @@ class Node {
   }
 
   /// Gets a map for the data that will be listed in the parent node's children property.
-  Map<String, dynamic> getSimpleMap() {
-    var rslt = <String, dynamic>{};
+  Map getSimpleMap() {
+    var rslt = {};
     if (configs.containsKey(r'$is')) {
       rslt[r'$is'] = configs[r'$is'];
     }

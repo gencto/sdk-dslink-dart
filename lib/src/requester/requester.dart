@@ -74,10 +74,10 @@ class Requester extends ConnectionHandler {
     return rslt;
   }
 
-  Request? sendRequest(Map<String, dynamic> m, RequestUpdater updater) =>
+  Request? sendRequest(Map m, RequestUpdater updater) =>
     _sendRequest(m, updater);
 
-  Request? _sendRequest(Map<String, dynamic> m, RequestUpdater? updater) {
+  Request? _sendRequest(Map m, RequestUpdater? updater) {
     m['rid'] = getNextRid();
     Request? req;
     if (updater != null) {
@@ -176,7 +176,7 @@ class Requester extends ConnectionHandler {
     return node._list(this);
   }
 
-  Stream<RequesterInvokeUpdate> invoke(String path, [Map params = const <dynamic, dynamic>{},
+  Stream<RequesterInvokeUpdate> invoke(String path, [Map params = const {},
       int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
     var node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this, maxPermission, fetchRawReq);

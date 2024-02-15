@@ -3,7 +3,7 @@ part of dslink.requester;
 /// manage cached nodes for requester
 /// TODO: cleanup nodes that are no longer in use
 class RemoteNodeCache {
-  final Map<String, RemoteNode> _nodes = <String, RemoteNode>{};
+  final Map<String, dynamic> _nodes = <String, dynamic>{};
 
   RemoteNodeCache();
 
@@ -48,7 +48,7 @@ class RemoteNodeCache {
 
   /// update node with a map.
   RemoteNode? updateRemoteChildNode(
-      RemoteNode parent, String name, Map<String, dynamic> m) {
+      RemoteNode parent, String name, Map m) {
     String path;
     if (parent.remotePath == '/') {
       path = '/$name';
@@ -154,7 +154,7 @@ class RemoteNode extends Node {
   }
 
   /// used by list api to update simple data for children
-  void updateRemoteChildData(Map<String, dynamic> m, RemoteNodeCache cache) {
+  void updateRemoteChildData(Map m, RemoteNodeCache cache) {
     String childPathPre;
     if (remotePath == '/') {
       childPathPre = '/';

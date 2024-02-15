@@ -6,7 +6,7 @@ import 'package:dslink/nodes.dart';
 LinkProvider? link;
 
 void main(List<String> args) async {
-  link = LinkProvider(['--broker', 'http://dev.sviteco.ua/conn'], 'Requester-', defaultNodes: <String, dynamic>{
+  link = LinkProvider(['--broker', 'http://dev.sviteco.ua/conn'], 'Requester-s', defaultNodes: <String, dynamic>{
     'Get': {
       r'$is': 'get',
       r'$invokable': 'read',

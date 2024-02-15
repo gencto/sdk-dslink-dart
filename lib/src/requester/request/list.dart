@@ -3,7 +3,7 @@ part of dslink.requester;
 class RequesterListUpdate extends RequesterUpdate {
   /// this is only a list of changed fields
   /// when changes is null, means everything could have been changed
-  List changes;
+  List? changes;
   RemoteNode node;
 
   RequesterListUpdate(this.node, this.changes, String? streamStatus)
@@ -130,7 +130,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
           changes.add(name);
           if (removed) {
             node.children.remove(name);
-          } else if (value is Map<String, dynamic>) {
+          } else if (value is Map) {
             // TODO, also wait for children $is
             node.children[name] =
                 requester.nodeCache.updateRemoteChildNode(node, name, value)!;
@@ -189,7 +189,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     _profileLoader?.cancel();
     _profileLoader = null;
     changes.addAll(
-        update.changes.where((str) => !_ignoreProfileProps.contains(str)));
+        update.changes!.where((str) => !_ignoreProfileProps.contains(str)));
     _ready = true;
     onProfileUpdated();
   }

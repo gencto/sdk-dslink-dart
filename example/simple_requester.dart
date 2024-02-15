@@ -14,7 +14,7 @@ void main(List<String> args) async {
     isRequester: true, // We are just a requester.
   );
 
-  await link.connect(); // Connect to the broker.
+  link.connect(); // Connect to the broker.
   var requester =
       await link.onRequesterReady; // Wait for the requester to be ready.
 
