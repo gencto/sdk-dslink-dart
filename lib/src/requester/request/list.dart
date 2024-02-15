@@ -3,7 +3,7 @@ part of dslink.requester;
 class RequesterListUpdate extends RequesterUpdate {
   /// this is only a list of changed fields
   /// when changes is null, means everything could have been changed
-  List<String> changes;
+  List changes;
   RemoteNode node;
 
   RequesterListUpdate(this.node, this.changes, String? streamStatus)
@@ -67,7 +67,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     }
   }
 
-  LinkedHashSet<String> changes = LinkedHashSet<String>();
+  LinkedHashSet changes = LinkedHashSet<String>();
 
   @override
   void onUpdate(String streamStatus, List? updates, List? columns, Map? meta,
@@ -175,7 +175,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     }
   }
 
-  static const List<String> _ignoreProfileProps = [
+  static const List _ignoreProfileProps = [
     r'$is',
     r'$permission',
     r'$settings'
@@ -243,7 +243,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
           return;
         }
 
-        var changes = <String>[];
+        var changes = [];
         changes
           ..addAll(node.configs.keys)
           ..addAll(node.attributes.keys)

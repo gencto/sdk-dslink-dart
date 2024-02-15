@@ -46,7 +46,7 @@ class Node {
   }
 
   /// Node Configs
-  Map<String, dynamic> configs = <String, dynamic>{r'$is': 'node'};
+  Map configs = {r'$is': 'node'};
 
   /// Get a Config
   Object? getConfig(String name) {
@@ -122,10 +122,10 @@ class Node {
     }
   }
 
-  void forEachConfig(void Function(String name, Object? value) callback) {
+  void forEachConfig(void Function(dynamic name,dynamic value) callback) {
     configs.forEach(callback);
     if (profile != null) {
-      profile?.configs.forEach((String str, Object? val) {
+      profile?.configs.forEach((str, val) {
         if (!configs.containsKey(str)) {
           callback(str, val);
         }

@@ -185,7 +185,7 @@ class RemoteNode extends Node {
   }
 
   Map save({bool includeValue = true}) {
-    var map = <String, dynamic>{};
+    var map = {};
     map.addAll(configs);
     map.addAll(attributes);
     for (var key in children.keys) {
