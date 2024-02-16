@@ -3,7 +3,7 @@ part of dslink.historian;
 abstract class HistorianAdapter {
   Future<HistorianDatabaseAdapter> getDatabase(Map config);
 
-  List<Map<String, dynamic>> getCreateDatabaseParameters();
+  List<Map> getCreateDatabaseParameters();
 }
 
 abstract class HistorianDatabaseAdapter {

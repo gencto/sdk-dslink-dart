@@ -33,7 +33,7 @@ class ConfigSetting {
 }
 
 class Configs {
-  static const Map<String, dynamic> _globalConfigs = <String, dynamic>{
+  static const Map _globalConfigs = <String, dynamic>{
     r'$is': {'type': 'profile'},
     r'$interface': {'type': 'interface'},
 
@@ -85,7 +85,7 @@ class Configs {
   }
 
   Map<String, ConfigSetting> configs = {};
-  void load(Map<String, dynamic> inputs) {
+  void load(Map inputs) {
     inputs.forEach((name, dynamic m) {
       if (m is Map) {
         configs[name] = ConfigSetting.fromMap(name, m);

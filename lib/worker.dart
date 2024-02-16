@@ -14,7 +14,7 @@ typedef WorkerFunction = void Function(Worker worker);
 
 WorkerSocket createWorker(
   WorkerFunction function, {
-    Map<String, dynamic>? metadata
+    Map? metadata
   }) {
   var receiver = ReceivePort();
   var socket = WorkerSocket.master(receiver);
@@ -29,7 +29,7 @@ WorkerSocket createWorker(
 }
 
 WorkerSocket createFakeWorker(WorkerFunction function,
-    {Map<String, dynamic>? metadata}) {
+    {Map? metadata}) {
   var receiver = ReceivePort();
   var socket = WorkerSocket.master(receiver);
   Timer.run(() {
@@ -40,23 +40,23 @@ WorkerSocket createFakeWorker(WorkerFunction function,
   return socket;
 }
 
-Worker buildWorkerForScript(Map<String, dynamic>? data) {
+Worker buildWorkerForScript(Map? data) {
   SendPort? port;
-  Map<String, dynamic>? metadata;
+  Map? metadata;
 
   if (data?['port'] is SendPort) {
     port = data?['port'];
   }
 
-  if (data?['metadata'] is Map<String, dynamic>) {
-    metadata = data?['metadata'] as Map<String, dynamic>;
+  if (data?['metadata'] is Map) {
+    metadata = data?['metadata'] as Map;
   }
 
   return Worker(port, metadata);
 }
 
 WorkerSocket createWorkerScript(dynamic script,
-    {List<String>? args, Map<String, dynamic>? metadata}) {
+    {List<String>? args, Map? metadata}) {
   var receiver = ReceivePort();
   var socket = WorkerSocket.master(receiver);
   Uri uri;
@@ -78,26 +78,26 @@ WorkerSocket createWorkerScript(dynamic script,
 }
 
 WorkerPool createWorkerScriptPool(int count, Uri uri,
-    {Map<String, dynamic>? metadata}) {
+    {Map? metadata}) {
   var workers = <WorkerSocket>[];
   for (var i = 1; i <= count; i++) {
     workers.add(createWorkerScript(uri,
-      metadata: <String, dynamic>{
+      metadata: {
         'workerId': i
-      }..addAll(metadata ?? <String, dynamic>{})
+      }..addAll(metadata ?? {})
     ));
   }
   return WorkerPool(workers);
 }
 
 WorkerPool createWorkerPool(int count, WorkerFunction function,
-    {Map<String, dynamic>? metadata}) {
+    {Map? metadata}) {
   var workers = <WorkerSocket>[];
   for (var i = 1; i <= count; i++) {
     workers.add(
-      createWorker(function, metadata: <String, dynamic>{
+      createWorker(function, metadata: {
         'workerId': i
-      }..addAll(metadata ?? <String, dynamic>{})));
+      }..addAll(metadata ?? {})));
   }
   return WorkerPool(workers);
 }
@@ -140,12 +140,12 @@ class WorkerPool {
   }
 
   void resizeFunctionWorkers(int count, WorkerFunction function,
-    {Map<String, dynamic>? metadata}) async {
+    {Map? metadata}) async {
     if (sockets.length < count) {
       for (var i = sockets.length + 1; i <= count; i++) {
-        var sock = createWorker(function, metadata: <String, dynamic>{
+        var sock = createWorker(function, metadata: {
           'workerId': i
-        }..addAll(metadata ?? <String, dynamic>{}));
+        }..addAll(metadata ?? {}));
         sock._pool = this;
         sock.onReceivedMessageHandler = (dynamic msg) {
           if (onMessageReceivedHandler != null) {
@@ -269,9 +269,9 @@ class WorkerPool {
 
 class Worker {
   final SendPort? port;
-  final Map<String, dynamic> metadata;
+  final Map metadata;
 
-  Worker(this.port, [Map<String, dynamic>? meta])
+  Worker(this.port, [Map? meta])
       : metadata = meta ?? <String, dynamic>{};
 
   WorkerSocket createSocket() {

@@ -32,7 +32,7 @@ export 'package:dslink/src/crypto/pk.dart' show PrivateKey;
 /// DSLink Provider for the Browser
 class LinkProvider {
   BrowserECDHLink? link;
-  Map<String, dynamic>? defaultNodes;
+  Map? defaultNodes;
   Map<String, NodeFactory>? profiles;
   bool loadNodes;
   NodeProvider? provider;
@@ -76,7 +76,7 @@ class LinkProvider {
       } else {
         Map decoded = DsJson.decode(await dataStore!.get('dsa_nodes'));
 
-        if (decoded is Map<String, dynamic>) {
+        if (decoded is Map) {
           (provider as SerializableNodeProvider).init(decoded);
         }
       }
@@ -167,7 +167,7 @@ class LinkProvider {
     return provider?.getNode(path);
   }
 
-  LocalNode? addNode(String path, Map<String, dynamic> m) {
+  LocalNode? addNode(String path, Map m) {
     if (provider is! MutableNodeProvider) {
       throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }

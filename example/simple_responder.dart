@@ -34,7 +34,7 @@ class TesterNode extends SimpleNode {
   static const String isType = 'testerNode';
   static const String pathName = 'Test_Node';
 
-  static Map<String, dynamic> def() =>  <String, dynamic>{
+  static Map def() =>  <String, dynamic>{
     r'$is': isType,
     r'$name': 'Test Node',
     r'$invokable': 'write',
@@ -45,7 +45,7 @@ class TesterNode extends SimpleNode {
   TesterNode(String path) : super(path);
 
   @override
-  Future<Map<String, dynamic>> onInvoke(Map params) async {
+  Future<Map> onInvoke(Map params) async {
     throw Exception("That's broken");
   }
 }

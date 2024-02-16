@@ -7,7 +7,7 @@ class TableColumn {
 
   TableColumn(this.name, this.type, [this.defaultValue]);
 
-  Map<String, dynamic> getData() {
+  Map getData() {
     var rslt = <String, dynamic>{
       'type': type,
       'name': name
@@ -20,10 +20,10 @@ class TableColumn {
   }
 
   /// convert tableColumns into List of Map
-  static List<Map<String, dynamic>> serializeColumns(List list) {
-    var rslts = <Map<String, dynamic>>[];
+  static List<Map> serializeColumns(List list) {
+    var rslts = <Map>[];
     for (Object m in list) {
-      if (m is Map<String, dynamic>) {
+      if (m is Map) {
         rslts.add(m);
       } else if (m is TableColumn) {
         rslts.add(m.getData());

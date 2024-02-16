@@ -115,8 +115,8 @@ class DsaJsonNode extends SimpleNode {
     }
   }
 
-  static Map<String, dynamic> buildNodeMap(dynamic input) {
-    Map<String, dynamic> create(dynamic value) {
+  static Map buildNodeMap(dynamic input) {
+    Map create(dynamic value) {
       if (value is Map) {
         var m = <String, dynamic>{
           r'$is': 'json'

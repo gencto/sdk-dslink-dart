@@ -3,7 +3,7 @@ part of dslink.requester;
 /// manage cached nodes for requester
 /// TODO: cleanup nodes that are no longer in use
 class RemoteNodeCache {
-  final Map<String, dynamic> _nodes = <String, dynamic>{};
+  final Map _nodes = {};
 
   RemoteNodeCache();
 
@@ -25,7 +25,7 @@ class RemoteNodeCache {
     return node;
   }
 
-  Iterable<String> get cachedNodePaths => _nodes.keys;
+  Iterable<String> get cachedNodePaths => _nodes.keys as List<String>;
 
   bool isNodeCached(String path) {
     return _nodes.containsKey(path);
@@ -167,7 +167,7 @@ class RemoteNode extends Node {
         configs[key] = value;
       } else if (key.startsWith('@')) {
         attributes[key] = value;
-      } else if (value is Map<String, dynamic>) {
+      } else if (value is Map) {
         Node node = cache.getRemoteNode('$childPathPre/$key');
         children[key] = node;
         if (node is RemoteNode) {

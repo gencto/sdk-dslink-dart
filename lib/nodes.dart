@@ -149,7 +149,7 @@ typedef ResolveNodeHandler = Future Function(CallbackNode node);
 class ResolvingNodeProvider extends SimpleNodeProvider {
   ResolveNodeHandler? handler;
 
-  ResolvingNodeProvider([Map<String, dynamic>? defaultNodes, Map<String, NodeFactory>? profiles]) :
+  ResolvingNodeProvider([Map? defaultNodes, Map<String, NodeFactory>? profiles]) :
         super(defaultNodes, profiles);
 
   @override

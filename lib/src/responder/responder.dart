@@ -341,7 +341,7 @@ class Responder extends ConnectionHandler {
           permission = maxPermit;
         }
 
-        Map<String, dynamic>? params;
+        Map? params;
 
         if (m['params'] is Map) {
           params = <String, dynamic>{};

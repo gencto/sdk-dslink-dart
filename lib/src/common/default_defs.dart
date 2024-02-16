@@ -1,6 +1,6 @@
 part of dslink.common;
 
-Map<String, dynamic> defaultProfileMap =  <String, dynamic>{
+Map defaultProfileMap =  <String, dynamic>{
   'node': <String, dynamic>{},
   'static': <String, dynamic>{},
   'getHistory': <String, dynamic>{ // Add explicit type here

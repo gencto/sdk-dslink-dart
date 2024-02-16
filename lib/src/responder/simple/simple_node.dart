@@ -230,7 +230,7 @@ class LiveTableRow {
 /// Interface for node providers that are serializable.
 abstract class SerializableNodeProvider {
   /// Initialize the node provider.
-  void init([Map<String, dynamic> m, Map<String, NodeFactory> profiles]);
+  void init([Map m, Map<String, NodeFactory> profiles]);
 
   /// Save the node provider to a map.
   Map save();
@@ -470,7 +470,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// If [m] and optionally [profiles] is specified,
   /// the provider is initialized with these values.
   SimpleNodeProvider(
-      [Map<String, dynamic>? m, Map<String, NodeFactory>? profiles]) {
+      [Map? m, Map<String, NodeFactory>? profiles]) {
     // by default, the first SimpleNodeProvider is the static instance
     instance ??= this;
 
@@ -494,7 +494,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   SimpleHiddenNode? sys;
 
   @override
-  void init([Map<String, dynamic>? m, Map<String, NodeFactory>? profiles]) {
+  void init([Map? m, Map<String, NodeFactory>? profiles]) {
     if (profiles != null) {
       if (profiles.isNotEmpty) {
         _profiles.addAll(profiles);
@@ -797,7 +797,7 @@ class SimpleNode extends LocalNodeImpl {
         }
       } else if (key.startsWith('@')) {
         attributes[key] = value;
-      } else if (value is Map<String, dynamic>) {
+      } else if (value is Map) {
         var childPath = '$childPathPre$key';
         provider.addNode(childPath, value);
       }
@@ -1021,7 +1021,7 @@ class SimpleNode extends LocalNodeImpl {
             if (v is Iterable) {
               r?.update(v.toList());
             } else if (v is Map) {
-              Map<String, dynamic>? meta;
+              Map? meta;
               if (v.containsKey('__META__')) {
                 meta = v['__META__'];
               }
@@ -1138,7 +1138,7 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Creates a child with the given [name].
   /// If [m] is specified, the node is loaded with that map.
-  SimpleNode createChild(String name, [Map<String, dynamic>? m]) {
+  SimpleNode createChild(String name, [Map? m]) {
     var tp = Path(path!).child(name).path;
     return provider.addNode(tp, m ?? <String, dynamic>{}) as SimpleNode;
   }
@@ -1308,7 +1308,7 @@ class SimpleHiddenNode extends SimpleNode {
   }
 
   @override
-  Map<String, dynamic> getSimpleMap() {
+  Map getSimpleMap() {
     var rslt = <String, dynamic>{r'$hidden': true};
 
     if (configs.containsKey(r'$is')) {

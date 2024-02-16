@@ -56,7 +56,7 @@ class LinkProvider {
   bool isResponder = true;
 
   /// Default Nodes
-  Map<String, dynamic>? defaultNodes;
+  Map? defaultNodes;
 
   /// Profiles
   Map<String, NodeFactory>? profiles;
@@ -123,7 +123,7 @@ class LinkProvider {
       this.command = 'link',
       this.isResponder = true,
       this.defaultNodes,
-      Map<String, dynamic>? nodes,
+      Map? nodes,
       this.profiles,
       this.provider,
       this.enableHttp = true,
@@ -569,7 +569,7 @@ class LinkProvider {
       _nodesFile = getConfig('nodes') == null
           ? File('$_basePath/nodes.json')
           : File.fromUri(Uri.parse(getConfig('nodes') as String));
-      Map<String, dynamic>? loadedNodesData;
+      Map? loadedNodesData;
 
       if (loadNodesJson) {
         _nodesFile = getConfig('nodes') == null
@@ -577,9 +577,9 @@ class LinkProvider {
             : File.fromUri(Uri.parse(getConfig('nodes') as String));
         try {
           var nodesStr = _nodesFile!.readAsStringSync();
-          Map<String, dynamic>? json = DsJson.decode(nodesStr);
+          Map? json = DsJson.decode(nodesStr);
 
-          if (json is Map<String, dynamic>) {
+          if (json is Map) {
             loadedNodesData = json;
           }
         } catch (err) {
@@ -714,7 +714,7 @@ class LinkProvider {
   /// Adds a node with the given configuration in [m] at the given [path].
   /// In order for this method to work, the node provider must be mutable.
   /// If you did not specify a custom node provider, the created provider is mutable.
-  LocalNode? addNode(String path, Map<String, dynamic> m) {
+  LocalNode? addNode(String path, Map m) {
     if (provider is! MutableNodeProvider) {
       throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }

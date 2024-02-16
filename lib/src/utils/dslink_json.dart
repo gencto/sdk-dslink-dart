@@ -9,21 +9,21 @@ class DSLinkJSON {
   String? version;
   String? description;
   String? main;
-  Map<String, dynamic> engines = <String, dynamic>{};
-  Map<String, Map<String, dynamic>> configs = {};
+  Map engines = <String, dynamic>{};
+  Map<String, Map> configs = {};
   List<String> getDependencies = [];
 
   DSLinkJSON();
 
-  factory DSLinkJSON.from(Map<String, dynamic>? map) {
+  factory DSLinkJSON.from(Map? map) {
     var j = DSLinkJSON();
     j._json = map;
     j.name = map?['name'];
     j.version = map?['version'];
     j.description = map?['description'];
     j.main = map?['main'];
-    j.engines = map?['engines'] as Map<String, dynamic>;
-    j.configs = map?['configs'] as Map<String, Map<String, dynamic>>;
+    j.engines = map?['engines'] as Map;
+    j.configs = map?['configs'] as Map<String, Map>;
     j.getDependencies = map?['getDependencies'] as List<String>;
     return j;
   }
@@ -41,7 +41,7 @@ class DSLinkJSON {
   Map save() {
     verify();
 
-    var map = Map<String, dynamic>.from(_json ?? <String, dynamic>{});
+    var map = Map.from(_json ?? <String, dynamic>{});
     map['name'] = name;
     map['version'] = version;
     map['description'] = description;

@@ -66,7 +66,7 @@ class ResetNode extends SimpleNode {
   }
 
   @override
-  Future<Map<String, dynamic>> onInvoke(Map params) async {
+  Future<Map> onInvoke(Map params) async {
     link!.updateValue(
         '/message', 'Hello World'); 
       // Update the value of the message node.

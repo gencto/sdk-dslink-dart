@@ -14,7 +14,7 @@ final Map<String, String> TRANSITION_TIMES = {
   '2s': '2s'
 };
 
-Map<String, dynamic> DEFAULT_NODES = <String, dynamic>{
+Map DEFAULT_NODES = <String, dynamic>{
   'User_Agent': {
     r'$name': 'User Agent',
     r'$type': 'string',

@@ -53,7 +53,7 @@ abstract class LocalNodeImpl extends LocalNode {
         configs[key] = value;
       } else if (key.startsWith('@')) {
         attributes[key] = value;
-      } else if (value is Map<String, dynamic>) {
+      } else if (value is Map) {
         var node =
             provider?.getOrCreateNode('$childPathPre$key', false) as Node;
         if (node is LocalNodeImpl) {
