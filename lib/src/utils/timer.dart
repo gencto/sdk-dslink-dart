@@ -107,9 +107,9 @@ class DsTimer {
       rslt.unlink();
       for (var fun in rslt._functions) {
         _functionsMap.remove(fun);
-        try{
+        try {
           fun();
-        } catch(err,stack) {
+        } catch (err, stack) {
           print('callback error; $err\n$stack');
         }
       }
@@ -208,9 +208,9 @@ class DsTimer {
     _callbacks = [];
 
     for (var f in runnings) {
-      try{
+      try {
         f();
-      } catch(err,stack) {
+      } catch (err, stack) {
         print('callback error; $err\n$stack');
       }
     }
@@ -234,7 +234,8 @@ class DsTimer {
           if (timerTimer != null && timerTimer!.isActive) {
             timerTimer?.cancel();
           }
-          var duration = Duration(milliseconds: timerTs50 * 50 + 1 - currentTime);
+          var duration =
+              Duration(milliseconds: timerTs50 * 50 + 1 - currentTime);
           timerTimer = Timer(duration, _startTimer);
         }
       }

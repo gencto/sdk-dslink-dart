@@ -9,9 +9,9 @@ class DSLinkJSON {
   String? version;
   String? description;
   String? main;
-  Map engines = <String, dynamic>{};
+  Map? engines = <String, dynamic>{};
   Map<String, Map> configs = {};
-  List<String> getDependencies = [];
+  List<String>? getDependencies = [];
 
   DSLinkJSON();
 

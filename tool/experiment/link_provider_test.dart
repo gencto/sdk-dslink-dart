@@ -40,7 +40,9 @@ class AddNodeAction extends SimpleNode {
     var tcount = 0;
     tableRslt.onClose = closed;
     tableRslt.columns = <List<Map<String, String>>>[
-      <Map<String, String>>[{'name': 'a'}]
+      <Map<String, String>>[
+        {'name': 'a'}
+      ]
     ];
     Timer.periodic(Duration(milliseconds: 50), (Timer t) {
       if (tcount++ > 5) {

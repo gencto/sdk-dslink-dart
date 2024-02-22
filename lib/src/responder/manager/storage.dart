@@ -9,7 +9,8 @@ abstract class IStorageManager {
   /// get subscription storage
   /// responder path point to a local responder node
   /// which means the dslink on the other side of the connection is a requester
-  ISubscriptionResponderStorage getOrCreateSubscriptionStorage(String responderPath);
+  ISubscriptionResponderStorage getOrCreateSubscriptionStorage(
+      String responderPath);
 
   /// destroy subscription storage
   void destroySubscriptionStorage(String responderPath);
@@ -26,6 +27,7 @@ abstract class ISubscriptionResponderStorage {
 
   ISubscriptionNodeStorage getOrCreateValue(String valuePath);
   void destroyValue(String valuePath);
+
   /// load all saved subscriptions
   /// should be called only during application initialization
   Future<List<ISubscriptionNodeStorage>> load();
@@ -54,7 +56,7 @@ abstract class ISubscriptionNodeStorage {
   /// for some database it's easier to remove multiple data together
   /// removeValue and valueRemoved will be both called, either one can be used
   /// [updates] are all the remaining value that are still in the list
-  void valueRemoved(Iterable<ValueUpdate> updates){}
+  void valueRemoved(Iterable<ValueUpdate> updates) {}
 
   /// clear the values, but still leave the qos data in storage
   void clear(int qos);

@@ -38,9 +38,11 @@ class BrokerDiscoveryClient {
     try {
       for (var interface in interfaces) {
         try {
-          socketJoinMulticast(_socket, InternetAddress('239.255.255.230'), /*interface:*/interface);
+          socketJoinMulticast(_socket, InternetAddress('239.255.255.230'),
+              /*interface:*/ interface);
         } catch (e) {
-          socketJoinMulticast(_socket, InternetAddress('239.255.255.230'), /*interface:*/ interface);
+          socketJoinMulticast(_socket, InternetAddress('239.255.255.230'),
+              /*interface:*/ interface);
         }
       }
     } catch (e) {
@@ -77,7 +79,8 @@ class BrokerDiscoveryClient {
 
   final StreamController<BrokerDiscoverRequest> _discoverController =
       StreamController.broadcast();
-  final StreamController<String> _brokerController = StreamController.broadcast();
+  final StreamController<String> _brokerController =
+      StreamController.broadcast();
 
   void close() {
     _socket.close();
@@ -95,6 +98,7 @@ class BrokerDiscoverRequest {
   }
 }
 
-void socketJoinMulticast(RawDatagramSocket socket, InternetAddress group, [NetworkInterface? interface]) {
+void socketJoinMulticast(RawDatagramSocket socket, InternetAddress group,
+    [NetworkInterface? interface]) {
   socket.joinMulticast(group, interface);
 }

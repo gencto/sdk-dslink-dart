@@ -19,10 +19,12 @@ class WebSocketConnection extends Connection {
   @override
   ConnectionChannel get requesterChannel => _requesterChannel;
 
-  Completer<ConnectionChannel> onRequestReadyCompleter = Completer<ConnectionChannel>();
+  Completer<ConnectionChannel> onRequestReadyCompleter =
+      Completer<ConnectionChannel>();
 
   @override
-  Future<ConnectionChannel> get onRequesterReady => onRequestReadyCompleter.future;
+  Future<ConnectionChannel> get onRequesterReady =>
+      onRequestReadyCompleter.future;
 
   final Completer<bool> _onDisconnectedCompleter = Completer<bool>();
 
@@ -37,17 +39,19 @@ class WebSocketConnection extends Connection {
 
   /// clientLink is not needed when websocket works in server link
   WebSocketConnection(this.socket,
-      {this.clientLink, bool enableTimeout = false, bool enableAck = true, DsCodec? useCodec}) {
+      {this.clientLink,
+      bool enableTimeout = false,
+      bool enableAck = true,
+      DsCodec? useCodec}) {
     if (useCodec != null) {
       codec = useCodec;
     }
     _responderChannel = PassiveChannel(this, true);
     _requesterChannel = PassiveChannel(this, true);
-    socket.listen(
-        onData,
+    socket.listen(onData,
         onDone: _onDone,
-        onError: (dynamic err) => logger.warning(
-            formatLogMessage('Error listening to socket'), err));
+        onError: (dynamic err) =>
+            logger.warning(formatLogMessage('Error listening to socket'), err));
     socket.add(codec.blankData);
     if (!enableAck) {
       nextMsgId = -1;
@@ -139,10 +143,10 @@ class WebSocketConnection extends Connection {
         }
       } catch (err, stack) {
         logger.fine(
-          formatLogMessage('Failed to decode binary data in WebSocket Connection'),
-          err,
-          stack
-        );
+            formatLogMessage(
+                'Failed to decode binary data in WebSocket Connection'),
+            err,
+            stack);
         close();
         return;
       }
@@ -192,10 +196,10 @@ class WebSocketConnection extends Connection {
         }
       } catch (err, stack) {
         logger.severe(
-          formatLogMessage('Failed to decode string data from WebSocket Connection'),
-          err,
-          stack
-        );
+            formatLogMessage(
+                'Failed to decode string data from WebSocket Connection'),
+            err,
+            stack);
         close();
         return;
       }

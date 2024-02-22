@@ -7,12 +7,9 @@ late LinkProvider link;
 late int lastNum;
 LocalNode? valueNode;
 
-
 Future<void> main() async {
   var defaultNodes = <String, dynamic>{
-    'node':{
-      r'$type':'string'
-    }
+    'node': {r'$type': 'string'}
   };
 
   var storage = SimpleResponderStorage('storage');
@@ -20,10 +17,8 @@ Future<void> main() async {
   var storedNodes = await storage.load();
 
   link = LinkProvider(
-    ['-b', 'https://dev.sviteco.ua/conn', '--log', 'finest'],
-    'qos-resp',
-    defaultNodes: defaultNodes
-  );
+      ['-b', 'https://dev.sviteco.ua/conn', '--log', 'finest'], 'qos-resp',
+      defaultNodes: defaultNodes);
 
   if (link.link == null) {
     // initialization failed

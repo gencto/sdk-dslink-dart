@@ -47,8 +47,7 @@ class RemoteNodeCache {
   }
 
   /// update node with a map.
-  RemoteNode? updateRemoteChildNode(
-      RemoteNode parent, String name, Map m) {
+  RemoteNode? updateRemoteChildNode(RemoteNode parent, String name, Map m) {
     String path;
     if (parent.remotePath == '/') {
       path = '/$name';

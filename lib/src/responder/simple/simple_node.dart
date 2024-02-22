@@ -106,8 +106,11 @@ class LiveTable {
 
   void onRowUpdate(LiveTableRow row) {
     if (_resp != null) {
-      _resp?.updateStream(<dynamic>[row.values],
-            meta: <String, String>{'modify': 'replace ${row.index}-${row.index}'});
+      _resp?.updateStream(<dynamic>[
+        row.values
+      ], meta: <String, String>{
+        'modify': 'replace ${row.index}-${row.index}'
+      });
     }
   }
 
@@ -123,7 +126,8 @@ class LiveTable {
     row.index = rows!.length;
     rows?.add(row);
     if (ready && _resp != null) {
-      _resp?.updateStream(<dynamic>[row.values], meta: <String, String>{'mode': 'append'});
+      _resp?.updateStream(<dynamic>[row.values],
+          meta: <String, String>{'mode': 'append'});
     }
     return row;
   }
@@ -131,7 +135,8 @@ class LiveTable {
   void clear() {
     rows?.length = 0;
     if (_resp != null) {
-      _resp?.updateStream(<dynamic>[], meta: <String, String>{'mode': 'refresh'}, columns: <dynamic>[]);
+      _resp?.updateStream(<dynamic>[],
+          meta: <String, String>{'mode': 'refresh'}, columns: <dynamic>[]);
     }
   }
 
@@ -469,8 +474,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// Creates a [SimpleNodeProvider].
   /// If [m] and optionally [profiles] is specified,
   /// the provider is initialized with these values.
-  SimpleNodeProvider(
-      [Map? m, Map<String, NodeFactory>? profiles]) {
+  SimpleNodeProvider([Map? m, Map<String, NodeFactory>? profiles]) {
     // by default, the first SimpleNodeProvider is the static instance
     instance ??= this;
 
@@ -755,8 +759,7 @@ class SimpleNode extends LocalNodeImpl {
   bool get isStubNode => _stub;
 
   SimpleNode(String? path, [SimpleNodeProvider? nodeprovider])
-      : provider =
-            nodeprovider ?? SimpleNodeProvider.instance!,
+      : provider = nodeprovider ?? SimpleNodeProvider.instance!,
         super(path);
 
   /// Marks a node as being removed.
@@ -782,7 +785,7 @@ class SimpleNode extends LocalNodeImpl {
       childPathPre = '$path/';
     }
 
-    m.forEach((key,dynamic value) {
+    m.forEach((key, dynamic value) {
       if (key.startsWith('?')) {
         if (key == '?value') {
           updateValue(value);
@@ -808,7 +811,7 @@ class SimpleNode extends LocalNodeImpl {
   /// Save this node into a map.
   Map save() {
     Map rslt = <String, dynamic>{};
-    configs.forEach((str,dynamic val) {
+    configs.forEach((str, dynamic val) {
       if (_encryptEngine != null &&
           val is String &&
           str.startsWith(r'$$') &&
@@ -839,8 +842,8 @@ class SimpleNode extends LocalNodeImpl {
   /// Handles the invoke method from the internals of the responder.
   /// Use [onInvoke] to handle when a node is invoked.
   @override
-  InvokeResponse invoke(Map params, Responder responder,
-      InvokeResponse response, Node parentNode,
+  InvokeResponse invoke(
+      Map params, Responder responder, InvokeResponse response, Node parentNode,
       [int maxPermission = Permission.CONFIG]) {
     Object? rslt;
     try {
@@ -932,7 +935,7 @@ class SimpleNode extends LocalNodeImpl {
             if (v.containsKey('__META__')) {
               meta = v['__META__'];
             }
-            r.update(<dynamic> [v], StreamStatus.open, meta);
+            r.update(<dynamic>[v], StreamStatus.open, meta);
           } else {
             throw Exception('Unknown Value from Stream');
           }
@@ -1031,7 +1034,7 @@ class SimpleNode extends LocalNodeImpl {
             }
           }, onDone: () {
             r?.close();
-            }, onError: (dynamic e, StackTrace stack) {
+          }, onError: (dynamic e, StackTrace stack) {
             var error = DSError('invokeException', msg: e.toString());
             try {
               error.detail = stack.toString();
@@ -1044,7 +1047,7 @@ class SimpleNode extends LocalNodeImpl {
           r?.update(table.rows, StreamStatus.closed, table.meta);
           r?.close();
         } else {
-          r?.update(value is Iterable ? value.toList() :<dynamic> [value]);
+          r?.update(value is Iterable ? value.toList() : <dynamic>[value]);
           r?.close();
         }
       }).catchError((dynamic e, StackTrace stack) {

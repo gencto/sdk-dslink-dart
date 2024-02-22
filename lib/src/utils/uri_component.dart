@@ -27,9 +27,7 @@ class UriComponentDecoder {
       } else {
         if (bytes.isNotEmpty) {
           codes.addAll(
-            const Utf8Decoder(allowMalformed: true)
-              .convert(bytes)
-              .codeUnits);
+              const Utf8Decoder(allowMalformed: true).convert(bytes).codeUnits);
           bytes.clear();
         }
         if (codeUnit == _PLUS) {
@@ -41,9 +39,7 @@ class UriComponentDecoder {
     }
 
     if (bytes.isNotEmpty) {
-      codes.addAll(const Utf8Decoder()
-        .convert(bytes)
-        .codeUnits);
+      codes.addAll(const Utf8Decoder().convert(bytes).codeUnits);
       bytes.clear();
     }
     return String.fromCharCodes(codes);
@@ -56,7 +52,7 @@ class UriComponentDecoder {
       if (0x30 <= charCode && charCode <= 0x39) {
         byte = byte * 16 + charCode - 0x30;
       } else if ((charCode >= 0x41 && charCode <= 0x46) ||
-        (charCode >= 0x61 && charCode <= 0x66)) {
+          (charCode >= 0x61 && charCode <= 0x66)) {
         // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
         charCode |= 0x20;
         byte = byte * 16 + charCode - 0x57;

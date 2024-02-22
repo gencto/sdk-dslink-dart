@@ -20,7 +20,8 @@ class ListDefListener {
 
   ListDefListener(this.node, this.requester,
       void Function(RequesterListUpdate u) callback) {
-    listener = requester.list(node.remotePath).listen((RequesterListUpdate update) {
+    listener =
+        requester.list(node.remotePath).listen((RequesterListUpdate update) {
       ready = update.streamStatus != StreamStatus.initialize;
       callback(update);
     });
@@ -54,8 +55,8 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   void onDisconnect() {
     disconnectTs = ValueUpdate.getTs();
     node.configs[r'$disconnectedTs'] = disconnectTs!;
-    _controller.add(RequesterListUpdate(
-        node, [r'$disconnectedTs'], request!.streamStatus));
+    _controller.add(
+        RequesterListUpdate(node, [r'$disconnectedTs'], request!.streamStatus));
   }
 
   @override
@@ -170,8 +171,8 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     }
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
-      _profileLoader =
-      ListDefListener(node.profile as RemoteNode, requester, _onProfileUpdate);
+      _profileLoader = ListDefListener(
+          node.profile as RemoteNode, requester, _onProfileUpdate);
     }
   }
 
@@ -199,8 +200,8 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   void onProfileUpdated() {
     if (_ready) {
       if (request?.streamStatus != StreamStatus.initialize) {
-        _controller.add(RequesterListUpdate(
-            node, changes.toList(), request!.streamStatus));
+        _controller.add(
+            RequesterListUpdate(node, changes.toList(), request!.streamStatus));
         changes.clear();
       }
       if (request!.streamStatus == StreamStatus.closed) {
@@ -221,6 +222,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
       requester.addProcessor(this);
     }
   }
+
   bool waitToSend = false;
   @override
   void startSendingData(int currentTime, int waitingAckId) {
@@ -228,13 +230,12 @@ class ListController implements RequestUpdater, ConnectionProcessor {
       return;
     }
     request = requester._sendRequest(
-                <String, dynamic>{'method': 'list', 'path': node.remotePath}, this);
+        <String, dynamic>{'method': 'list', 'path': node.remotePath}, this);
     waitToSend = false;
   }
 
   @override
-  void ackReceived(int receiveAckId, int startTime, int currentTime) {
-  }
+  void ackReceived(int receiveAckId, int startTime, int currentTime) {}
 
   void _onListen(Function(RequesterListUpdate update) callback) {
     if (_ready && request != null) {
@@ -248,11 +249,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
           ..addAll(node.configs.keys)
           ..addAll(node.attributes.keys)
           ..addAll(node.children.keys);
-        var update = RequesterListUpdate(
-          node,
-          changes,
-          request!.streamStatus
-        );
+        var update = RequesterListUpdate(node, changes, request!.streamStatus);
         callback(update);
       });
     }

@@ -16,10 +16,7 @@ class PublishValueAction extends SimpleNode {
     }
 
     var p = Path(path!);
-    var tp = p
-      .parent
-      .child(NodeNamer.createName(inputPath))
-      .path;
+    var tp = p.parent.child(NodeNamer.createName(inputPath)).path;
     var node = _link![tp] as SimpleNode;
 
     WatchPathNode? pn;

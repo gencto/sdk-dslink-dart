@@ -18,9 +18,11 @@ void main() async {
   video = querySelector('#video') as VideoElement;
   videoObject = JsObject.fromBrowserObject(video);
 
-  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath('broker_url', 'http://localhost:8080/conn');
+  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath(
+      'broker_url', 'http://localhost:8080/conn');
 
-  link = LinkProvider(brokerUrl, 'VideoDisplay-', isRequester: true, isResponder: false);
+  link = LinkProvider(brokerUrl, 'VideoDisplay-',
+      isRequester: true, isResponder: false);
 
   await link.connect();
   requester = (await link.onRequesterReady)!;
@@ -66,10 +68,8 @@ FutureOr<void> setup(String path) async {
     for (var i = 0; i < CHUNK_COUNT; ++i) {
       var start = chunkSize * i;
       var end = start + chunkSize;
-      var update = await requester.invoke(getChunkPath, <String, dynamic>{
-        'start': start,
-        'end': start + chunkSize
-      }).first;
+      var update = await requester.invoke(getChunkPath,
+          <String, dynamic>{'start': start, 'end': start + chunkSize}).first;
 
       Map map = update.updates?[0];
       ByteData data = map['data'];

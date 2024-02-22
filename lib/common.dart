@@ -40,8 +40,7 @@ abstract class Connection {
 
   DsCodec codec = DsCodec.defaultCodec;
 
-  ListQueue<ConnectionAckGroup> pendingAcks = ListQueue<
-      ConnectionAckGroup>();
+  ListQueue<ConnectionAckGroup> pendingAcks = ListQueue<ConnectionAckGroup>();
 
   void ack(int ackId) {
     ConnectionAckGroup? findAckGroup;
@@ -129,7 +128,7 @@ abstract class ServerLink extends BaseLink {
 
   String? get session;
 
-  PublicKey get publicKey;
+  PublicKey? get publicKey;
 
   @override
   void close();
@@ -154,14 +153,13 @@ abstract class ClientLink extends BaseLink {
 }
 
 abstract class ServerLinkManager {
-
-  String? getLinkPath(String dsId, String token);
+  String? getLinkPath(String dsId, String? token);
 
   /// return true if link is added
   bool addLink(ServerLink link);
 
   void onLinkDisconnected(ServerLink link);
-  
+
   void removeLink(ServerLink link, String id);
 
   ServerLink? getLinkAndConnectNode(String dsId, {String sessionId = ''});
@@ -171,7 +169,7 @@ abstract class ServerLinkManager {
   Responder? getResponder(String dsId, NodeProvider nodeProvider,
       [String? sessionId = '', bool trusted = false]);
 
-  void updateLinkData(String dsId, Map m);
+  void updateLinkData(String dsId, Map? m);
 }
 
 /// DSA Stream Status
@@ -276,7 +274,8 @@ class DSError {
   static final DSError INVALID_PARAMETER = DSError('invalidParameter');
 
   /// Represents a disconnected error.
-  static final DSError DISCONNECTED = DSError('disconnected', phase: ErrorPhase.request);
+  static final DSError DISCONNECTED =
+      DSError('disconnected', phase: ErrorPhase.request);
 
   /// Represents a failed error.
   static final DSError FAILED = DSError('failed');

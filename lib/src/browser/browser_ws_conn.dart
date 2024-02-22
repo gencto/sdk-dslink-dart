@@ -29,11 +29,8 @@ class WebSocketConnection extends Connection {
   Function? onConnect;
 
   /// clientLink is not needed when websocket works in server link
-  WebSocketConnection(this.socket, this.clientLink, {
-    this.onConnect,
-    bool enableAck = false,
-    DsCodec? useCodec
-  }) {
+  WebSocketConnection(this.socket, this.clientLink,
+      {this.onConnect, bool enableAck = false, DsCodec? useCodec}) {
     if (useCodec != null) {
       codec = useCodec;
     }
@@ -253,7 +250,6 @@ class WebSocketConnection extends Connection {
           nextMsgId = 1;
         }
       }
-
 
       logger.fine('send: $m');
       var encoded = codec.encodeFrame(m!);

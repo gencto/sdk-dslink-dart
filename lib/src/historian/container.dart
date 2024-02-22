@@ -19,11 +19,7 @@ class DatabaseNode extends SimpleNode {
           }
           break;
         } catch (e, stack) {
-          logger.severe(
-            'Failed to connect to database for $path',
-            e,
-            stack
-          );
+          logger.severe('Failed to connect to database for $path', e, stack);
           await Future<void>.delayed(const Duration(seconds: 5));
         }
       }
@@ -40,10 +36,7 @@ class DatabaseNode extends SimpleNode {
         r'$is': 'createWatchGroup',
         r'$invokable': 'write',
         r'$params': [
-          {
-            'name': 'Name',
-            'type': 'string'
-          }
+          {'name': 'Name', 'type': 'string'}
         ]
       });
 
@@ -85,20 +78,14 @@ class WatchPathNode extends SimpleNode {
 
     var groupName = group?._watchName;
 
-    _link?.addNode('$path/lwv', <String, dynamic>{
-      r'$name': 'Last Written Value',
-      r'$type': 'dynamic'
-    });
+    _link?.addNode('$path/lwv',
+        <String, dynamic>{r'$name': 'Last Written Value', r'$type': 'dynamic'});
 
-    _link?.addNode('$path/startDate', <String, dynamic>{
-      r'$name': 'Start Date',
-      r'$type': 'string'
-    });
+    _link?.addNode('$path/startDate',
+        <String, dynamic>{r'$name': 'Start Date', r'$type': 'string'});
 
-    _link?.addNode('$path/endDate', <String, dynamic>{
-      r'$name': 'End Date',
-      r'$type': 'string'
-    });
+    _link?.addNode('$path/endDate',
+        <String, dynamic>{r'$name': 'End Date', r'$type': 'string'});
 
     if (children['enabled'] == null) {
       _link?.addNode('$path/enabled', <String, dynamic>{
@@ -115,10 +102,7 @@ class WatchPathNode extends SimpleNode {
       await c.future;
     }
 
-    var summary = await group!.db!.database!.getSummary(
-      groupName,
-      valuePath!
-    );
+    var summary = await group!.db!.database!.getSummary(groupName, valuePath!);
 
     if (summary.first != null) {
       _link?.updateValue('$path/startDate', summary.first?.timestamp);
@@ -126,10 +110,8 @@ class WatchPathNode extends SimpleNode {
     }
 
     if (summary.last != null) {
-      var update = ValueUpdate(
-        summary.last!.value,
-        ts: summary.last!.timestamp
-      );
+      var update =
+          ValueUpdate(summary.last!.value, ts: summary.last!.timestamp);
       _link!.updateValue('$path/lwv', update);
       updateValue(update);
     }
@@ -147,11 +129,7 @@ class WatchPathNode extends SimpleNode {
       r'$name': 'Purge',
       r'$invokable': 'write',
       r'$params': [
-        {
-          'name': 'timeRange',
-          'type': 'string',
-          'editor': 'daterange'
-        }
+        {'name': 'timeRange', 'type': 'string', 'editor': 'daterange'}
       ],
       r'$is': 'purgePath'
     });
@@ -217,8 +195,7 @@ class WatchPathNode extends SimpleNode {
 
         _link?.updateValue('$path/lwv', entries.last.value);
         _link?.updateValue('$path/endDate', entries.last.timestamp);
-      } catch (e) {
-      }
+      } catch (e) {}
     }
     buffer.clear();
     await group?.storeValues(entries);
@@ -268,7 +245,8 @@ class WatchGroupNode extends SimpleNode {
   DatabaseNode? db;
   String? _watchName;
 
-  WatchGroupNode(String path) : super(path, _link?.provider as SimpleNodeProvider?);
+  WatchGroupNode(String path)
+      : super(path, _link?.provider as SimpleNodeProvider?);
 
   @override
   void onCreated() {
@@ -283,10 +261,7 @@ class WatchGroupNode extends SimpleNode {
       r'$invokable': 'write',
       r'$is': 'addWatchPath',
       r'$params': [
-        {
-          'name': 'Path',
-          'type': 'string'
-        }
+        {'name': 'Path', 'type': 'string'}
       ]
     });
 
@@ -295,18 +270,9 @@ class WatchGroupNode extends SimpleNode {
       r'$invokable': 'write',
       r'$is': 'publishValue',
       r'$params': [
-        {
-          'name': 'Path',
-          'type': 'string'
-        },
-        {
-          'name': 'Value',
-          'type': 'dynamic'
-        },
-        {
-          'name': 'Timestamp',
-          'type': 'string'
-        }
+        {'name': 'Path', 'type': 'string'},
+        {'name': 'Value', 'type': 'dynamic'},
+        {'name': 'Timestamp', 'type': 'string'}
       ]
     });
 
@@ -320,11 +286,7 @@ class WatchGroupNode extends SimpleNode {
       r'$name': 'Purge',
       r'$invokable': 'write',
       r'$params': [
-        {
-          'name': 'timeRange',
-          'type': 'string',
-          'editor': 'daterange'
-        }
+        {'name': 'timeRange', 'type': 'string', 'editor': 'daterange'}
       ],
       r'$is': 'purgeGroup'
     });

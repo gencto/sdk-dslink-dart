@@ -7,7 +7,7 @@ class ByteDataUtil {
     }
     return Uint8List.fromList(input);
   }
-  
+
   static ByteData mergeBytes(List<ByteData> bytesList) {
     if (bytesList.length == 1) {
       return bytesList[0];

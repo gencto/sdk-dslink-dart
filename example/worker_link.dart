@@ -5,13 +5,15 @@ late LinkProvider link;
 
 void main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
-  link = LinkProvider(args, 'CounterWorker-', defaultNodes: <String, dynamic>{
-    'Counter': {
-      r'$type': 'number', // The type of the node is a number.
-      r'$writable': 'write', // This node's value can be set by a requester.
-      '?value': 0 // The default counter value.
-    }
-  }, encodePrettyJson: true);
+  link = LinkProvider(args, 'CounterWorker-',
+      defaultNodes: <String, dynamic>{
+        'Counter': {
+          r'$type': 'number', // The type of the node is a number.
+          r'$writable': 'write', // This node's value can be set by a requester.
+          '?value': 0 // The default counter value.
+        }
+      },
+      encodePrettyJson: true);
 
   // Connect to the broker.
   await link.connect();

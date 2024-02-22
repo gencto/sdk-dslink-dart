@@ -9,7 +9,6 @@ import 'package:dslink/responder.dart';
 
 import 'package:json_diff/json_diff.dart';
 
-
 import 'package:dslink/utils.dart' show Producer;
 
 part 'src/nodes/json.dart';
@@ -20,14 +19,14 @@ class DeleteActionNode extends SimpleNode {
   final Function? onDelete;
 
   /// When this action is invoked, [provider.removeNode] will be called with [targetPath].
-  DeleteActionNode(String path, MutableNodeProvider? provider, this.targetPath, {
-    this.onDelete
-  }) : super(path, provider as SimpleNodeProvider?);
+  DeleteActionNode(String path, MutableNodeProvider? provider, this.targetPath,
+      {this.onDelete})
+      : super(path, provider as SimpleNodeProvider?);
 
   /// When this action is invoked, [provider.removeNode] will be called with the parent of this action.
-  DeleteActionNode.forParent(String path, MutableNodeProvider provider, {
-    Function? onDelete
-  }) : this(path, provider, Path(path).parentPath, onDelete: onDelete);
+  DeleteActionNode.forParent(String path, MutableNodeProvider provider,
+      {Function? onDelete})
+      : this(path, provider, Path(path).parentPath, onDelete: onDelete);
 
   /// Handles an action invocation and deletes the target path.
   @override
@@ -49,7 +48,8 @@ class SimpleActionNode extends SimpleNode {
 
   /// When this action is invoked, the given [function] will be called with the parameters
   /// and then the result of the function will be returned.
-  SimpleActionNode(String path, this.function, [SimpleNodeProvider? provider]) : super(path, provider);
+  SimpleActionNode(String path, this.function, [SimpleNodeProvider? provider])
+      : super(path, provider);
 
   @override
   Object? onInvoke(Map params) => function(params);
@@ -83,7 +83,9 @@ class UpgradableNode extends SimpleNode {
   final int latestVersion;
   final NodeUpgradeFunction upgrader;
 
-  UpgradableNode(String path, this.latestVersion, this.upgrader, [SimpleNodeProvider? provider]) : super(path, provider);
+  UpgradableNode(String path, this.latestVersion, this.upgrader,
+      [SimpleNodeProvider? provider])
+      : super(path, provider);
 
   @override
   void onCreated() {
@@ -104,11 +106,11 @@ class LazyValueNode extends SimpleNode {
   SimpleCallback? onValueSubscribe;
   SimpleCallback? onValueUnsubscribe;
 
-  LazyValueNode(String path, {
-    SimpleNodeProvider? provider,
-    this.onValueSubscribe,
-    this.onValueUnsubscribe
-  }) : super(path, provider);
+  LazyValueNode(String path,
+      {SimpleNodeProvider? provider,
+      this.onValueSubscribe,
+      this.onValueUnsubscribe})
+      : super(path, provider);
 
   @override
   void onSubscribe() {
@@ -149,11 +151,12 @@ typedef ResolveNodeHandler = Future Function(CallbackNode node);
 class ResolvingNodeProvider extends SimpleNodeProvider {
   ResolveNodeHandler? handler;
 
-  ResolvingNodeProvider([Map? defaultNodes, Map<String, NodeFactory>? profiles]) :
-        super(defaultNodes, profiles);
+  ResolvingNodeProvider([Map? defaultNodes, Map<String, NodeFactory>? profiles])
+      : super(defaultNodes, profiles);
 
   @override
-  LocalNode? getNode(String? path, {Completer<CallbackNode?>? onLoaded, bool forceHandle = false}) {
+  LocalNode? getNode(String? path,
+      {Completer<CallbackNode?>? onLoaded, bool forceHandle = false}) {
     var node = super.getNode(path);
     if (path != '/' && node != null && !forceHandle) {
       if (onLoaded != null && !onLoaded.isCompleted) {
@@ -250,7 +253,9 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
   }
 
   @override
-  LocalNode getOrCreateNode(String path, [bool addToTree = true, bool init = true]) => getNode(path)!;
+  LocalNode getOrCreateNode(String path,
+          [bool addToTree = true, bool init = true]) =>
+      getNode(path)!;
 }
 
 /// A Simple Node which delegates all basic methods to given functions.
@@ -272,7 +277,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
 
   CallbackNode(String? path,
       {SimpleNodeProvider? provider,
-        this.onActionInvoke,
+      this.onActionInvoke,
       ChildChangedCallback? onChildAdded,
       ChildChangedCallback? onChildRemoved,
       SimpleCallback? onCreated,
@@ -424,19 +429,18 @@ class NodeNamer {
   static String createName(String input) {
     var out = StringBuffer();
     int cu(String n) => const Utf8Encoder().convert(n)[0];
-    mainLoop: for (var i = 0; i < input.length; i++) {
+    mainLoop:
+    for (var i = 0; i < input.length; i++) {
       var char = input[i];
 
       if (char == '%' && (i + 1 < input.length)) {
         var hexA = input[i + 1].toUpperCase();
         if ((cu(hexA) >= cu('0') && cu(hexA) <= cu('9')) ||
-            (cu(hexA) >= cu('A') && cu(hexA) <= cu('F'))
-          ) {
+            (cu(hexA) >= cu('A') && cu(hexA) <= cu('F'))) {
           if (i + 2 < input.length) {
             var hexB = input[i + 2].toUpperCase();
             if ((cu(hexB) > cu('0') && cu(hexB) <= cu('9')) ||
-                (cu(hexB) >= cu('A') && cu(hexB) <= cu('F'))
-            ) {
+                (cu(hexB) >= cu('A') && cu(hexB) <= cu('F'))) {
               i += 2;
               out.write('%');
               out.write(hexA);
@@ -473,15 +477,13 @@ class NodeNamer {
       if (char == '%') {
         var hexA = input[i + 1];
         if ((cu(hexA) >= cu('0') && cu(hexA) <= cu('9')) ||
-            (cu(hexA) >= cu('A') && cu(hexA) <= cu('F'))
-        ) {
+            (cu(hexA) >= cu('A') && cu(hexA) <= cu('F'))) {
           var s = hexA;
 
           if (i + 2 < input.length) {
             var hexB = input[i + 2];
             if ((cu(hexB) > cu('0') && cu(hexB) <= cu('9')) ||
-                (cu(hexB) >= cu('A') && cu(hexB) <= cu('F'))
-            ) {
+                (cu(hexB) >= cu('A') && cu(hexB) <= cu('F'))) {
               ++i;
               s += hexB;
             }

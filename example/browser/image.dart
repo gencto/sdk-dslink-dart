@@ -10,7 +10,8 @@ late ImageElement image;
 void main() async {
   image = querySelector('#image') as ImageElement;
 
-  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath('broker_url', 'http://localhost:8080/conn');
+  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath(
+      'broker_url', 'http://localhost:8080/conn');
 
   link = LinkProvider(brokerUrl, 'ImageDisplay-', isRequester: true);
 
@@ -20,7 +21,9 @@ void main() async {
     setup(window.location.hash.substring(1));
   });
 
-  setup(window.location.hash.isNotEmpty ? window.location.hash.substring(1) : '/data/image');
+  setup(window.location.hash.isNotEmpty
+      ? window.location.hash.substring(1)
+      : '/data/image');
 }
 
 void setup(String path) {

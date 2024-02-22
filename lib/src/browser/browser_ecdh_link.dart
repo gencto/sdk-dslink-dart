@@ -2,7 +2,8 @@ part of dslink.browser_client;
 
 /// a client link for websocket
 class BrowserECDHLink extends ClientLink {
-  final Completer<Requester> _onRequesterReadyCompleter = Completer<Requester>();
+  final Completer<Requester> _onRequesterReadyCompleter =
+      Completer<Requester>();
   Completer _onConnectedCompleter = Completer<void>();
 
   Future get onConnected => _onConnectedCompleter.future;
@@ -50,7 +51,8 @@ class BrowserECDHLink extends ClientLink {
       {NodeProvider? nodeProvider,
       bool isRequester = true,
       bool isResponder = true,
-      this.token, List<String>? formats})
+      this.token,
+      List<String>? formats})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
         requester = isRequester ? Requester() : null,
@@ -63,8 +65,7 @@ class BrowserECDHLink extends ClientLink {
     if (token != null && token!.length > 16) {
       // pre-generate tokenHash
       var tokenId = token!.substring(0, 16);
-      var hashStr = CryptoProvider.sha256(
-          toUTF8('$dsId$token'));
+      var hashStr = CryptoProvider.sha256(toUTF8('$dsId$token'));
       tokenHash = '&token=$tokenId$hashStr';
     }
     if (formats != null) {
@@ -135,11 +136,10 @@ class BrowserECDHLink extends ClientLink {
 
   void initWebsocket([bool reconnect = true]) {
     if (_closed) return;
-    var wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(
-        salt)}&format=$format';
+    var wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salt)}&format=$format';
     var socket = WebSocket(wsUrl);
     _wsConnection =
-    WebSocketConnection(socket, this, enableAck: enableAck, onConnect: () {
+        WebSocketConnection(socket, this, enableAck: enableAck, onConnect: () {
       if (!_onConnectedCompleter.isCompleted) {
         _onConnectedCompleter.complete();
       }

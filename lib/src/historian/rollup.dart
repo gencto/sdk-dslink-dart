@@ -122,8 +122,7 @@ class MaxRollup extends Rollup {
       return;
     }
 
-    value = max(
-        value == null ? double_NEGATIVE_INFINITY : value as num, input);
+    value = max(value == null ? double_NEGATIVE_INFINITY : value as num, input);
   }
 
   @override

@@ -64,8 +64,7 @@ class SimpleStorageManager implements IStorageManager {
           FileSystemEntityType.directory) {
         var rpath = UriComponentDecoder.decode(entity.path
             .substring(entity.path.lastIndexOf(Platform.pathSeparator) + 1));
-        var responder =
-            SimpleResponderStorage(entity.path, rpath);
+        var responder = SimpleResponderStorage(entity.path, rpath);
         rsponders[rpath] = responder;
         loading.add(responder.load());
       }
@@ -104,7 +103,7 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 
   SimpleResponderStorage(String path, [String? responderPath]) {
     responderPath ??= UriComponentDecoder.decode(
-          path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
+        path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
 
     dir = Directory(path);
     if (!dir.existsSync()) {

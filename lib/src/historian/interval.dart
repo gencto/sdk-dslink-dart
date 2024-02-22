@@ -15,18 +15,14 @@ List<String>? __intervalAllTypes;
 
 List<String>? get _intervalAllTypes {
   if (__intervalAllTypes == null) {
-    __intervalAllTypes = _intervalTypes
-      .keys
-      .expand((key) => key)
-      .toList();
+    __intervalAllTypes = _intervalTypes.keys.expand((key) => key).toList();
     __intervalAllTypes?.sort();
   }
   return __intervalAllTypes;
 }
 
-final RegExp _intervalPattern = RegExp(
-  "^(\\d*?.?\\d*?)(${_intervalAllTypes?.join('|')})\$"
-);
+final RegExp _intervalPattern =
+    RegExp("^(\\d*?.?\\d*?)(${_intervalAllTypes?.join('|')})\$");
 
 int parseInterval(String? input) {
   if (input == null) {

@@ -9,11 +9,12 @@ import '../tool/experiment/sample_responder.dart';
 void main() {
   querySelector('#output')?.text = 'Your Dart app is running.';
 
-  var key = PrivateKey.loadFromString('M6S41GAL0gH0I97Hhy7A2-icf8dHnxXPmYIRwem03HE');
+  var key =
+      PrivateKey.loadFromString('M6S41GAL0gH0I97Hhy7A2-icf8dHnxXPmYIRwem03HE');
 
-  var link = BrowserECDHLink('https://dev.sviteco.ua/conn', 'test-browser-responder-', key,
+  var link = BrowserECDHLink(
+      'https://dev.sviteco.ua/conn', 'test-browser-responder-', key,
       isResponder: true, nodeProvider: TestNodeProvider());
 
   link.connect();
-
 }

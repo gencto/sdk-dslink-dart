@@ -115,16 +115,15 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
   @override
   Map? decodeStringFrame(String str) {
     _reviver ??= (key, value) {
-        if (value is String && value.startsWith('\u001Bbytes:')) {
-          try {
-            return ByteDataUtil.fromUint8List(
-                Base64.decode(value.substring(7))!);
-          } catch (err) {
-            return null;
-          }
+      if (value is String && value.startsWith('\u001Bbytes:')) {
+        try {
+          return ByteDataUtil.fromUint8List(Base64.decode(value.substring(7))!);
+        } catch (err) {
+          return null;
         }
-        return value;
-      };
+      }
+      return value;
+    };
 
     _unsafeDecoder ??= JsonDecoder(_reviver);
 
@@ -138,11 +137,11 @@ class DsJsonCodecImpl extends DsCodec implements DsJson {
   @override
   Object? encodeFrame(Object val) {
     _encoder ??= (value) {
-        if (value is ByteData) {
-          return '\u001Bbytes:${Base64.encode(ByteDataUtil.toUint8List(value))}';
-        }
-        return null;
-      };
+      if (value is ByteData) {
+        return '\u001Bbytes:${Base64.encode(ByteDataUtil.toUint8List(value))}';
+      }
+      return null;
+    };
 
     JsonEncoder? c;
 

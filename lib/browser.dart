@@ -76,9 +76,7 @@ class LinkProvider {
       } else {
         Map decoded = DsJson.decode(await dataStore!.get('dsa_nodes'));
 
-        if (decoded is Map) {
-          (provider as SerializableNodeProvider).init(decoded);
-        }
+        (provider as SerializableNodeProvider).init(decoded);
       }
     } else {
       (provider as SerializableNodeProvider).init(defaultNodes!);
@@ -96,8 +94,7 @@ class LinkProvider {
         nodeProvider: provider,
         isRequester: isRequester,
         isResponder: isResponder,
-        token:token);
-
+        token: token);
   }
 
   Future resetSavedNodes() async {
@@ -111,8 +108,8 @@ class LinkProvider {
     controller = StreamController<ValueUpdate>.broadcast(onListen: () {
       subs++;
       listener ??= this[path]!.subscribe((ValueUpdate update) {
-          controller?.add(update);
-        }, cacheLevel);
+        controller?.add(update);
+      }, cacheLevel);
     }, onCancel: () {
       subs--;
       if (subs == 0) {
@@ -129,10 +126,7 @@ class LinkProvider {
     }
 
     await dataStore?.store('dsa_nodes',
-      DsJson.encode(
-        (provider as SerializableNodeProvider).save()
-      )
-    );
+        DsJson.encode((provider as SerializableNodeProvider).save()));
   }
 
   /// Remote Path of Responder

@@ -1,16 +1,13 @@
 part of dslink.historian;
 
 class GetHistoryNode extends SimpleNode {
-  GetHistoryNode(String path) : super(path, _link!.provider as SimpleNodeProvider?) {
+  GetHistoryNode(String path)
+      : super(path, _link!.provider as SimpleNodeProvider?) {
     configs[r'$is'] = 'getHistory';
     configs[r'$name'] = 'Get History';
     configs[r'$invokable'] = 'read';
     configs[r'$params'] = [
-      {
-        'name': 'Timerange',
-        'type': 'string',
-        'editor': 'daterange'
-      },
+      {'name': 'Timerange', 'type': 'string', 'editor': 'daterange'},
       {
         'name': 'Interval',
         'type': 'enum',
@@ -43,38 +40,16 @@ class GetHistoryNode extends SimpleNode {
       },
       {
         'name': 'Rollup',
-        'type': buildEnumType([
-          'none',
-          'avg',
-          'min',
-          'max',
-          'sum',
-          'first',
-          'last',
-          'count'
-        ])
+        'type': buildEnumType(
+            ['none', 'avg', 'min', 'max', 'sum', 'first', 'last', 'count'])
       },
-      {
-        'name': 'Real Time',
-        'type': 'bool',
-        'default': false
-      },
-      {
-        'name': 'Batch Size',
-        'type': 'number',
-        'default': 0
-      }
+      {'name': 'Real Time', 'type': 'bool', 'default': false},
+      {'name': 'Batch Size', 'type': 'number', 'default': 0}
     ];
 
     configs[r'$columns'] = [
-      {
-        'name': 'timestamp',
-        'type': 'time'
-      },
-      {
-        'name': 'value',
-        'type': 'dynamic'
-      }
+      {'name': 'timestamp', 'type': 'time'},
+      {'name': 'value', 'type': 'dynamic'}
     ];
 
     configs[r'$result'] = 'stream';
@@ -86,8 +61,7 @@ class GetHistoryNode extends SimpleNode {
     String rollupName = params['Rollup'];
     var rollupFactory = _rollups[rollupName];
     var rollup = rollupFactory == null ? null : rollupFactory();
-    var interval = Duration(
-      milliseconds: parseInterval(params['Interval']));
+    var interval = Duration(milliseconds: parseInterval(params['Interval']));
     num? batchSize = params['Batch Size'];
 
     batchSize ??= 0;
@@ -100,11 +74,7 @@ class GetHistoryNode extends SimpleNode {
     }
 
     try {
-      var pairs = calculateHistory(
-        tr!,
-        interval,
-        rollup!
-      );
+      var pairs = calculateHistory(tr!, interval, rollup!);
 
       if (params['Real Time'] == true) {
         await for (ValuePair pair in pairs) {
@@ -142,9 +112,8 @@ class GetHistoryNode extends SimpleNode {
     return pn.fetchHistory(range) as Stream<ValuePair>;
   }
 
-  Stream<ValuePair> calculateHistory(TimeRange range,
-    Duration interval,
-    Rollup rollup) async* {
+  Stream<ValuePair> calculateHistory(
+      TimeRange range, Duration interval, Rollup rollup) async* {
     if (interval.inMilliseconds <= 0) {
       yield* fetchHistoryData(range);
       return;
@@ -164,11 +133,9 @@ class GetHistoryNode extends SimpleNode {
       if (totalTime >= interval.inMilliseconds) {
         totalTime = 0;
         result = ValuePair(
-          DateTime.fromMillisecondsSinceEpoch(
-            lastTimestamp
-          ).toIso8601String(),
-          rollup.value
-        );
+            DateTime.fromMillisecondsSinceEpoch(lastTimestamp)
+                .toIso8601String(),
+            rollup.value);
         yield result;
         result = null;
         rollup.reset();

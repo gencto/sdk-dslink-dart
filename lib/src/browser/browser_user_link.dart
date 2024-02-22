@@ -2,7 +2,8 @@ part of dslink.browser_client;
 
 /// a client link for both http and ws
 class BrowserUserLink extends ClientLink {
-  final Completer<Requester> _onRequesterReadyCompleter = Completer<Requester>();
+  final Completer<Requester> _onRequesterReadyCompleter =
+      Completer<Requester>();
 
   @override
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
@@ -25,7 +26,10 @@ class BrowserUserLink extends ClientLink {
 
   bool enableAck;
 
-  static const Map<String, int> saltNameMap = {'salt': 0, 'saltS': 1,};
+  static const Map<String, int> saltNameMap = {
+    'salt': 0,
+    'saltS': 1,
+  };
 
   @override
   void updateSalt(String salt) {
@@ -35,12 +39,13 @@ class BrowserUserLink extends ClientLink {
   late String wsUpdateUri;
   String format = 'json';
 
-  BrowserUserLink({NodeProvider? nodeProvider,
-  bool isRequester = true,
-  bool isResponder = true,
-  required this.wsUpdateUri,
-  this.enableAck = false,
-  String? format})
+  BrowserUserLink(
+      {NodeProvider? nodeProvider,
+      bool isRequester = true,
+      bool isResponder = true,
+      required this.wsUpdateUri,
+      this.enableAck = false,
+      String? format})
       : requester = isRequester ? Requester() : null,
         responder = (isResponder && nodeProvider != null)
             ? Responder(nodeProvider)
@@ -68,8 +73,8 @@ class BrowserUserLink extends ClientLink {
 
   void initWebsocket([bool reconnect = true]) {
     var socket = WebSocket('$wsUpdateUri?session=$session&format=$format');
-    _wsConnection = WebSocketConnection(
-        socket, this, enableAck: enableAck, useCodec: DsCodec.getCodec(format));
+    _wsConnection = WebSocketConnection(socket, this,
+        enableAck: enableAck, useCodec: DsCodec.getCodec(format));
 
     if (responder != null) {
       responder!.connection = _wsConnection!.responderChannel;
@@ -101,11 +106,13 @@ class BrowserUserLink extends ClientLink {
       }
     });
   }
+
   void reconnect() {
     if (_wsConnection != null) {
       _wsConnection!.socket.close();
     }
   }
+
   @override
   void close() {
     if (_wsConnection != null) {

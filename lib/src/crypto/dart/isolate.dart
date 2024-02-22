@@ -16,8 +16,7 @@ List<dynamic> generate(List<int> publicKeyRemote, String oldPriKeyStr) {
       oldPriKeyStr == '') {
     var gen = ECKeyGenerator();
     var rsapars = ECKeyGeneratorParameters(_secp256r1);
-    var params = ParametersWithRandom(rsapars,
-        DSRandomImpl());
+    var params = ParametersWithRandom(rsapars, DSRandomImpl());
     gen.init(params);
     var pair = gen.generateKeyPair();
     privateKey = pair.privateKey as ECPrivateKey;
@@ -71,8 +70,7 @@ class ECDHIsolate {
         var Q1 = _secp256r1.curve.decodePoint(message[1] as List<int>);
         var Q2 = _secp256r1.curve.decodePoint(message[2] as List<int>);
         var ecdh = ECDHImpl(
-            ECPrivateKey(d1, _secp256r1), ECPublicKey(Q1, _secp256r1),
-            Q2!);
+            ECPrivateKey(d1, _secp256r1), ECPublicKey(Q1, _secp256r1), Q2!);
         _waitingReq?._completer.complete(ecdh);
         _waitingReq = null;
       }
@@ -96,7 +94,7 @@ class ECDHIsolate {
 
   /// when oldprivate is '', don't use cache
   static Future<ECDH> _sendRequest(
-      PublicKey publicKeyRemote, String? oldprivate) {
+      PublicKey? publicKeyRemote, String? oldprivate) {
     var req = ECDHIsolateRequest(publicKeyRemote as PublicKeyImpl, oldprivate);
     _requests.add(req);
     _checkRequest();

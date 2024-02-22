@@ -3,7 +3,8 @@ part of dslink.requester;
 typedef RequestConsumer<T> = T Function(Request request);
 
 abstract class RequestUpdater {
-  void onUpdate(String status, List? updates, List? columns, Map? meta, DSError? error);
+  void onUpdate(
+      String status, List? updates, List? columns, Map? meta, DSError? error);
   void onDisconnect();
   void onReconnect();
 }
@@ -22,8 +23,7 @@ class Requester extends ConnectionHandler {
 
   late SubscribeRequest _subscription;
 
-  Requester([RemoteNodeCache? cache])
-      : nodeCache = cache ?? RemoteNodeCache() {
+  Requester([RemoteNodeCache? cache]) : nodeCache = cache ?? RemoteNodeCache() {
     _subscription = SubscribeRequest(this, 0);
     _requests[0] = _subscription;
   }
@@ -52,7 +52,7 @@ class Requester extends ConnectionHandler {
   }
 
   final StreamController<DSError> _errorController =
-    StreamController<DSError>.broadcast();
+      StreamController<DSError>.broadcast();
 
   Stream<DSError> get onError => _errorController.stream;
 
@@ -75,7 +75,7 @@ class Requester extends ConnectionHandler {
   }
 
   Request? sendRequest(Map m, RequestUpdater updater) =>
-    _sendRequest(m, updater);
+      _sendRequest(m, updater);
 
   Request? _sendRequest(Map m, RequestUpdater? updater) {
     m['rid'] = getNextRid();
@@ -92,7 +92,8 @@ class Requester extends ConnectionHandler {
     return nodeCache.isNodeCached(path);
   }
 
-  ReqSubscribeListener subscribe(String path, Function(ValueUpdate update) callback,
+  ReqSubscribeListener subscribe(
+      String path, Function(ValueUpdate update) callback,
       [int qos = 0]) {
     var node = nodeCache.getRemoteNode(path);
     node._subscribe(this, callback, qos);
@@ -106,8 +107,8 @@ class Requester extends ConnectionHandler {
     controller = StreamController<ValueUpdate>.broadcast(onListen: () {
       subs++;
       listener ??= subscribe(path, (ValueUpdate update) {
-          controller.add(update);
-        }, qos);
+        controller.add(update);
+      }, qos);
     }, onCancel: () {
       subs--;
       if (subs == 0) {
@@ -176,8 +177,10 @@ class Requester extends ConnectionHandler {
     return node._list(this);
   }
 
-  Stream<RequesterInvokeUpdate> invoke(String path, [Map params = const {},
-      int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
+  Stream<RequesterInvokeUpdate> invoke(String path,
+      [Map params = const {},
+      int maxPermission = Permission.CONFIG,
+      RequestConsumer? fetchRawReq]) {
     var node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this, maxPermission, fetchRawReq);
   }

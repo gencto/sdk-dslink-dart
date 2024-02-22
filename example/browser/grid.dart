@@ -7,10 +7,10 @@ late Requester r;
 
 void main() async {
   var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath(
-    'broker_url', 'http://localhost:8080/conn');
+      'broker_url', 'http://localhost:8080/conn');
 
-  link = LinkProvider(
-    brokerUrl, 'HtmlGrid-', isRequester: true, isResponder: false);
+  link = LinkProvider(brokerUrl, 'HtmlGrid-',
+      isRequester: true, isResponder: false);
   await link.connect();
 
   r = link.requester!;
@@ -22,8 +22,7 @@ void main() async {
       'Type': 'array'
     }).firstWhere((x) => x.streamStatus == StreamStatus.closed);
 
-    var generateList = (int i) =>
-    List<bool>.generate(15, (x) => false);
+    var generateList = (int i) => List<bool>.generate(15, (x) => false);
     var list = List<List<bool>>.generate(15, generateList);
     await r.set('/data/grid', list);
   }

@@ -20,7 +20,8 @@ class InvokeResponse extends Response {
   final LocalNode? node;
   final String name;
 
-  InvokeResponse(Responder responder, int rid, this.parentNode, this.node, this.name)
+  InvokeResponse(
+      Responder responder, int rid, this.parentNode, this.node, this.name)
       : super(responder, rid, 'invoke');
 
   List<_InvokeResponseUpdate> pendingData = [];
@@ -29,17 +30,19 @@ class InvokeResponse extends Response {
 
   /// update data for the responder stream
   void updateStream(List updates,
-      {List? columns, String streamStatus = StreamStatus.open,
-        Map? meta, bool autoSendColumns = true}) {
+      {List? columns,
+      String streamStatus = StreamStatus.open,
+      Map? meta,
+      bool autoSendColumns = true}) {
     if (meta != null && meta['mode'] == 'refresh') {
       pendingData.length = 0;
     }
 
     if (!_hasSentColumns) {
       if (columns == null &&
-        autoSendColumns &&
-        node != null &&
-        node?.configs[r'$columns'] is List) {
+          autoSendColumns &&
+          node != null &&
+          node?.configs[r'$columns'] is List) {
         columns = node!.configs[r'$columns'] as List?;
       }
     }
@@ -48,13 +51,13 @@ class InvokeResponse extends Response {
       _hasSentColumns = true;
     }
 
-    pendingData.add(
-      _InvokeResponseUpdate(streamStatus, updates, columns, meta)
-    );
+    pendingData
+        .add(_InvokeResponseUpdate(streamStatus, updates, columns, meta));
     prepareSending();
   }
 
   OnReqParams? onReqParams;
+
   /// new parameter from the requester
   void updateReqParams(Map m) {
     if (onReqParams != null) {
@@ -79,12 +82,10 @@ class InvokeResponse extends Response {
         outColumns = TableColumn.serializeColumns(update.columns!);
       }
 
-      responder.updateResponse(
-        this,
-        update.updates,
-        streamStatus: update.status,
-        columns: outColumns,
-        meta: update.meta, handleMap: (m) {
+      responder.updateResponse(this, update.updates,
+          streamStatus: update.status,
+          columns: outColumns,
+          meta: update.meta, handleMap: (m) {
         if (onSendUpdate != null) {
           onSendUpdate!(this, m);
         }
@@ -107,9 +108,8 @@ class InvokeResponse extends Response {
     if (pendingData.isNotEmpty) {
       pendingData.last.status = StreamStatus.closed;
     } else {
-      pendingData.add(
-        _InvokeResponseUpdate(StreamStatus.closed, null, null, null)
-      );
+      pendingData
+          .add(_InvokeResponseUpdate(StreamStatus.closed, null, null, null));
       prepareSending();
     }
   }

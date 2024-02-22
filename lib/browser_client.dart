@@ -87,6 +87,7 @@ class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
 }
 
 PrivateKey? _cachedPrivateKey;
+
 /// Get a Private Key using the specified storage strategy.
 /// If [storage] is not specified, it uses the [LocalDataStorage] class.
 Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
@@ -99,8 +100,8 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
   var keyPath = 'dsa_key:${window.location.pathname}';
   String? keyLockPath = 'dsa_key_lock:${window.location.pathname}';
   var randomToken = '${DateTime.now().millisecondsSinceEpoch}'
-    ' ${DSRandom.instance.nextUint16()}'
-    ' ${DSRandom.instance.nextUint16()}';
+      ' ${DSRandom.instance.nextUint16()}'
+      ' ${DSRandom.instance.nextUint16()}';
 
   var hasKeyPath = false;
 
@@ -145,7 +146,8 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
 
   if (keyLockPath != null) {
     if (storage is SynchronousDataStorage) {
-      (storage as SynchronousDataStorage).storeSync(keyPath, _cachedPrivateKey!.saveToString());
+      (storage as SynchronousDataStorage)
+          .storeSync(keyPath, _cachedPrivateKey!.saveToString());
       (storage as SynchronousDataStorage).storeSync(keyLockPath, randomToken);
     } else {
       await storage.store(keyPath, _cachedPrivateKey!.saveToString());
@@ -166,5 +168,6 @@ void _startStorageLock(String lockKey, String lockToken) {
       window.localStorage[lockKey] = lockToken;
     }
   }
+
   window.onStorage.listen(onStorage);
 }

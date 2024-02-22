@@ -64,7 +64,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   late String storePath;
 
   WebNodeStorage(String path, String prefix, WebResponderStorage storage)
-    : super(path, storage) {
+      : super(path, storage) {
     storePath = '$prefix$path';
   }
 
@@ -75,7 +75,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
     value.storedData = '${DsJson.encode(value.toMap())}\n';
     if (window.localStorage.containsKey(storePath)) {
       window.localStorage[storePath] =
-        (window.localStorage[storePath] ?? '') + value.storedData.toString();
+          (window.localStorage[storePath] ?? '') + value.storedData.toString();
     } else {
       window.localStorage[storePath] = value.storedData.toString();
     }
@@ -138,9 +138,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
         Map m = DsJson.decode(s);
         var value = ValueUpdate(m['value'], ts: m['ts'], meta: m);
         rslt.add(value);
-      } catch (err) {
-        
-      }
+      } catch (err) {}
     }
     _cachedValue = rslt;
   }

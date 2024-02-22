@@ -60,9 +60,7 @@ class ListResponse extends Response {
     var updateChildren = <dynamic>[];
 
     if (node.disconnected != null) {
-      responder.updateResponse(
-          this,
-          node.getDisconnectedListResponse(),
+      responder.updateResponse(this, node.getDisconnectedListResponse(),
           streamStatus: StreamStatus.open);
 
       _disconnectSent = true;
@@ -90,7 +88,7 @@ class ListResponse extends Response {
       initialResponse = false;
       if (_permission == Permission.NONE) return;
 
-      node.configs.forEach((name,dynamic value) {
+      node.configs.forEach((name, dynamic value) {
         dynamic update = <dynamic>[name, value];
         if (name == r'$is') {
           updateIs = update;
@@ -108,7 +106,8 @@ class ListResponse extends Response {
               }
             }
             if (name == r'$invokable') {
-              var invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+              var invokePermission =
+                  Permission.parse(node.getConfig(r'$invokable'));
               if (invokePermission > _permission) {
                 updateConfigs.add([r'$invokable', 'never']);
                 return;
@@ -127,7 +126,8 @@ class ListResponse extends Response {
         Map? simpleMap = value?.getSimpleMap();
         if (_permission != Permission.CONFIG) {
           var invokePermission = Permission.parse(simpleMap?[r'$invokable']);
-          if (invokePermission != Permission.NEVER && invokePermission > _permission) {
+          if (invokePermission != Permission.NEVER &&
+              invokePermission > _permission) {
             simpleMap?[r'$invokable'] = 'never';
           }
         }
@@ -146,12 +146,13 @@ class ListResponse extends Response {
               }
             }
             if (change == r'$invokable') {
-              var invokePermission = Permission.parse(node.getConfig(r'$invokable'));
+              var invokePermission =
+                  Permission.parse(node.getConfig(r'$invokable'));
               if (invokePermission > _permission) {
                 updateConfigs.add([r'$invokable', 'never']);
                 continue;
               }
-            } 
+            }
           }
           if (node.configs.containsKey(change)) {
             update = <dynamic>[change, node.configs[change]];
@@ -171,13 +172,14 @@ class ListResponse extends Response {
         } else {
           if (node.children.containsKey(change)) {
             Map simpleMap = node.children[change]!.getSimpleMap();
-             if (_permission != Permission.CONFIG) {
-               var invokePermission = Permission.parse(simpleMap[r'$invokable']);
-               if (invokePermission != Permission.NEVER && invokePermission > _permission) {
-                 simpleMap[r'$invokable'] = 'never';
-               }
-             }
-            update = [change, simpleMap ];
+            if (_permission != Permission.CONFIG) {
+              var invokePermission = Permission.parse(simpleMap[r'$invokable']);
+              if (invokePermission != Permission.NEVER &&
+                  invokePermission > _permission) {
+                simpleMap[r'$invokable'] = 'never';
+              }
+            }
+            update = [change, simpleMap];
           } else {
             update = {'name': change, 'change': 'remove'};
           }

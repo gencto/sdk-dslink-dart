@@ -24,8 +24,7 @@ class Responder extends ConnectionHandler {
       for (var node in nodes) {
         var values = node.getLoadedValues();
         var localnode = nodeProvider.getOrCreateNode(node.path, false);
-        var controller =
-            _subscription.add(node.path, localnode, -1, node.qos!);
+        var controller = _subscription.add(node.path, localnode, -1, node.qos!);
         if (values.isNotEmpty) {
           controller.resetCache(values);
         }
@@ -67,8 +66,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  Response addResponse(Response response,
-      [Path? path, Object? parameters]) {
+  Response addResponse(Response response, [Path? path, Object? parameters]) {
     if (response._sentStreamStatus != StreamStatus.closed) {
       _responses[response.rid] = response;
       if (_traceCallbacks != null) {
@@ -79,8 +77,7 @@ class Responder extends ConnectionHandler {
       }
     } else {
       if (_traceCallbacks != null) {
-        var update =
-            response.getTraceData(''); // no logged change is needed
+        var update = response.getTraceData(''); // no logged change is needed
         for (var callback in _traceCallbacks!) {
           callback(update!);
         }
@@ -213,8 +210,8 @@ class Responder extends ConnectionHandler {
       _getNode(path, (LocalNode node) {
         addResponse(ListResponse(this, rid, node), path);
       }, (dynamic e, dynamic stack) {
-        var error = DSError('nodeError',
-            msg: e.toString(), detail: stack.toString());
+        var error =
+            DSError('nodeError', msg: e.toString(), detail: stack.toString());
         closeResponse(m['rid'], error: error);
       });
     } else {
@@ -308,12 +305,10 @@ class Responder extends ConnectionHandler {
     var path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
-      var parentNode =
-          nodeProvider.getOrCreateNode(path.parentPath, false);
+      var parentNode = nodeProvider.getOrCreateNode(path.parentPath, false);
 
       void doInvoke([LocalNode? overriden]) {
-        var node =
-            overriden ?? nodeProvider.getNode(path.path);
+        var node = overriden ?? nodeProvider.getNode(path.path);
         if (node == null) {
           if (overriden == null) {
             node = parentNode.getChild(path.name) as LocalNode?;
@@ -345,7 +340,7 @@ class Responder extends ConnectionHandler {
 
         if (m['params'] is Map) {
           params = <String, dynamic>{};
-          (m['params'] as Map).forEach((key,dynamic value) {
+          (m['params'] as Map).forEach((key, dynamic value) {
             params![key.toString()] = value;
           });
         }
@@ -371,8 +366,8 @@ class Responder extends ConnectionHandler {
         (parentNode as WaitForMe).onLoaded.then((dynamic _) {
           doInvoke();
         }).catchError((dynamic e, StackTrace stack) {
-          var err = DSError('nodeError',
-              msg: e.toString(), detail: stack.toString());
+          var err =
+              DSError('nodeError', msg: e.toString(), detail: stack.toString());
           closeResponse(m['rid'], error: err);
         });
       } else {
@@ -425,8 +420,8 @@ class Responder extends ConnectionHandler {
         }
         closeResponse(m['rid']);
       }, (dynamic e, dynamic stack) {
-        var error = DSError('nodeError',
-            msg: e.toString(), detail: stack.toString());
+        var error =
+            DSError('nodeError', msg: e.toString(), detail: stack.toString());
         closeResponse(m['rid'], error: error);
       });
     } else if (path.isConfig) {

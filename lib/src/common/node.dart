@@ -109,7 +109,6 @@ class Node {
     return getChild(name);
   }
 
-
   /// Iterates over all the children of this node and passes them to the specified [callback].
   void forEachChild(void Function(String name, Node? node) callback) {
     children.forEach(callback);
@@ -122,7 +121,7 @@ class Node {
     }
   }
 
-  void forEachConfig(void Function(dynamic name,dynamic value) callback) {
+  void forEachConfig(void Function(dynamic name, dynamic value) callback) {
     configs.forEach(callback);
     if (profile != null) {
       profile?.configs.forEach((str, val) {
@@ -179,10 +178,10 @@ class Node {
       rslt[r'$result'] = configs[r'$result'];
     }
 
-    if(configs.containsKey(r'$permissions')) {
+    if (configs.containsKey(r'$permissions')) {
       rslt[r'$permissions'] = configs[r'$permissions'];
     }
-    
+
     return rslt;
   }
 }
@@ -253,10 +252,9 @@ class Path {
 
   /// Get a child of this path.
   Path child(String name) =>
-      Path(
-          (path.endsWith('/') ? path.substring(0, path.length - 1) : path) +
-              '/' +
-              (name.startsWith('/') ? name.substring(1) : name));
+      Path((path.endsWith('/') ? path.substring(0, path.length - 1) : path) +
+          '/' +
+          (name.startsWith('/') ? name.substring(1) : name));
 
   /// The name of this path.
   /// This is the last component of the path.

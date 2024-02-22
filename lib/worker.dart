@@ -4,32 +4,29 @@ library dslink.worker;
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:dslink/utils.dart' show generateBasicId, logger,
-  ExecutableFunction,
-  Taker;
+import 'package:dslink/utils.dart'
+    show generateBasicId, logger, ExecutableFunction, Taker;
 
 export 'package:dslink/utils.dart' show Taker;
 
 typedef WorkerFunction = void Function(Worker worker);
 
-WorkerSocket createWorker(
-  WorkerFunction function, {
-    Map? metadata
-  }) {
+WorkerSocket createWorker(WorkerFunction function, {Map? metadata}) {
   var receiver = ReceivePort();
   var socket = WorkerSocket.master(receiver);
   var errorReceiver = ReceivePort();
-  Isolate.spawn(function, Worker(receiver.sendPort, metadata), onError: errorReceiver.sendPort).then((x) {
+  Isolate.spawn(function, Worker(receiver.sendPort, metadata),
+          onError: errorReceiver.sendPort)
+      .then((x) {
     socket._isolate = x;
   });
-  errorReceiver.listen((dynamic data){
+  errorReceiver.listen((dynamic data) {
     logger.severe(data);
   });
   return socket;
 }
 
-WorkerSocket createFakeWorker(WorkerFunction function,
-    {Map? metadata}) {
+WorkerSocket createFakeWorker(WorkerFunction function, {Map? metadata}) {
   var receiver = ReceivePort();
   var socket = WorkerSocket.master(receiver);
   Timer.run(() {
@@ -77,15 +74,11 @@ WorkerSocket createWorkerScript(dynamic script,
   return socket;
 }
 
-WorkerPool createWorkerScriptPool(int count, Uri uri,
-    {Map? metadata}) {
+WorkerPool createWorkerScriptPool(int count, Uri uri, {Map? metadata}) {
   var workers = <WorkerSocket>[];
   for (var i = 1; i <= count; i++) {
     workers.add(createWorkerScript(uri,
-      metadata: {
-        'workerId': i
-      }..addAll(metadata ?? {})
-    ));
+        metadata: {'workerId': i}..addAll(metadata ?? {})));
   }
   return WorkerPool(workers);
 }
@@ -94,10 +87,8 @@ WorkerPool createWorkerPool(int count, WorkerFunction function,
     {Map? metadata}) {
   var workers = <WorkerSocket>[];
   for (var i = 1; i <= count; i++) {
-    workers.add(
-      createWorker(function, metadata: {
-        'workerId': i
-      }..addAll(metadata ?? {})));
+    workers.add(createWorker(function,
+        metadata: {'workerId': i}..addAll(metadata ?? {})));
   }
   return WorkerPool(workers);
 }
@@ -127,10 +118,7 @@ class WorkerPool {
   void reduceWorkers(int count) async {
     if (sockets.length > count) {
       var toRemove = sockets.length - count;
-      var socks = sockets
-        .skip(count)
-        .take(toRemove)
-        .toList();
+      var socks = sockets.skip(count).take(toRemove).toList();
       for (var sock in socks) {
         await sock.close();
         sock.kill();
@@ -140,12 +128,11 @@ class WorkerPool {
   }
 
   void resizeFunctionWorkers(int count, WorkerFunction function,
-    {Map? metadata}) async {
+      {Map? metadata}) async {
     if (sockets.length < count) {
       for (var i = sockets.length + 1; i <= count; i++) {
-        var sock = createWorker(function, metadata: {
-          'workerId': i
-        }..addAll(metadata ?? {}));
+        var sock = createWorker(function,
+            metadata: {'workerId': i}..addAll(metadata ?? {}));
         sock._pool = this;
         sock.onReceivedMessageHandler = (dynamic msg) {
           if (onMessageReceivedHandler != null) {
@@ -164,7 +151,7 @@ class WorkerPool {
     forEach((socket) => socket.send(data));
   }
 
-  void listen(void Function(int worker,dynamic event) handler) {
+  void listen(void Function(int worker, dynamic event) handler) {
     var i = 0;
     for (var worker in sockets) {
       var id = i;
@@ -187,12 +174,13 @@ class WorkerPool {
   }
 
   Future<List<dynamic>> callMethod(String name, [dynamic argument]) {
-    return Future
-        .wait<void>(sockets.map((it) => it.callMethod(name, argument)).toList());
+    return Future.wait<void>(
+        sockets.map((it) => it.callMethod(name, argument)).toList());
   }
 
   Future<dynamic> divide(String name, int count,
-      {dynamic Function()? next, dynamic Function(List<dynamic> inputs)? collect}) async {
+      {dynamic Function()? next,
+      dynamic Function(List<dynamic> inputs)? collect}) async {
     if (next == null) {
       var i = 0;
       next = () {
@@ -271,8 +259,7 @@ class Worker {
   final SendPort? port;
   final Map metadata;
 
-  Worker(this.port, [Map? meta])
-      : metadata = meta ?? <String, dynamic>{};
+  Worker(this.port, [Map? meta]) : metadata = meta ?? <String, dynamic>{};
 
   WorkerSocket createSocket() {
     var sock = WorkerSocket.worker(port!);
@@ -348,10 +335,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     } else if (type == 'error') {
       _controller.addError(msg['e']);
     } else if (type == 'ping') {
-      _sendPort.send(<String, dynamic>{
-        't': 'pong',
-        'i': msg['i']
-      });
+      _sendPort.send(<String, dynamic>{'t': 'pong', 'i': msg['i']});
     } else if (type == 'pong') {
       String id = msg['i'];
       if (_pings.containsKey(id)) {
@@ -366,10 +350,9 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       dynamic err = msg['e'];
       if (err != null) {
         if (_responseHandlers.containsKey(id)) {
-          _responseHandlers.remove(id)?.completeError(
-              err,
-              StackTrace.fromString(msg['s'])
-          );
+          _responseHandlers
+              .remove(id)
+              ?.completeError(err, StackTrace.fromString(msg['s']));
         } else {
           throw Exception('Invalid Request ID: $id');
         }
@@ -489,11 +472,10 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
 
     _responseHandlers[rid] = completer;
     if (argument == null) {
-      _sendPort.send(
-          {'t': 'req', 'i': rid, 'n': name});
+      _sendPort.send({'t': 'req', 'i': rid, 'n': name});
     } else {
-      _sendPort.send(<String, dynamic>
-          {'t': 'req', 'i': rid, 'n': name, 'a': argument});
+      _sendPort.send(
+          <String, dynamic>{'t': 'req', 'i': rid, 'n': name, 'a': argument});
     }
     return completer.future;
   }
@@ -501,12 +483,13 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   WorkerMethod<dynamic> getMethod(String name) =>
       ([dynamic argument]) => callMethod(name, argument);
 
-  void _handleRequest(String name, int id,dynamic argument) async {
+  void _handleRequest(String name, int id, dynamic argument) async {
     try {
-      if ((_pool != null && _pool!._methods.containsKey(name)) || _requestHandlers.containsKey(name)) {
-        var handler = (_pool != null && _pool!._methods.containsKey(name)) ?
-          _pool?._methods[name] :
-          _requestHandlers[name];
+      if ((_pool != null && _pool!._methods.containsKey(name)) ||
+          _requestHandlers.containsKey(name)) {
+        var handler = (_pool != null && _pool!._methods.containsKey(name))
+            ? _pool?._methods[name]
+            : _requestHandlers[name];
         dynamic result = handler!(argument);
         if (result is Future) {
           result = await result;
@@ -521,12 +504,8 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
         throw Exception('Invalid Method: $name');
       }
     } catch (e, stack) {
-      _sendPort.send({
-        't': 'res',
-        'i': id,
-        'e': e.toString(),
-        's': stack.toString()
-      });
+      _sendPort.send(
+          {'t': 'res', 'i': id, 'e': e.toString(), 's': stack.toString()});
     }
   }
 
@@ -583,7 +562,8 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
   Future<WorkerSession> createSession([dynamic initial]) async {
     var s = generateBasicId(length: 25);
     var session = _WorkerSession(this, s, true, initial);
-    _sendPort.send(<String, dynamic>{'t': 'session.created', 's': s, 'n': initial});
+    _sendPort
+        .send(<String, dynamic>{'t': 'session.created', 's': s, 'n': initial});
     await ((_sessionReady[s] = Completer<void>.sync()).future);
     _ourSessions[s] = session;
     return session;
@@ -673,7 +653,8 @@ class _WorkerSession extends WorkerSession {
 
   @override
   void send(dynamic data) {
-    _socket._sendPort.send(<String, dynamic>{'t': 'session.data', 's': id, 'd': data});
+    _socket._sendPort
+        .send(<String, dynamic>{'t': 'session.data', 's': id, 'd': data});
   }
 
   @override
@@ -694,7 +675,7 @@ class WorkerBuilder {
     return WorkerBuilder._({}, {});
   }
 
-  WorkerBuilder host(String name,Function function) {
+  WorkerBuilder host(String name, Function function) {
     if (function is ExecutableFunction) {
       function = (dynamic _) => function();
     }
@@ -717,9 +698,7 @@ class WorkerBuilder {
   Future<WorkerSocket> spawn([WorkerFunction? function]) async {
     function ??= defaultWorkerFunction;
 
-    var meta = {
-      'methods': slaves
-    };
+    var meta = {'methods': slaves};
 
     return await createWorker(function, metadata: meta).init(methods: hosts);
   }

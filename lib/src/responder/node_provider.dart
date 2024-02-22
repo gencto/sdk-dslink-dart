@@ -7,16 +7,16 @@ abstract class LocalNode extends Node {
   /// Changes to nodes will be added to this controller's stream.
   /// See [updateList].
   BroadcastStreamController<String> get listChangeController {
-    _listChangeController ??= BroadcastStreamController<String>(
-        () {
-          onStartListListen();
-        }, () {
-          onAllListCancel();
-        }, null, true);
+    _listChangeController ??= BroadcastStreamController<String>(() {
+      onStartListListen();
+    }, () {
+      onAllListCancel();
+    }, null, true);
     return _listChangeController!;
   }
 
-  void overrideListChangeController(BroadcastStreamController<String> controller) {
+  void overrideListChangeController(
+      BroadcastStreamController<String> controller) {
     _listChangeController = controller;
   }
 
@@ -44,7 +44,8 @@ abstract class LocalNode extends Node {
   Map<ValueUpdateCallback, int> callbacks = <ValueUpdateCallback, int>{};
 
   /// Subscribes the given [callback] to this node.
-  RespSubscribeListener subscribe(Function(ValueUpdate update) callback, [int qos = 0]) {
+  RespSubscribeListener subscribe(Function(ValueUpdate update) callback,
+      [int qos = 0]) {
     callbacks[callback] = qos;
     return RespSubscribeListener(this, callback);
   }
@@ -73,6 +74,7 @@ abstract class LocalNode extends Node {
   }
 
   bool _valueReady = false;
+
   /// Is the value ready?
   bool get valueReady => _valueReady;
 
@@ -115,7 +117,6 @@ abstract class LocalNode extends Node {
     ];
   }
 
-
   /// Checks if this node has a subscriber.
   /// Use this for things like polling when you
   /// only want to do something if the node is subscribed to.
@@ -133,10 +134,8 @@ abstract class LocalNode extends Node {
 
   /// Called by the link internals to invoke this node.
   InvokeResponse invoke(
-    Map params,
-    Responder responder,
-    InvokeResponse response,
-    Node parentNode, [int maxPermission = Permission.CONFIG]) {
+      Map params, Responder responder, InvokeResponse response, Node parentNode,
+      [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
@@ -232,8 +231,7 @@ abstract class LocalNode extends Node {
     }
   }
 
-  void load(Map map) {
-  }
+  void load(Map map) {}
 }
 
 /// Provides Nodes for a responder.

@@ -3,9 +3,9 @@ import 'dart:math';
 import 'package:dslink/dslink.dart';
 
 Future main(List<String> args) async {
-  var link = LinkProvider(['--broker', 'http://dev.sviteco.ua/conn'], 'Example-', profiles: {
-    TesterNode.isType: (String path) => TesterNode(path)
-  });
+  var link = LinkProvider(
+      ['--broker', 'http://dev.sviteco.ua/conn'], 'Example-',
+      profiles: {TesterNode.isType: (String path) => TesterNode(path)});
 
   var numGen = Random();
   var myNum = numGen.nextInt(50);
@@ -34,13 +34,15 @@ class TesterNode extends SimpleNode {
   static const String isType = 'testerNode';
   static const String pathName = 'Test_Node';
 
-  static Map def() =>  <String, dynamic>{
-    r'$is': isType,
-    r'$name': 'Test Node',
-    r'$invokable': 'write',
-    r'$params': [{'name': 'test', 'type': 'bool'}],
-    r'$columns': <dynamic>[]
-  };
+  static Map def() => <String, dynamic>{
+        r'$is': isType,
+        r'$name': 'Test Node',
+        r'$invokable': 'write',
+        r'$params': [
+          {'name': 'test', 'type': 'bool'}
+        ],
+        r'$columns': <dynamic>[]
+      };
 
   TesterNode(String path) : super(path);
 

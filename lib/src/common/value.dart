@@ -20,6 +20,7 @@ class ValueUpdate {
 
   static late String _lastTsStr;
   static int _lastTs = 0;
+
   /// Generates a timestamp in the proper DSA format.
   static String getTs() {
     var d = DateTime.now();
@@ -213,20 +214,13 @@ class ValueUpdate {
   late Object? storedData;
 
   bool _cloned = false;
-  ValueUpdate cloneForAckQueue(){
+  ValueUpdate cloneForAckQueue() {
     if (!_cloned) {
       _cloned = true;
       return this;
     }
 
-    return ValueUpdate(
-      value,
-      ts: ts,
-      status: status,
-      count: count,
-      sum: sum,
-      min: min,
-      max: max
-    );
+    return ValueUpdate(value,
+        ts: ts, status: status, count: count, sum: sum, min: min, max: max);
   }
 }

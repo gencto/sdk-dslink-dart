@@ -19,7 +19,7 @@ class RemoveController implements RequestUpdater {
   RemoveController(this.requester, this.path) {
     var reqMap = <String, dynamic>{'method': 'remove', 'path': path};
 
-    //_request = 
+    //_request =
     requester._sendRequest(reqMap, this);
   }
 

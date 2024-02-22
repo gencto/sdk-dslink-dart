@@ -1,8 +1,8 @@
 part of dslink.nodes;
 
 class DsaJsonNode extends SimpleNode {
-  DsaJsonNode(String path, [SimpleNodeProvider? provider]) :
-      super(path, provider);
+  DsaJsonNode(String path, [SimpleNodeProvider? provider])
+      : super(path, provider);
 
   dynamic _json;
 
@@ -29,20 +29,14 @@ class DsaJsonNode extends SimpleNode {
     }
 
     clearValue();
-    var differ = JsonDiffer(
-      json.encode(_json),
-      json.encode(input)
-    );
+    var differ = JsonDiffer(json.encode(_json), json.encode(input));
 
     var fullDiff = differ.diff();
 
     void apply(DiffNode diff, DsaJsonNode? node) {
       for (var key in diff.added.keys.cast<String>()) {
         var name = NodeNamer.createName(key);
-        provider.addNode(
-          '${node?.path}/$name',
-          buildNodeMap(diff.added[key])
-        );
+        provider.addNode('${node?.path}/$name', buildNodeMap(diff.added[key]));
         node?.updateList(r'$is');
       }
 
@@ -59,9 +53,8 @@ class DsaJsonNode extends SimpleNode {
 
         if (child == null) {
           child = provider.addNode(
-            '${node?.path}/$name',
-            buildNodeMap(diff.changed[key]?[1])
-          ) as DsaJsonNode?;
+                  '${node?.path}/$name', buildNodeMap(diff.changed[key]?[1]))
+              as DsaJsonNode?;
         } else {
           child.updateJsonValue(diff.changed[key]?[1]);
         }
@@ -72,7 +65,9 @@ class DsaJsonNode extends SimpleNode {
 
         var child = node?.getChild(name) as DsaJsonNode?;
 
-        child ??= provider.addNode('${node?.path}/$name', buildNodeMap(<String, dynamic>{})) as DsaJsonNode?;
+        child ??= provider.addNode(
+                '${node?.path}/$name', buildNodeMap(<String, dynamic>{}))
+            as DsaJsonNode?;
 
         apply(diff.node[key]!, child);
       }
@@ -118,16 +113,15 @@ class DsaJsonNode extends SimpleNode {
   static Map buildNodeMap(dynamic input) {
     Map create(dynamic value) {
       if (value is Map) {
-        var m = <String, dynamic>{
-          r'$is': 'json'
-        };
+        var m = <String, dynamic>{r'$is': 'json'};
 
         for (String key in value.keys) {
           m[NodeNamer.createName(key)] = create(value[key]);
         }
 
         return m;
-      } else if (value is List && value.every((dynamic e) => e is Map || e is List)) {
+      } else if (value is List &&
+          value.every((dynamic e) => e is Map || e is List)) {
         var m = <String, dynamic>{};
         for (var i = 0; i < value.length; i++) {
           m[i.toString()] = create(value[i]);

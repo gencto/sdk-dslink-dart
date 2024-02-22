@@ -106,8 +106,7 @@ Logger get logger {
 
   _logger?.onRecord.listen((record) {
     var lines = record.message.split('\n');
-    var inlineErrors =
-        _getLogSetting(record, 'dsa.logger.inline_errors', true);
+    var inlineErrors = _getLogSetting(record, 'dsa.logger.inline_errors', true);
 
     var enableSequenceNumbers =
         _getLogSetting(record, 'dsa.logger.sequence', false);

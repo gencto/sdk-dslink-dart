@@ -67,9 +67,8 @@ class ResetNode extends SimpleNode {
 
   @override
   Future<Map> onInvoke(Map params) async {
-    link!.updateValue(
-        '/message', 'Hello World'); 
-      // Update the value of the message node.
+    link!.updateValue('/message', 'Hello World');
+    // Update the value of the message node.
 
     return <String, dynamic>{}; // Return an empty row of values.
   }
@@ -82,8 +81,7 @@ class ControllerNode extends SimpleNode {
   }
   @override
   void onInvoke(Map params) {
-    
-    link?.addNode(('/'+params['name']).toString(), <String, dynamic>{
+    link?.addNode(('/' + params['name']).toString(), <String, dynamic>{
       r'$name': params['name'],
       r'$writable': 'write',
       'reset': {

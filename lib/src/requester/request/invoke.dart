@@ -7,8 +7,8 @@ class RequesterInvokeUpdate extends RequesterUpdate {
   DSError? error;
   Map? meta;
 
-  RequesterInvokeUpdate(this.updates, this.rawColumns, this.columns,
-      String streamStatus,
+  RequesterInvokeUpdate(
+      this.updates, this.rawColumns, this.columns, String streamStatus,
       {this.meta, this.error})
       : super(streamStatus);
 
@@ -134,18 +134,20 @@ class InvokeController implements RequestUpdater {
       if (_cachedColumns == null || mode == 'refresh') {
         _cachedColumns = TableColumn.parseColumns(columns);
       } else {
-        _cachedColumns?.addAll(TableColumn.parseColumns(columns) as Iterable<TableColumn>);
+        _cachedColumns?.addAll(
+            TableColumn.parseColumns(columns) as Iterable<TableColumn>);
       }
-    } else _cachedColumns ??= getNodeColumns(node);
+    } else
+      _cachedColumns ??= getNodeColumns(node);
 
     if (error != null) {
       streamStatus = StreamStatus.closed;
-      _controller.add(
-          RequesterInvokeUpdate(
-              null, null, null, streamStatus, error: error, meta: meta));
+      _controller.add(RequesterInvokeUpdate(null, null, null, streamStatus,
+          error: error, meta: meta));
     } else if (updates != null || meta != null || streamStatus != lastStatus) {
       _controller.add(RequesterInvokeUpdate(
-          updates, columns, _cachedColumns, streamStatus, meta: meta));
+          updates, columns, _cachedColumns, streamStatus,
+          meta: meta));
     }
     lastStatus = streamStatus;
     if (streamStatus == StreamStatus.closed) {

@@ -9,11 +9,7 @@ class DefaultDefNodes {
       r'$invokable': 'read',
       r'$result': 'table',
       r'$params': [
-        {
-          'name': 'Timerange',
-          'type': 'string',
-          'editor': 'daterange'
-        },
+        {'name': 'Timerange', 'type': 'string', 'editor': 'daterange'},
         {
           'name': 'Interval',
           'type': 'enum',
@@ -61,14 +57,8 @@ class DefaultDefNodes {
         }
       ],
       r'$columns': [
-        {
-          'name': 'timestamp',
-          'type': 'time'
-        },
-        {
-          'name': 'value',
-          'type': 'dynamic'
-        }
+        {'name': 'timestamp', 'type': 'time'},
+        {'name': 'value', 'type': 'dynamic'}
       ]
     }
   };

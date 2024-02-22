@@ -39,13 +39,11 @@ void main() {
         }
       },
       profiles: {
-        'generate': (String path) =>
-            SimpleActionNode(path, (Map params) {
+        'generate': (String path) => SimpleActionNode(path, (Map params) {
               int count = params['count'] ?? 50;
               generate(count);
             }),
-        'reduce': (String path) =>
-            SimpleActionNode(path, (Map params) {
+        'reduce': (String path) => SimpleActionNode(path, (Map params) {
               int target = params['target'] ?? 1;
               for (var name in link['/']!
                   .children

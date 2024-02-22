@@ -1,7 +1,8 @@
 part of dslink.historian;
 
 class CreateWatchGroupNode extends SimpleNode {
-  CreateWatchGroupNode(String path) : super(path, _link?.provider as SimpleNodeProvider?);
+  CreateWatchGroupNode(String path)
+      : super(path, _link?.provider as SimpleNodeProvider?);
 
   @override
   void onInvoke(Map params) async {
@@ -10,16 +11,15 @@ class CreateWatchGroupNode extends SimpleNode {
 
     var p = Path(path!);
 
-    _link?.addNode('${p.parentPath}/$realName', <String, dynamic>{
-      r'$is': 'watchGroup',
-      r'$name': name
-    });
+    _link?.addNode('${p.parentPath}/$realName',
+        <String, dynamic>{r'$is': 'watchGroup', r'$name': name});
     _link?.save();
   }
 }
 
 class AddDatabaseNode extends SimpleNode {
-  AddDatabaseNode(String path) : super(path, _link?.provider as SimpleNodeProvider?);
+  AddDatabaseNode(String path)
+      : super(path, _link?.provider as SimpleNodeProvider?);
 
   @override
   void onInvoke(Map params) async {
@@ -68,10 +68,7 @@ class PurgePathNode extends SimpleNode {
 
     var watchPathNode = _link![Path(path!).parentPath] as WatchPathNode;
     await watchPathNode.group?.db?.database?.purgePath(
-      watchPathNode.group!._watchName!,
-      watchPathNode.valuePath!,
-      tr
-    );
+        watchPathNode.group!._watchName!, watchPathNode.valuePath!, tr);
   }
 }
 
@@ -86,9 +83,7 @@ class PurgeGroupNode extends SimpleNode {
     }
 
     var watchGroupNode = _link![Path(path!).parentPath] as WatchGroupNode;
-    await watchGroupNode.db?.database?.purgeGroup(
-      watchGroupNode._watchName!,
-      tr
-    );
+    await watchGroupNode.db?.database
+        ?.purgeGroup(watchGroupNode._watchName!, tr);
   }
 }

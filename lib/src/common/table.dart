@@ -8,10 +8,7 @@ class TableColumn {
   TableColumn(this.name, this.type, [this.defaultValue]);
 
   Map getData() {
-    var rslt = <String, dynamic>{
-      'type': type,
-      'name': name
-    };
+    var rslt = <String, dynamic>{'type': type, 'name': name};
 
     if (defaultValue != null) {
       rslt['default'] = defaultValue;

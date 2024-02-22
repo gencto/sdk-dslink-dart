@@ -8,7 +8,7 @@ import 'package:args/args.dart';
 
 class TestNodeProvider extends NodeProvider {
   late TestNode onlyNode;
-  TestNodeProvider(){
+  TestNodeProvider() {
     onlyNode = TestNode('/', this);
   }
 
@@ -16,12 +16,14 @@ class TestNodeProvider extends NodeProvider {
   LocalNode? getNode(String? path) {
     return onlyNode;
   }
+
   @override
   IPermissionManager permissions = DummyPermissionManager();
   @override
   Responder createResponder(String? dsId, String sessionId) {
     return Responder(this, dsId);
   }
+
   @override
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
     return onlyNode;
@@ -46,7 +48,11 @@ Random random = Random();
 
 Future<void> main() async {
   var argp = ArgParser();
-  argp.addOption('pairs', abbr: 'p', help: 'Number of Link Pairs', defaultsTo: '1000', valueHelp: 'pairs');
+  argp.addOption('pairs',
+      abbr: 'p',
+      help: 'Number of Link Pairs',
+      defaultsTo: '1000',
+      valueHelp: 'pairs');
   var opts = argp.parse(['https://dev.sviteco.ua/conn']);
 
   try {
@@ -77,7 +83,8 @@ Future<void> main() async {
     }
 
     if (!ready) {
-      print('All link pairs are now ready. Subscribing requesters to values and starting value updates.');
+      print(
+          'All link pairs are now ready. Subscribing requesters to values and starting value updates.');
       ready = true;
     }
 
@@ -113,15 +120,18 @@ Future<void> createLinks() async {
 List pairs = <dynamic>[null];
 int pairIndex = 1;
 
-PrivateKey key =
-  PrivateKey.loadFromString(
-      '9zaOwGO2iXimn4RXTNndBEpoo32qFDUw72d8mteZP9I BJSgx1t4pVm8VCs4FHYzRvr14BzgCBEm8wJnMVrrlx1u1dnTsPC0MlzAB1LhH2sb6FXnagIuYfpQUJGT_yYtoJM');
+PrivateKey key = PrivateKey.loadFromString(
+    '9zaOwGO2iXimn4RXTNndBEpoo32qFDUw72d8mteZP9I BJSgx1t4pVm8VCs4FHYzRvr14BzgCBEm8wJnMVrrlx1u1dnTsPC0MlzAB1LhH2sb6FXnagIuYfpQUJGT_yYtoJM');
 
 void createLinkPair() async {
   var provider = TestNodeProvider();
-  var linkResp = HttpClientLink('https://dev.sviteco.ua/conn', 'responder-$pairIndex-', key, isRequester: false, isResponder: true, nodeProvider: provider);
+  var linkResp = HttpClientLink(
+      'https://dev.sviteco.ua/conn', 'responder-$pairIndex-', key,
+      isRequester: false, isResponder: true, nodeProvider: provider);
 
-  var linkReq = HttpClientLink('https://dev.sviteco.ua/conn', 'requester-$pairIndex-', key, isRequester: true);
+  var linkReq = HttpClientLink(
+      'https://dev.sviteco.ua/conn', 'requester-$pairIndex-', key,
+      isRequester: true);
   linkReq.connect();
 
   pairs.add([linkResp, linkReq, provider]);
@@ -134,8 +144,8 @@ void createLinkPair() async {
   await linkResp.connect().then((dynamic _) {
     print('Link Pair $mine is now ready.');
     connectedCount++;
-    linkReq.requester!.subscribe('/conns/responder-$mine/node', (ValueUpdate val) {
-    });
+    linkReq.requester!
+        .subscribe('/conns/responder-$mine/node', (ValueUpdate val) {});
   });
 }
 

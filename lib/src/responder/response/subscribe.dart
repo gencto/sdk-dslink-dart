@@ -15,15 +15,16 @@ class RespSubscribeListener {
 }
 
 class SubscribeResponse extends Response {
-  SubscribeResponse(Responder responder, int rid) : super(responder, rid, 'subscribe');
+  SubscribeResponse(Responder responder, int rid)
+      : super(responder, rid, 'subscribe');
 
   final Map<String, RespSubscribeController> subscriptions =
-    <String, RespSubscribeController>{};
+      <String, RespSubscribeController>{};
   final Map<int, RespSubscribeController> subsriptionids =
-    <int, RespSubscribeController>{};
+      <int, RespSubscribeController>{};
 
   final LinkedHashSet<RespSubscribeController> changed =
-    LinkedHashSet<RespSubscribeController>();
+      LinkedHashSet<RespSubscribeController>();
 
   RespSubscribeController add(String path, LocalNode node, int sid, int qos) {
     late RespSubscribeController controller;
@@ -70,13 +71,12 @@ class SubscribeResponse extends Response {
       subsriptionids.remove(sid);
       subscriptions.remove(controller.node.path);
       if (responder._traceCallbacks != null) {
-        var update = ResponseTrace(
-            controller.node.path, 'subscribe', 0, '-');
+        var update = ResponseTrace(controller.node.path, 'subscribe', 0, '-');
         for (var callback in responder._traceCallbacks!) {
           callback(update);
         }
       }
-      
+
       if (subsriptionids.isEmpty) {
         _waitingAckCount = 0;
       }
@@ -175,8 +175,7 @@ class SubscribeResponse extends Response {
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
     subscriptions.forEach((path, controller) {
-      var update = ResponseTrace(
-          controller.node.path, 'subscribe', 0, '+');
+      var update = ResponseTrace(controller.node.path, 'subscribe', 0, '+');
       _traceCallback(update);
     });
   }
@@ -232,6 +231,7 @@ class RespSubscribeController {
       lastValues.length = 0;
     }
   }
+
   bool cachingQueue = false;
 
   bool _persist = false;
@@ -250,8 +250,8 @@ class RespSubscribeController {
     }
   }
 
-  RespSubscribeController(this.response, this.node, this.sid, this._permitted,
-      int qos) {
+  RespSubscribeController(
+      this.response, this.node, this.sid, this._permitted, int qos) {
     qosLevel = qos;
     if (node.valueReady && node.lastValueUpdate != null) {
       addValue(node.lastValueUpdate);
@@ -264,8 +264,12 @@ class RespSubscribeController {
     val = val?.cloneForAckQueue();
     if (_caching && _isCacheValid) {
       lastValues.add(val!);
-      var needClearQueue = (lastValues.length > response.responder.maxCacheLength);
-      if (!needClearQueue && !cachingQueue && response._sendingAfterAck && lastValues.length > 1) {
+      var needClearQueue =
+          (lastValues.length > response.responder.maxCacheLength);
+      if (!needClearQueue &&
+          !cachingQueue &&
+          response._sendingAfterAck &&
+          lastValues.length > 1) {
         needClearQueue = true;
       }
       if (needClearQueue) {
@@ -370,7 +374,8 @@ class RespSubscribeController {
       }
     }
 
-    while (!waitingValues!.isEmpty && waitingValues!.first.waitingAck == ackId) {
+    while (
+        !waitingValues!.isEmpty && waitingValues!.first.waitingAck == ackId) {
       var removed = waitingValues!.removeFirst();
       if (_storage != null) {
         _storage!.removeValue(removed);

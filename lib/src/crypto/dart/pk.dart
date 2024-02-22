@@ -36,7 +36,7 @@ class DartCryptoProvider implements CryptoProvider {
   int _cachedTime = -1;
 
   @override
-  Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async {
+  Future<ECDH> assign(PublicKey? publicKeyRemote, ECDH old) async {
     if (ECDHIsolate.running) {
       if (old is ECDHImpl) {
         return ECDHIsolate._sendRequest(

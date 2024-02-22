@@ -149,8 +149,7 @@ void main() async {
   link = LinkProvider(brokerUrl, 'Browser-',
       defaultNodes: DEFAULT_NODES,
       profiles: {
-        'playSound': (String path) =>
-            SimpleActionNode(path, (Map params) {
+        'playSound': (String path) => SimpleActionNode(path, (Map params) {
               if (audio != null) {
                 audio?.pause();
                 audio = null;
@@ -160,8 +159,7 @@ void main() async {
               audio?.src = params['url'];
               audio?.play();
             }),
-        'stopSound': (String path) =>
-            SimpleActionNode(path, (Map params) {
+        'stopSound': (String path) => SimpleActionNode(path, (Map params) {
               if (audio != null) {
                 audio?.pause();
                 audio = null;

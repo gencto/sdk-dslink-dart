@@ -5,6 +5,7 @@ typedef ResponseTraceCallback = Function(ResponseTrace update);
 class ResponseTrace {
   /// data path for trace
   String? path;
+
   /// 'list' 'subscribe' 'invoke'
   String? type;
 
@@ -13,6 +14,7 @@ class ResponseTrace {
 
   /// action name, only needed by invoke
   String? action;
+
   /// rid, only needed by invoke
   int? rid;
 
@@ -23,5 +25,6 @@ class ResponseTrace {
 //  {'name': 'change', 'type': 'string'},
   List get rowData => <dynamic>[path, type, rid, action, change];
 
-  ResponseTrace(this.path, this.type, this.rid, [this.change = '', this.action]);
+  ResponseTrace(this.path, this.type, this.rid,
+      [this.change = '', this.action]);
 }

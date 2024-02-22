@@ -39,12 +39,11 @@ void main() async {
     }
   });
 
-  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath('broker_url', 'http://localhost:8080/conn');
+  var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath(
+      'broker_url', 'http://localhost:8080/conn');
 
   link = LinkProvider(brokerUrl, 'Webcam-', defaultNodes: <String, dynamic>{
-    'Image': {
-      r'$type': 'binary'
-    }
+    'Image': {r'$type': 'binary'}
   });
 
   await link.connect();
@@ -83,7 +82,8 @@ ByteData captureImage() {
   stopwatch.start();
   var dataUrl = canvas.toDataUrl('image/webp', 0.2);
   stopwatch.stop();
-  var bytes = BASE64.decode(dataUrl.substring('data:image/webp;base64,'.length));
+  var bytes =
+      BASE64.decode(dataUrl.substring('data:image/webp;base64,'.length));
   var data = ByteDataUtil.fromList(bytes);
   print('Took ${stopwatch.elapsedMilliseconds} to create image.');
   return data;

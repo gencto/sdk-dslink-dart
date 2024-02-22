@@ -56,8 +56,8 @@ class SubscribeController implements RequestUpdater {
   }
 
   @override
-  void onUpdate(String? status, List? updates, List? columns, Map? meta,
-      DSError? error) {
+  void onUpdate(
+      String? status, List? updates, List? columns, Map? meta, DSError? error) {
     // do nothing
   }
 }
@@ -77,10 +77,10 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
   }
 
   final Map<String, ReqSubscribeController> subscriptions =
-    <String, ReqSubscribeController>{};
+      <String, ReqSubscribeController>{};
 
   final Map<int, ReqSubscribeController> subscriptionIds =
-    <int, ReqSubscribeController>{};
+      <int, ReqSubscribeController>{};
 
   SubscribeRequest(Requester requester, int rid)
       : super(requester, rid, SubscribeController(), null) {
@@ -172,13 +172,11 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       prepareSending();
     } else if (subscriptionIds.containsKey(controller.sid)) {
       logger.severe(
-          'unexpected remoteSubscription in the requester, sid: ${controller
-              .sid}');
+          'unexpected remoteSubscription in the requester, sid: ${controller.sid}');
     }
   }
 
-  Map<int, ReqSubscribeController> toRemove =
-    <int, ReqSubscribeController>{};
+  Map<int, ReqSubscribeController> toRemove = <int, ReqSubscribeController>{};
 
   @override
   void startSendingData(int currentTime, int waitingAckId) {
@@ -207,7 +205,8 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       }
     }
     if (toAdd.isNotEmpty) {
-      requester._sendRequest(<String, dynamic>{'method': 'subscribe', 'paths': toAdd}, null);
+      requester._sendRequest(
+          <String, dynamic>{'method': 'subscribe', 'paths': toAdd}, null);
     }
     if (toRemove.isNotEmpty) {
       var removeSids = <int>[];

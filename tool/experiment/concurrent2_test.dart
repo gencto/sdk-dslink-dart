@@ -10,7 +10,7 @@ import 'package:args/args.dart';
 
 class TestNodeProvider extends NodeProvider {
   late TestNode onlyNode;
-  TestNodeProvider(){
+  TestNodeProvider() {
     onlyNode = TestNode('/', this);
   }
 
@@ -18,12 +18,14 @@ class TestNodeProvider extends NodeProvider {
   LocalNode? getNode(String? path) {
     return onlyNode;
   }
+
   @override
   IPermissionManager permissions = DummyPermissionManager();
   @override
   Responder createResponder(String? dsId, String sessionId) {
     return Responder(this, dsId);
   }
+
   @override
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
     return onlyNode;
@@ -49,10 +51,22 @@ Random random = Random();
 String prefix = '';
 Future<void> main() async {
   var argp = ArgParser();
-  argp.addOption('pairs', abbr: 'p', help: 'Number of Link Pairs', defaultsTo: '1000', valueHelp: 'pairs');
-  argp.addOption('broker', abbr: 'b', help: 'Broker Url', defaultsTo: 'https://dev.sviteco.ua/conn', valueHelp: 'broker');
-  argp.addOption('prefix', abbr: 'f', help: 'Prefix on DsLink Id', defaultsTo: '', valueHelp: 'previx');
-    
+  argp.addOption('pairs',
+      abbr: 'p',
+      help: 'Number of Link Pairs',
+      defaultsTo: '1000',
+      valueHelp: 'pairs');
+  argp.addOption('broker',
+      abbr: 'b',
+      help: 'Broker Url',
+      defaultsTo: 'https://dev.sviteco.ua/conn',
+      valueHelp: 'broker');
+  argp.addOption('prefix',
+      abbr: 'f',
+      help: 'Prefix on DsLink Id',
+      defaultsTo: '',
+      valueHelp: 'previx');
+
   var opts = argp.parse(['https://dev.sviteco.ua/conn']);
 
   try {
@@ -68,7 +82,7 @@ Future<void> main() async {
     return;
   }
   prefix = opts['prefix'];
-  
+
   logger.level = Level.WARNING;
 
   stopwatch = Stopwatch();
@@ -99,7 +113,8 @@ void onCreated() {
     }
 
     if (!ready) {
-      print('All link pairs are now ready. Subscribing requesters to values and starting value updates.');
+      print(
+          'All link pairs are now ready. Subscribing requesters to values and starting value updates.');
       ready = true;
     }
 
@@ -136,15 +151,16 @@ Future<void> createLinks() async {
 List pairs = <dynamic>[null];
 int pairIndex = 1;
 
-PrivateKey key =
-PrivateKey.loadFromString(
+PrivateKey key = PrivateKey.loadFromString(
     '9zaOwGO2iXimn4RXTNndBEpoo32qFDUw72d8mteZP9I BJSgx1t4pVm8VCs4FHYzRvr14BzgCBEm8wJnMVrrlx1u1dnTsPC0MlzAB1LhH2sb6FXnagIuYfpQUJGT_yYtoJM');
 
 void createLinkPair() async {
   var provider = TestNodeProvider();
-  var linkResp = HttpClientLink(broker, '$prefix-resp-$pairIndex-', key, isRequester: false, isResponder: true, nodeProvider: provider);
+  var linkResp = HttpClientLink(broker, '$prefix-resp-$pairIndex-', key,
+      isRequester: false, isResponder: true, nodeProvider: provider);
 
-  var linkReq = HttpClientLink(broker, '$prefix-req--$pairIndex-', key, isRequester: true);
+  var linkReq = HttpClientLink(broker, '$prefix-req--$pairIndex-', key,
+      isRequester: true);
   linkReq.connect();
 
   pairs.add([linkResp, linkReq, provider]);
@@ -157,8 +173,8 @@ void createLinkPair() async {
   await linkResp.connect();
   print('Link Pair $mine is now ready.');
   connectedCount++;
-  linkReq.requester!.subscribe('/conns/$prefix-resp-$mine/node', (ValueUpdate val) {
-  });
+  linkReq.requester!
+      .subscribe('/conns/$prefix-resp-$mine/node', (ValueUpdate val) {});
 }
 
 int connectedCount = 0;

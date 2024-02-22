@@ -175,7 +175,8 @@ class QueryCommandList extends BrokerQueryCommand {
   }
   @override
   void init() {
-    var parsedpath = List<_ListNodeMatch>.filled(rawpath.length, _ListNodeMatch(''));
+    var parsedpath =
+        List<_ListNodeMatch>.filled(rawpath.length, _ListNodeMatch(''));
     for (var i = 0; i < rawpath.length; ++i) {
       parsedpath[i] = _ListNodeMatch(rawpath[i]);
     }

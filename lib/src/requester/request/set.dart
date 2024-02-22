@@ -20,13 +20,13 @@ class SetController implements RequestUpdater {
       reqMap['permit'] = Permission.names[maxPermission];
     }
 
-    //_request = 
+    //_request =
     requester._sendRequest(reqMap, this);
   }
 
   @override
-  void onUpdate(String? status, List? updates, List? columns, Map? meta,
-      DSError? error) {
+  void onUpdate(
+      String? status, List? updates, List? columns, Map? meta, DSError? error) {
     // TODO implement error
     completer.complete(RequesterUpdate(status));
   }

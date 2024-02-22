@@ -1,8 +1,7 @@
 part of dslink.common;
 
 class PassiveChannel implements ConnectionChannel {
-  final StreamController<List> onReceiveController =
-      StreamController<List>();
+  final StreamController<List> onReceiveController = StreamController<List>();
   @override
   Stream<List> get onReceive => onReceiveController.stream;
 
@@ -19,7 +18,7 @@ class PassiveChannel implements ConnectionChannel {
     conn?.requireSend();
   }
 
-  ProcessorResult? getSendingData(int currentTime, int waitingAckId){
+  ProcessorResult? getSendingData(int currentTime, int waitingAckId) {
     if (handler != null) {
       var rslt = handler!.getSendingData(currentTime, waitingAckId);
       //handler = null;
@@ -27,7 +26,7 @@ class PassiveChannel implements ConnectionChannel {
     }
     return null;
   }
-  
+
   bool _isReady = false;
   @override
   bool get isReady => _isReady;
