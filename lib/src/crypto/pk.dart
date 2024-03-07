@@ -27,7 +27,7 @@ abstract class CryptoProvider {
 
   DSRandom get random;
 
-  Future<ECDH> assign(PublicKey? publicKeyRemote, ECDH old);
+  Future<ECDH> assign(PublicKey? publicKeyRemote, ECDH? old);
   Future<ECDH> getSecret(PublicKey publicKeyRemote);
 
   Future<PrivateKey> generate();
@@ -43,7 +43,7 @@ abstract class CryptoProvider {
 abstract class ECDH {
   String get encodedPublicKey;
 
-  static Future<ECDH> assign(PublicKey? publicKeyRemote, ECDH old) async =>
+  static Future<ECDH> assign(PublicKey? publicKeyRemote, ECDH? old) async =>
       _CRYPTO_PROVIDER.assign(publicKeyRemote, old);
 
   String hashSalt(String salt);

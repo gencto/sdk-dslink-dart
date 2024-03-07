@@ -113,7 +113,7 @@ abstract class BaseLink {
 
   Responder? get responder;
 
-  ECDH get nonce;
+  ECDH? get nonce;
 
   /// trigger when requester channel is Ready
   Future<Requester?> get onRequesterReady;

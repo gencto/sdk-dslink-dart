@@ -1,7 +1,7 @@
 part of dslink.responder;
 
 abstract class NodeProviderImpl extends NodeProvider {
-  Map<String, LocalNode?> get nodes;
+  Map<String, dynamic> get nodes;
 }
 
 abstract class LocalNodeImpl extends LocalNode {

@@ -111,7 +111,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
         var sid = -1;
         Object value;
         late String ts;
-        late Map meta;
+        Map? meta;
         if (update is Map) {
           if (update['ts'] is String) {
             path = update['path'];

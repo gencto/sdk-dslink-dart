@@ -31,7 +31,7 @@ Logger? _logger;
 
 bool? _DEBUG_MODE;
 
-List<int> foldList(List<int> a, List<int> b) {
+List<dynamic> foldList(List<dynamic> a, Uint8List b) {
   return a..addAll(b);
 }
 
