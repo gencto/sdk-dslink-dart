@@ -1,120 +1,88 @@
 part of dslink.historian;
 
 class GetHistoryNode extends SimpleNode {
-  GetHistoryNode(String path) : super(path, _link.provider) {
-    configs[r"$is"] = "getHistory";
-    configs[r"$name"] = "Get History";
-    configs[r"$invokable"] = "read";
-    configs[r"$params"] = [
+  GetHistoryNode(String path)
+      : super(path, _link!.provider as SimpleNodeProvider?) {
+    configs[r'$is'] = 'getHistory';
+    configs[r'$name'] = 'Get History';
+    configs[r'$invokable'] = 'read';
+    configs[r'$params'] = [
+      {'name': 'Timerange', 'type': 'string', 'editor': 'daterange'},
       {
-        "name": "Timerange",
-        "type": "string",
-        "editor": "daterange"
-      },
-      {
-        "name": "Interval",
-        "type": "enum",
-        "editor": buildEnumType([
-          "default",
-          "none",
-          "1Y",
-          "3N",
-          "1N",
-          "1W",
-          "1D",
-          "12H",
-          "6H",
-          "4H",
-          "3H",
-          "2H",
-          "1H",
-          "30M",
-          "15M",
-          "10M",
-          "5M",
-          "1M",
-          "30S",
-          "15S",
-          "10S",
-          "5S",
-          "1S"
+        'name': 'Interval',
+        'type': 'enum',
+        'editor': buildEnumType([
+          'default',
+          'none',
+          '1Y',
+          '3N',
+          '1N',
+          '1W',
+          '1D',
+          '12H',
+          '6H',
+          '4H',
+          '3H',
+          '2H',
+          '1H',
+          '30M',
+          '15M',
+          '10M',
+          '5M',
+          '1M',
+          '30S',
+          '15S',
+          '10S',
+          '5S',
+          '1S'
         ]),
-        "default": "default"
+        'default': 'default'
       },
       {
-        "name": "Rollup",
-        "type": buildEnumType([
-          "none",
-          "avg",
-          "min",
-          "max",
-          "sum",
-          "first",
-          "last",
-          "count"
-        ])
+        'name': 'Rollup',
+        'type': buildEnumType(
+            ['none', 'avg', 'min', 'max', 'sum', 'first', 'last', 'count'])
       },
-      {
-        "name": "Real Time",
-        "type": "bool",
-        "default": false
-      },
-      {
-        "name": "Batch Size",
-        "type": "number",
-        "default": 0
-      }
+      {'name': 'Real Time', 'type': 'bool', 'default': false},
+      {'name': 'Batch Size', 'type': 'number', 'default': 0}
     ];
 
-    configs[r"$columns"] = [
-      {
-        "name": "timestamp",
-        "type": "time"
-      },
-      {
-        "name": "value",
-        "type": "dynamic"
-      }
+    configs[r'$columns'] = [
+      {'name': 'timestamp', 'type': 'time'},
+      {'name': 'value', 'type': 'dynamic'}
     ];
 
-    configs[r"$result"] = "stream";
+    configs[r'$result'] = 'stream';
   }
 
   @override
-  onInvoke(Map<String, dynamic> params) async* {
-    String range = params["Timerange"];
-    String rollupName = params["Rollup"];
-    RollupFactory rollupFactory = _rollups[rollupName];
-    Rollup rollup = rollupFactory == null ? null : rollupFactory();
-    Duration interval = new Duration(
-      milliseconds: parseInterval(params["Interval"]));
-    num batchSize = params["Batch Size"];
+  FutureOr<void> onInvoke(Map params) async* {
+    String range = params['Timerange'];
+    String rollupName = params['Rollup'];
+    var rollupFactory = _rollups[rollupName];
+    var rollup = rollupFactory == null ? null : rollupFactory();
+    var interval = Duration(milliseconds: parseInterval(params['Interval']));
+    num? batchSize = params['Batch Size'];
 
-    if (batchSize == null) {
-      batchSize = 0;
-    }
+    batchSize ??= 0;
 
-    int batchCount = batchSize.toInt();
+    var batchCount = batchSize.toInt();
 
-    TimeRange tr = parseTimeRange(range);
-    if (params["Real Time"] == true) {
-      tr = new TimeRange(tr.start, null);
+    var tr = parseTimeRange(range);
+    if (params['Real Time'] == true) {
+      tr = TimeRange(tr!.start, null);
     }
 
     try {
-      Stream<ValuePair> pairs = await calculateHistory(
-        tr,
-        interval,
-        rollup
-      );
+      var pairs = calculateHistory(tr!, interval, rollup!);
 
-      if (params["Real Time"] == true) {
+      if (params['Real Time'] == true) {
         await for (ValuePair pair in pairs) {
           yield [pair.toRow()];
         }
       } else {
-        int count = 0;
-        List<List<dynamic>> buffer = [];
+        var count = 0;
+        var buffer = <List<dynamic>>[];
 
         await for (ValuePair row in pairs) {
           count++;
@@ -137,25 +105,24 @@ class GetHistoryNode extends SimpleNode {
   }
 
   Stream<ValuePair> fetchHistoryData(TimeRange range) {
-    var p = new Path(path);
+    var p = Path(path!);
     var mn = p.parent;
-    WatchPathNode pn = _link[mn.path];
+    var pn = _link![mn.path] as WatchPathNode;
 
-    return pn.fetchHistory(range);
+    return pn.fetchHistory(range) as Stream<ValuePair>;
   }
 
-  Stream<ValuePair> calculateHistory(TimeRange range,
-    Duration interval,
-    Rollup rollup) async* {
+  Stream<ValuePair> calculateHistory(
+      TimeRange range, Duration interval, Rollup rollup) async* {
     if (interval.inMilliseconds <= 0) {
       yield* fetchHistoryData(range);
       return;
     }
 
-    int lastTimestamp = -1;
-    int totalTime = 0;
+    var lastTimestamp = -1;
+    var totalTime = 0;
 
-    ValuePair result;
+    ValuePair? result;
 
     await for (ValuePair pair in fetchHistoryData(range)) {
       rollup.add(pair.value);
@@ -165,12 +132,10 @@ class GetHistoryNode extends SimpleNode {
       lastTimestamp = pair.time.millisecondsSinceEpoch;
       if (totalTime >= interval.inMilliseconds) {
         totalTime = 0;
-        result = new ValuePair(
-          new DateTime.fromMillisecondsSinceEpoch(
-            lastTimestamp
-          ).toIso8601String(),
-          rollup.value
-        );
+        result = ValuePair(
+            DateTime.fromMillisecondsSinceEpoch(lastTimestamp)
+                .toIso8601String(),
+            rollup.value);
         yield result;
         result = null;
         rollup.reset();

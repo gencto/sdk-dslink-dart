@@ -1,45 +1,50 @@
 part of dslink.common;
 
 class PassiveChannel implements ConnectionChannel {
-  final StreamController<List> onReceiveController =
-      new StreamController<List>();
+  final StreamController<List> onReceiveController = StreamController<List>();
+  @override
   Stream<List> get onReceive => onReceiveController.stream;
 
-  List<Function> _processors = [];
+  // List<Function> _processors = [];
 
-  final Connection conn;
+  final Connection? conn;
 
-  PassiveChannel(this.conn, [this.connected = false]) {}
+  PassiveChannel(this.conn, [this.connected = false]);
 
-  ConnectionHandler handler;
+  ConnectionHandler? handler;
+  @override
   void sendWhenReady(ConnectionHandler handler) {
     this.handler = handler;
-    conn.requireSend();
+    conn?.requireSend();
   }
 
-  ProcessorResult getSendingData(int currentTime, int waitingAckId){
+  ProcessorResult? getSendingData(int currentTime, int waitingAckId) {
     if (handler != null) {
-      ProcessorResult rslt = handler.getSendingData(currentTime, waitingAckId);
+      var rslt = handler!.getSendingData(currentTime, waitingAckId);
       //handler = null;
       return rslt;
     }
     return null;
   }
-  
+
   bool _isReady = false;
+  @override
   bool get isReady => _isReady;
-  void set isReady(bool val) {
+  set isReady(bool val) {
     _isReady = val;
   }
 
+  @override
   bool connected = true;
 
   final Completer<ConnectionChannel> onDisconnectController =
-      new Completer<ConnectionChannel>();
+      Completer<ConnectionChannel>();
+  @override
   Future<ConnectionChannel> get onDisconnected => onDisconnectController.future;
 
   final Completer<ConnectionChannel> onConnectController =
-      new Completer<ConnectionChannel>();
+      Completer<ConnectionChannel>();
+  @override
   Future<ConnectionChannel> get onConnected => onConnectController.future;
 
   void updateConnect() {

@@ -4,6 +4,7 @@
 packages
 build
 pubspec.lock
+.vscode
 .idea
 *.iml
 /test/experiment/.dslink.key
@@ -20,3 +21,4 @@ doc/
 /defs.json
 /storage/
 /tmp
+.dart_tool/

@@ -1,29 +1,26 @@
 part of dslink.common;
 
 class TableColumn {
-  String type;
-  String name;
-  Object defaultValue;
+  String? type;
+  String? name;
+  Object? defaultValue;
 
   TableColumn(this.name, this.type, [this.defaultValue]);
 
-  Map<String, dynamic> getData() {
-    var rslt = <String, dynamic>{
-      "type": type,
-      "name": name
-    };
+  Map getData() {
+    var rslt = <String, dynamic>{'type': type, 'name': name};
 
     if (defaultValue != null) {
-      rslt["default"] = defaultValue;
+      rslt['default'] = defaultValue;
     }
     return rslt;
   }
 
   /// convert tableColumns into List of Map
-  static List<Map<String, dynamic>> serializeColumns(List list) {
-    var rslts = <Map<String, dynamic>>[];
+  static List<Map> serializeColumns(List list) {
+    var rslts = <Map>[];
     for (Object m in list) {
-      if (m is Map<String, dynamic>) {
+      if (m is Map) {
         rslts.add(m);
       } else if (m is TableColumn) {
         rslts.add(m.getData());
@@ -33,15 +30,15 @@ class TableColumn {
   }
 
   /// parse List of Map into TableColumn
-  static List<TableColumn> parseColumns(List list) {
-    List<TableColumn> rslt = <TableColumn>[];
+  static List<TableColumn>? parseColumns(List list) {
+    var rslt = <TableColumn>[];
     for (Object m in list) {
-      if (m is Map && m["name"] is String) {
-        String type = "string";
-        if (m["type"] is String) {
-          type = m["type"];
+      if (m is Map && m['name'] is String) {
+        var type = 'string';
+        if (m['type'] is String) {
+          type = m['type'];
         }
-        rslt.add(new TableColumn(m["name"], type, m["default"]));
+        rslt.add(TableColumn(m['name'], type, m['default']));
       } else if (m is TableColumn) {
         rslt.add(m);
       } else {
@@ -56,7 +53,7 @@ class TableColumn {
 class Table {
   List<TableColumn> columns;
   List<List> rows;
-  Map meta;
+  Map? meta;
 
   Table(this.columns, this.rows, {this.meta});
 }

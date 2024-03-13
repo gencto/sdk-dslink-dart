@@ -3,32 +3,28 @@ part of dslink.responder;
 /// a responder for one connection
 class Responder extends ConnectionHandler {
   /// reqId can be a dsId or a user name
-  String reqId;
+  String? reqId;
 
   int maxCacheLength = ConnectionProcessor.defaultCacheSize;
 
-  ISubscriptionResponderStorage storage;
-  
+  ISubscriptionResponderStorage? storage;
+
   /// max permisison of the remote requester, this requester won't be able to do anything with higher
   /// permission even when other permission setting allows it to.
-  /// This feature allows reverse proxy to override the permission for each connection with url parameter 
+  /// This feature allows reverse proxy to override the permission for each connection with url parameter
   int maxPermission = Permission.CONFIG;
 
-  void initStorage(ISubscriptionResponderStorage s, List<ISubscriptionNodeStorage> nodes) {
+  void initStorage(
+      ISubscriptionResponderStorage s, List<ISubscriptionNodeStorage>? nodes) {
     if (storage != null) {
-      storage.destroy();
+      storage?.destroy();
     }
     storage = s;
     if (storage != null && nodes != null) {
-      for (ISubscriptionNodeStorage node in nodes) {
+      for (var node in nodes) {
         var values = node.getLoadedValues();
-        LocalNode localnode = nodeProvider.getOrCreateNode(node.path, false);
-        RespSubscribeController controller = _subscription.add(
-          node.path,
-          localnode,
-          -1,
-          node.qos
-        );
+        var localnode = nodeProvider.getOrCreateNode(node.path, false);
+        var controller = _subscription.add(node.path, localnode, -1, node.qos!);
         if (values.isNotEmpty) {
           controller.resetCache(values);
         }
@@ -37,17 +33,16 @@ class Responder extends ConnectionHandler {
   }
 
   /// list of permission group
-  List<String> groups = [];
+  List<String>? groups = [];
   void updateGroups(List<String> vals, [bool ignoreId = false]) {
     if (ignoreId) {
-      groups = vals.where((str)=>str != '').toList();
+      groups = vals.where((str) => str != '').toList();
     } else {
-      groups = [reqId]..addAll(vals.where((str)=>str != ''));
+      groups = [reqId!, ...vals.where((str) => str != '')];
     }
-   
   }
 
-  final Map<int, Response> _responses = new Map<int, Response>();
+  final Map<int, Response> _responses = <int, Response>{};
 
   int get openResponseCount {
     return _responses.length;
@@ -57,50 +52,51 @@ class Responder extends ConnectionHandler {
     return _subscription.subscriptions.length;
   }
 
-  SubscribeResponse _subscription;
+  late SubscribeResponse _subscription;
 
   /// caching of nodes
   final NodeProvider nodeProvider;
 
   Responder(this.nodeProvider, [this.reqId]) {
-    _subscription = new SubscribeResponse(this, 0);
+    _subscription = SubscribeResponse(this, 0);
     _responses[0] = _subscription;
     // TODO: load reqId
     if (reqId != null) {
-      groups = [reqId];
+      groups = [reqId!];
     }
   }
 
-  Response addResponse(Response response, [Path path = null, Object parameters = null]) {
+  Response addResponse(Response response, [Path? path, Object? parameters]) {
     if (response._sentStreamStatus != StreamStatus.closed) {
       _responses[response.rid] = response;
       if (_traceCallbacks != null) {
-        ResponseTrace update = response.getTraceData();
-        for (ResponseTraceCallback callback in _traceCallbacks) {
-          callback(update);
+        var update = response.getTraceData();
+        for (var callback in _traceCallbacks!) {
+          callback(update!);
         }
       }
     } else {
       if (_traceCallbacks != null) {
-        ResponseTrace update = response.getTraceData(''); // no logged change is needed
-        for (ResponseTraceCallback callback in _traceCallbacks) {
-          callback(update);
+        var update = response.getTraceData(''); // no logged change is needed
+        for (var callback in _traceCallbacks!) {
+          callback(update!);
         }
       }
     }
     return response;
   }
 
-  void traceResponseRemoved(Response response){
-    ResponseTrace update = response.getTraceData('-');
-    for (ResponseTraceCallback callback in _traceCallbacks) {
-      callback(update);
+  void traceResponseRemoved(Response response) {
+    var update = response.getTraceData('-');
+    for (var callback in _traceCallbacks!) {
+      callback(update!);
     }
   }
 
   bool disabled = false;
+  @override
   void onData(List list) {
-    if (disabled){
+    if (disabled) {
       return;
     }
     for (Object resp in list) {
@@ -111,7 +107,7 @@ class Responder extends ConnectionHandler {
   }
 
   void _onReceiveRequest(Map m) {
-    Object method = m['method'];
+    Object? method = m['method'];
     if (m['rid'] is int) {
       if (method == null) {
         updateInvoke(m);
@@ -151,7 +147,7 @@ class Responder extends ConnectionHandler {
   }
 
   /// close the response from responder side and notify requester
-  void closeResponse(int rid, {Response response, DSError error}) {
+  void closeResponse(int rid, {Response? response, DSError? error}) {
     if (response != null) {
       if (_responses[response.rid] != response) {
         // this response is no longer valid
@@ -160,7 +156,7 @@ class Responder extends ConnectionHandler {
       response._sentStreamStatus = StreamStatus.closed;
       rid = response.rid;
     }
-    Map m = {'rid': rid, 'stream': StreamStatus.closed};
+    var m = <String, dynamic>{'rid': rid, 'stream': StreamStatus.closed};
     if (error != null) {
       m['error'] = error.serialize();
     }
@@ -168,14 +164,13 @@ class Responder extends ConnectionHandler {
     addToSendList(m);
   }
 
-  void updateResponse(Response response, List updates,
-      {
-        String streamStatus,
-        List<dynamic> columns,
-        Map meta,
-        void handleMap(Map m)}) {
+  void updateResponse(Response response, List? updates,
+      {String? streamStatus,
+      List<dynamic>? columns,
+      Map? meta,
+      void Function(Map m)? handleMap}) {
     if (_responses[response.rid] == response) {
-      Map m = {'rid': response.rid};
+      Map m = <String, dynamic>{'rid': response.rid};
       if (streamStatus != null && streamStatus != response._sentStreamStatus) {
         response._sentStreamStatus = streamStatus;
         m['stream'] = streamStatus;
@@ -201,25 +196,22 @@ class Responder extends ConnectionHandler {
       if (response._sentStreamStatus == StreamStatus.closed) {
         _responses.remove(response.rid);
         if (_traceCallbacks != null) {
-           traceResponseRemoved(response);
+          traceResponseRemoved(response);
         }
       }
     }
   }
 
   void list(Map m) {
-    Path path = Path.getValidNodePath(m['path']);
+    var path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
 
       _getNode(path, (LocalNode node) {
-        addResponse(new ListResponse(this, rid, node), path);
-      }, (e, stack) {
-        var error = new DSError(
-          "nodeError",
-          msg: e.toString(),
-          detail: stack.toString()
-        );
+        addResponse(ListResponse(this, rid, node), path);
+      }, (dynamic e, dynamic stack) {
+        var error =
+            DSError('nodeError', msg: e.toString(), detail: stack.toString());
         closeResponse(m['rid'], error: error);
       });
     } else {
@@ -230,9 +222,9 @@ class Responder extends ConnectionHandler {
   void subscribe(Map m) {
     if (m['paths'] is List) {
       for (Object p in m['paths']) {
-        String pathstr;
-        int qos = 0;
-        int sid = -1;
+        late String pathstr;
+        var qos = 0;
+        var sid = -1;
         if (p is Map) {
           if (p['path'] is String) {
             pathstr = p['path'];
@@ -248,18 +240,15 @@ class Responder extends ConnectionHandler {
             qos = p['qos'];
           }
         }
-        Path path = Path.getValidNodePath(pathstr);
+        var path = Path.getValidNodePath(pathstr);
 
         if (path != null && path.isAbsolute) {
           _getNode(path, (LocalNode node) {
             _subscription.add(path.path, node, sid, qos);
             closeResponse(m['rid']);
-          }, (e, stack) {
-            var error = new DSError(
-              "nodeError",
-              msg: e.toString(),
-              detail: stack.toString()
-            );
+          }, (dynamic e, dynamic stack) {
+            var error = DSError('nodeError',
+                msg: e.toString(), detail: stack.toString());
             closeResponse(m['rid'], error: error);
           });
         } else {
@@ -271,17 +260,18 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void _getNode(Path p, Taker<LocalNode> func, [TwoTaker<dynamic, dynamic> onError]) {
+  void _getNode(Path p, Taker<LocalNode> func,
+      [TwoTaker<dynamic, dynamic>? onError]) {
     try {
-      LocalNode node = nodeProvider.getOrCreateNode(p.path, false);
+      var node = nodeProvider.getOrCreateNode(p.path, false);
 
       if (node is WaitForMe) {
-        (node as WaitForMe).onLoaded.then((n) {
+        (node as WaitForMe).onLoaded.then((dynamic n) {
           if (n is LocalNode) {
             node = n;
           }
           func(node);
-        }).catchError((e, stack) {
+        }).catchError((dynamic e, StackTrace stack) {
           if (onError != null) {
             onError(e, stack);
           }
@@ -312,27 +302,23 @@ class Responder extends ConnectionHandler {
   }
 
   void invoke(Map m) {
-    Path path = Path.getValidNodePath(m['path']);
+    var path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
-      LocalNode parentNode;
+      var parentNode = nodeProvider.getOrCreateNode(path.parentPath, false);
 
-      parentNode = nodeProvider.getOrCreateNode(path.parentPath, false);
-
-      doInvoke([LocalNode overriden]) {
-        LocalNode node = overriden == null ?
-          nodeProvider.getNode(path.path) :
-          overriden;
+      void doInvoke([LocalNode? overriden]) {
+        var node = overriden ?? nodeProvider.getNode(path.path);
         if (node == null) {
           if (overriden == null) {
-            node = parentNode.getChild(path.name);
+            node = parentNode.getChild(path.name) as LocalNode?;
             if (node == null) {
               closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
               return;
             }
 
             if (node is WaitForMe) {
-              (node as WaitForMe).onLoaded.then((_) => doInvoke(node));
+              (node as WaitForMe).onLoaded.then((dynamic _) => doInvoke(node));
               return;
             } else {
               doInvoke(node);
@@ -343,52 +329,46 @@ class Responder extends ConnectionHandler {
             return;
           }
         }
-        int permission = nodeProvider.permissions.getPermission(path.path, this);
-        int maxPermit = Permission.parse(m['permit']);
+        var permission =
+            nodeProvider.permissions.getPermission(path.path, this);
+        var maxPermit = Permission.parse(m['permit']);
         if (maxPermit < permission) {
           permission = maxPermit;
         }
 
-        Map<String, dynamic> params;
+        Map? params;
 
-        if (m["params"] is Map<String, dynamic>) {
-          params = m["params"] as Map<String, dynamic>;
+        if (m['params'] is Map) {
+          params = <String, dynamic>{};
+          (m['params'] as Map).forEach((key, dynamic value) {
+            params![key.toString()] = value;
+          });
         }
 
-        if (params == null) {
-          params = {};
-        }
+        params ??= <String, dynamic>{};
 
         if (node.getInvokePermission() <= permission) {
           node.invoke(
-            params,
-            this,
-            addResponse(
-              new InvokeResponse(this, rid, parentNode, node, path.name),
-              path,
-              params
-            ),
-            parentNode,
-            permission
-          );
+              params,
+              this,
+              addResponse(
+                  InvokeResponse(this, rid, parentNode, node, path.name),
+                  path,
+                  params) as InvokeResponse,
+              parentNode,
+              permission);
         } else {
           closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
         }
       }
 
       if (parentNode is WaitForMe) {
-        (parentNode as WaitForMe).onLoaded.then((_) {
+        (parentNode as WaitForMe).onLoaded.then((dynamic _) {
           doInvoke();
-        }).catchError((e, stack) {
-          var err = new DSError(
-            "nodeError",
-            msg: e.toString(),
-            detail: stack.toString()
-          );
-          closeResponse(
-            m['rid'],
-            error: err
-          );
+        }).catchError((dynamic e, StackTrace stack) {
+          var err =
+              DSError('nodeError', msg: e.toString(), detail: stack.toString());
+          closeResponse(m['rid'], error: err);
         });
       } else {
         doInvoke();
@@ -401,7 +381,7 @@ class Responder extends ConnectionHandler {
   void updateInvoke(Map m) {
     int rid = m['rid'];
     if (_responses[rid] is InvokeResponse) {
-      if ( m['params'] is Map) {
+      if (m['params'] is Map) {
         (_responses[rid] as InvokeResponse).updateReqParams(m['params']);
       }
     } else {
@@ -410,7 +390,7 @@ class Responder extends ConnectionHandler {
   }
 
   void set(Map m) {
-    Path path = Path.getValidPath(m['path']);
+    var path = Path.getValidPath(m['path']);
     if (path == null || !path.isAbsolute) {
       closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
@@ -421,27 +401,27 @@ class Responder extends ConnectionHandler {
       return;
     }
 
-    Object value = m['value'];
+    Object? value = m['value'];
     int rid = m['rid'];
     if (path.isNode) {
       _getNode(path, (LocalNode node) {
-        int permission = nodeProvider.permissions.getPermission(node.path, this);
-        int maxPermit = Permission.parse(m['permit']);
+        var permission =
+            nodeProvider.permissions.getPermission(node.path, this);
+        var maxPermit = Permission.parse(m['permit']);
         if (maxPermit < permission) {
           permission = maxPermit;
         }
 
         if (node.getSetPermission() <= permission) {
-          node.setValue(value, this, addResponse(new Response(this, rid, 'set'), path, value));
+          node.setValue(value as Object, this,
+              addResponse(Response(this, rid, 'set'), path, value));
         } else {
           closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
         }
-      }, (e, stack) {
-        var error = new DSError(
-          "nodeError",
-          msg: e.toString(),
-          detail: stack.toString()
-        );
+        closeResponse(m['rid']);
+      }, (dynamic e, dynamic stack) {
+        var error =
+            DSError('nodeError', msg: e.toString(), detail: stack.toString());
         closeResponse(m['rid'], error: error);
       });
     } else if (path.isConfig) {
@@ -449,23 +429,23 @@ class Responder extends ConnectionHandler {
 
       node = nodeProvider.getOrCreateNode(path.parentPath, false);
 
-      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      var permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.CONFIG) {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
-        node.setConfig(
-            path.name, value, this, addResponse(new Response(this, rid, 'set'), path, value));
+        node.setConfig(path.name, value!, this,
+            addResponse(Response(this, rid, 'set'), path, value));
       }
     } else if (path.isAttribute) {
       LocalNode node;
 
       node = nodeProvider.getOrCreateNode(path.parentPath, false);
-      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      var permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.WRITE) {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
-        node.setAttribute(
-            path.name, value, this, addResponse(new Response(this, rid, 'set'), path, value));
+        node.setAttribute(path.name, value!, this,
+            addResponse(Response(this, rid, 'set'), path, value));
       }
     } else {
       // shouldn't be possible to reach here
@@ -474,7 +454,7 @@ class Responder extends ConnectionHandler {
   }
 
   void remove(Map m) {
-    Path path = Path.getValidPath(m['path']);
+    var path = Path.getValidPath(m['path']);
     if (path == null || !path.isAbsolute) {
       closeResponse(m['rid'], error: DSError.INVALID_PATH);
       return;
@@ -487,23 +467,23 @@ class Responder extends ConnectionHandler {
 
       node = nodeProvider.getOrCreateNode(path.parentPath, false);
 
-      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      var permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.CONFIG) {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeConfig(
-            path.name, this, addResponse(new Response(this, rid, 'set'), path));
+            path.name, this, addResponse(Response(this, rid, 'set'), path));
       }
     } else if (path.isAttribute) {
       LocalNode node;
 
       node = nodeProvider.getOrCreateNode(path.parentPath, false);
-      int permission = nodeProvider.permissions.getPermission(node.path, this);
+      var permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.WRITE) {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeAttribute(
-            path.name, this, addResponse(new Response(this, rid, 'set'), path));
+            path.name, this, addResponse(Response(this, rid, 'set'), path));
       }
     } else {
       // shouldn't be possible to reach here
@@ -515,15 +495,16 @@ class Responder extends ConnectionHandler {
     if (m['rid'] is int) {
       int rid = m['rid'];
       if (_responses.containsKey(rid)) {
-        _responses[rid]._close();
-        Response resp = _responses.remove(rid);
+        _responses[rid]?._close();
+        var resp = _responses.remove(rid);
         if (_traceCallbacks != null) {
-          traceResponseRemoved(resp);
+          traceResponseRemoved(resp!);
         }
       }
     }
   }
 
+  @override
   void onDisconnected() {
     clearProcessors();
     _responses.forEach((id, resp) {
@@ -533,26 +514,27 @@ class Responder extends ConnectionHandler {
     _responses[0] = _subscription;
   }
 
+  @override
   void onReconnected() {
     super.onReconnected();
   }
 
-  List<ResponseTraceCallback> _traceCallbacks;
+  List<ResponseTraceCallback>? _traceCallbacks;
 
   void addTraceCallback(ResponseTraceCallback _traceCallback) {
     _subscription.addTraceCallback(_traceCallback);
-    _responses.forEach((int rid, Response response){
-      _traceCallback(response.getTraceData());
+    _responses.forEach((int rid, Response response) {
+      _traceCallback(response.getTraceData()!);
     });
 
-    if (_traceCallbacks == null) _traceCallbacks = new List<ResponseTraceCallback>();
+    _traceCallbacks ??= [];
 
-    _traceCallbacks.add(_traceCallback);
+    _traceCallbacks!.add(_traceCallback);
   }
 
   void removeTraceCallback(ResponseTraceCallback _traceCallback) {
-    _traceCallbacks.remove(_traceCallback);
-    if (_traceCallbacks.isEmpty) {
+    _traceCallbacks!.remove(_traceCallback);
+    if (_traceCallbacks!.isEmpty) {
       _traceCallbacks = null;
     }
   }

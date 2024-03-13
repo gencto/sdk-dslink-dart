@@ -5,20 +5,20 @@ class ByteDataUtil {
     if (input is Uint8List) {
       return input;
     }
-    return new Uint8List.fromList(input);
+    return Uint8List.fromList(input);
   }
-  
+
   static ByteData mergeBytes(List<ByteData> bytesList) {
     if (bytesList.length == 1) {
       return bytesList[0];
     }
-    int totalLen = 0;
-    for (ByteData bytes in bytesList) {
+    var totalLen = 0;
+    for (var bytes in bytesList) {
       totalLen += bytes.lengthInBytes;
     }
-    ByteData output = new ByteData(totalLen);
-    int pos = 0;
-    for (ByteData bytes in bytesList) {
+    var output = ByteData(totalLen);
+    var pos = 0;
+    for (var bytes in bytesList) {
       output.buffer.asUint8List(pos).setAll(0, toUint8List(bytes));
       pos += bytes.lengthInBytes;
     }
@@ -38,6 +38,6 @@ class ByteDataUtil {
     if (input is Uint8List) {
       return fromUint8List(input);
     }
-    return fromUint8List(new Uint8List.fromList(input));
+    return fromUint8List(Uint8List.fromList(input));
   }
 }

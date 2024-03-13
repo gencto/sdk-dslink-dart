@@ -1,8 +1,8 @@
 part of dslink.historian;
 
 class HistorySummary {
-  final ValuePair first;
-  final ValuePair last;
+  final ValuePair? first;
+  final ValuePair? last;
 
   HistorySummary(this.first, this.last);
 }
@@ -16,22 +16,22 @@ class ValuePair {
   ValuePair(this.timestamp, this.value);
 
   List toRow() {
-    return [timestamp, value];
+    return <dynamic>[timestamp, value];
   }
 }
 
 class TimeRange {
   final DateTime start;
-  final DateTime end;
+  final DateTime? end;
 
   TimeRange(this.start, this.end);
 
-  Duration get duration => end.difference(start);
+  Duration get duration => end!.difference(start);
 
   bool isWithin(DateTime time) {
-    bool valid = (time.isAfter(start) || time.isAtSameMomentAs(start));
+    var valid = (time.isAfter(start) || time.isAtSameMomentAs(start));
     if (end != null) {
-      valid = valid && (time.isBefore(end) || time.isAtSameMomentAs(end));
+      valid = valid && (time.isBefore(end!) || time.isAtSameMomentAs(end!));
     }
     return valid;
   }
@@ -46,20 +46,20 @@ class ValueEntry {
   ValueEntry(this.group, this.path, this.timestamp, this.value);
 
   ValuePair asPair() {
-    return new ValuePair(timestamp, value);
+    return ValuePair(timestamp, value);
   }
 
   DateTime get time => DateTime.parse(timestamp);
 }
 
-TimeRange parseTimeRange(String input) {
-  TimeRange tr;
+TimeRange? parseTimeRange(String? input) {
+  TimeRange? tr;
   if (input != null) {
-    List<String> l = input.split("/");
-    DateTime start = DateTime.parse(l[0]);
-    DateTime end = DateTime.parse(l[1]);
+    var l = input.split('/');
+    var start = DateTime.parse(l[0]);
+    var end = DateTime.parse(l[1]);
 
-    tr = new TimeRange(start, end);
+    tr = TimeRange(start, end);
   }
   return tr;
 }

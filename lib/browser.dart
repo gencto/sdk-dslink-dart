@@ -1,24 +1,24 @@
 /// Main DSLink API for Browsers
 library dslink.browser;
 
-import "dart:async";
-import "dart:html";
+import 'dart:async';
+import 'dart:html';
 
-import "dart:typed_data";
+import 'dart:typed_data';
 
-import "package:dslink/requester.dart";
-import "package:dslink/responder.dart";
-import "package:dslink/browser_client.dart";
-import "package:dslink/common.dart";
+import 'package:dslink/requester.dart';
+import 'package:dslink/responder.dart';
+import 'package:dslink/browser_client.dart';
+import 'package:dslink/common.dart';
 
-import "package:dslink/src/crypto/pk.dart";
-import "package:dslink/utils.dart";
+import 'package:dslink/src/crypto/pk.dart';
+import 'package:dslink/utils.dart';
 
-export "package:dslink/common.dart";
-export "package:dslink/requester.dart";
-export "package:dslink/responder.dart";
-export "package:dslink/browser_client.dart";
-export "package:dslink/utils.dart"
+export 'package:dslink/common.dart';
+export 'package:dslink/requester.dart';
+export 'package:dslink/responder.dart';
+export 'package:dslink/browser_client.dart';
+export 'package:dslink/utils.dart'
     show
         Scheduler,
         Interval,
@@ -27,35 +27,33 @@ export "package:dslink/utils.dart"
         buildEnumType,
         buildActionIO,
         ByteDataUtil;
-export "package:dslink/src/crypto/pk.dart" show PrivateKey;
+export 'package:dslink/src/crypto/pk.dart' show PrivateKey;
 
 /// DSLink Provider for the Browser
 class LinkProvider {
-  BrowserECDHLink link;
-  Map<String, dynamic> defaultNodes;
-  Map<String, NodeFactory> profiles;
+  BrowserECDHLink? link;
+  Map? defaultNodes;
+  Map<String, NodeFactory>? profiles;
   bool loadNodes;
-  NodeProvider provider;
-  DataStorage dataStore;
-  PrivateKey privateKey;
+  NodeProvider? provider;
+  DataStorage? dataStore;
+  late PrivateKey privateKey;
   String brokerUrl;
   String prefix;
   bool isRequester;
   bool isResponder;
-  String token;
+  String? token;
 
   LinkProvider(this.brokerUrl, this.prefix,
       {this.defaultNodes,
       this.profiles,
       this.provider,
       this.dataStore,
-      this.loadNodes: false,
-      this.isRequester: true,
-      this.isResponder: true,
+      this.loadNodes = false,
+      this.isRequester = true,
+      this.isResponder = true,
       this.token}) {
-    if (dataStore == null) {
-      dataStore = LocalDataStorage.INSTANCE;
-    }
+    dataStore ??= LocalDataStorage.INSTANCE;
   }
 
   bool _initCalled = false;
@@ -68,22 +66,20 @@ class LinkProvider {
     _initCalled = true;
 
     if (provider == null) {
-      provider = new SimpleNodeProvider(null, profiles);
+      provider = SimpleNodeProvider(null, profiles);
       (provider as SimpleNodeProvider).setPersistFunction(save);
     }
 
     if (loadNodes && provider is SerializableNodeProvider) {
-      if (!(await dataStore.has("dsa_nodes"))) {
-        (provider as SerializableNodeProvider).init(defaultNodes);
+      if (!(await dataStore!.has('dsa_nodes'))) {
+        (provider as SerializableNodeProvider).init(defaultNodes!);
       } else {
-        var decoded = DsJson.decode(await dataStore.get("dsa_nodes"));
+        Map decoded = DsJson.decode(await dataStore!.get('dsa_nodes'));
 
-        if (decoded is Map<String, dynamic>) {
-          (provider as SerializableNodeProvider).init(decoded);
-        }
+        (provider as SerializableNodeProvider).init(decoded);
       }
     } else {
-      (provider as SerializableNodeProvider).init(defaultNodes);
+      (provider as SerializableNodeProvider).init(defaultNodes!);
     }
 
     // move the waiting part of init into a later frame
@@ -93,34 +89,31 @@ class LinkProvider {
   }
 
   Future initLinkWithPrivateKey() async {
-    privateKey = await getPrivateKey(storage: dataStore);
-    link = new BrowserECDHLink(brokerUrl, prefix, privateKey,
+    privateKey = (await getPrivateKey(storage: dataStore))!;
+    link = BrowserECDHLink(brokerUrl, prefix, privateKey,
         nodeProvider: provider,
         isRequester: isRequester,
         isResponder: isResponder,
-        token:token);
-
+        token: token);
   }
 
   Future resetSavedNodes() async {
-    await dataStore.remove("dsa_nodes");
+    await dataStore!.remove('dsa_nodes');
   }
 
-  Stream<ValueUpdate> onValueChange(String path, {int cacheLevel: 1}) {
-    RespSubscribeListener listener;
-    StreamController<ValueUpdate> controller;
-    int subs = 0;
-    controller = new StreamController<ValueUpdate>.broadcast(onListen: () {
+  Stream<ValueUpdate> onValueChange(String path, {int cacheLevel = 1}) {
+    RespSubscribeListener? listener;
+    StreamController<ValueUpdate>? controller;
+    var subs = 0;
+    controller = StreamController<ValueUpdate>.broadcast(onListen: () {
       subs++;
-      if (listener == null) {
-        listener = this[path].subscribe((ValueUpdate update) {
-          controller.add(update);
-        }, cacheLevel);
-      }
+      listener ??= this[path]!.subscribe((ValueUpdate update) {
+        controller?.add(update);
+      }, cacheLevel);
     }, onCancel: () {
       subs--;
       if (subs == 0) {
-        listener.cancel();
+        listener!.cancel();
         listener = null;
       }
     });
@@ -132,11 +125,8 @@ class LinkProvider {
       return;
     }
 
-    await dataStore.store("dsa_nodes",
-      DsJson.encode(
-        (provider as SerializableNodeProvider).save()
-      )
-    );
+    await dataStore?.store('dsa_nodes',
+        DsJson.encode((provider as SerializableNodeProvider).save()));
   }
 
   /// Remote Path of Responder
@@ -144,17 +134,17 @@ class LinkProvider {
 
   void syncValue(String path) {
     var n = this[path];
-    n.updateValue(n.lastValueUpdate.value, force: true);
+    n!.updateValue(n.lastValueUpdate?.value, force: true);
   }
 
   Future connect() {
     Future run() {
-      link.connect();
-      return link.onConnected;
+      link?.connect();
+      return link!.onConnected;
     }
 
     if (!_initCalled) {
-      return init().then((_) => run());
+      return init().then<void>((dynamic _) => run());
     } else {
       return run();
     }
@@ -162,52 +152,52 @@ class LinkProvider {
 
   void close() {
     if (link != null) {
-      link.close();
+      link!.close();
       link = null;
     }
   }
 
-  LocalNode getNode(String path) {
-    return provider.getNode(path);
+  LocalNode? getNode(String path) {
+    return provider?.getNode(path);
   }
 
-  LocalNode addNode(String path, Map m) {
+  LocalNode? addNode(String path, Map m) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     return (provider as MutableNodeProvider).addNode(path, m);
   }
 
   void removeNode(String path) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     (provider as MutableNodeProvider).removeNode(path);
   }
 
   void updateValue(String path, dynamic value) {
     if (provider is! MutableNodeProvider) {
-      throw new Exception("Unable to Modify Node Provider: It is not mutable.");
+      throw Exception('Unable to Modify Node Provider: It is not mutable.');
     }
     (provider as MutableNodeProvider).updateValue(path, value);
   }
 
-  dynamic val(String path, [value = unspecified]) {
+  dynamic val(String path, [dynamic value = unspecified]) {
     if (value is Unspecified) {
-      return this[path].lastValueUpdate.value;
+      return this[path]?.lastValueUpdate?.value;
     } else {
       updateValue(path, value);
       return value;
     }
   }
 
-  LocalNode operator [](String path) => provider[path];
+  LocalNode? operator [](String path) => provider![path];
 
-  Requester get requester => link.requester;
+  Requester? get requester => link?.requester;
 
-  Future<Requester> get onRequesterReady => link.onRequesterReady;
+  Future<Requester>? get onRequesterReady => link?.onRequesterReady;
 
-  LocalNode operator ~() => this["/"];
+  LocalNode? operator ~() => this['/'];
 }
 
 class BrowserUtils {
@@ -221,8 +211,8 @@ class BrowserUtils {
   }
 
   static String createBinaryUrl(ByteData input,
-      {String type: "application/octet-stream"}) {
-    Uint8List data = ByteDataUtil.toUint8List(input);
-    return "data:${type};base64,${Base64.encode(data)}";
+      {String type = 'application/octet-stream'}) {
+    var data = ByteDataUtil.toUint8List(input);
+    return 'data:$type;base64,${Base64.encode(data)}';
   }
 }

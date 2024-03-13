@@ -1,14 +1,14 @@
 part of dslink.utils;
 
-typedef Object _Encoder(Object input);
-typedef Object _Reviver(String key, Object input);
+typedef _Encoder = Object? Function(Object? input);
+typedef _Reviver = Object? Function(Object? key, Object? input);
 
 class BinaryData {
   /// used when only partial data is received
   /// don"t merge them before it's finished
-  List<ByteData> mergingList;
+  List<ByteData>? mergingList;
 
-  ByteData bytes;
+  ByteData? bytes;
 
   BinaryData(ByteData bytes) {
     this.bytes = bytes;
@@ -21,170 +21,166 @@ class BinaryData {
 
 abstract class DsCodec {
   static final Map<String, DsCodec> _codecs = {
-    "json": DsJson.instance,
-    "msgpack": DsMsgPackCodecImpl.instance
+    'json': DsJson.instance,
+    'msgpack': DsMsgPackCodecImpl.instance
   };
 
   static final DsCodec defaultCodec = DsJson.instance;
 
-  static void register(String name, DsCodec codec) {
+  static void register(String? name, DsCodec? codec) {
     if (name != null && codec != null) {
       _codecs[name] = codec;
     }
   }
 
   static DsCodec getCodec(String name) {
-    DsCodec rslt = _codecs[name];
+    var rslt = _codecs[name];
     if (rslt == null) {
       return defaultCodec;
     }
     return rslt;
   }
 
-  Object _blankData;
+  Object? _blankData;
 
-  Object get blankData {
-    if (_blankData == null) {
-      _blankData = encodeFrame({});
-    }
+  Object? get blankData {
+    _blankData ??= encodeFrame(<String, dynamic>{});
     return _blankData;
   }
 
   /// output String or List<int>
-  Object encodeFrame(Map val);
+  Object? encodeFrame(Map val);
 
   /// input can be String or List<int>
-  Map decodeStringFrame(String input);
+  Map? decodeStringFrame(String input);
 
-  Map decodeBinaryFrame(List<int> input);
+  Map? decodeBinaryFrame(List<int> input);
 }
 
 abstract class DsJson {
-  static DsJsonCodecImpl instance = new DsJsonCodecImpl();
+  static DsJsonCodecImpl instance = DsJsonCodecImpl();
 
-  static String encode(Object val, {bool pretty: false}) {
+  static String encode(Object val, {bool pretty = false}) {
     return instance.encodeJson(val, pretty: pretty);
   }
 
+  /// Decodes a string using the instance's `decodeJson` method.
+  ///
+  /// Returns the decoded value.
   static dynamic decode(String str) {
     return instance.decodeJson(str);
   }
 
-  String encodeJson(Object val, {bool pretty: false});
+  String encodeJson(Object val, {bool pretty = false});
 
   dynamic decodeJson(String str);
 }
 
 class DsJsonCodecImpl extends DsCodec implements DsJson {
-  static dynamic _safeEncoder(value) {
+  static dynamic _safeEncoder(dynamic value) {
     return null;
   }
 
-  JsonEncoder encoder = new JsonEncoder(_safeEncoder);
+  JsonEncoder encoder = JsonEncoder(_safeEncoder);
 
-  JsonDecoder decoder = new JsonDecoder();
-  JsonEncoder _prettyEncoder;
+  JsonDecoder decoder = JsonDecoder();
+  JsonEncoder? _prettyEncoder;
 
+  /// Decodes a JSON string into a dynamic object.
+  ///
+  /// The [str] parameter is the JSON string to be decoded.
+  /// Returns the decoded dynamic object.
+  @override
   dynamic decodeJson(String str) {
     return decoder.convert(str);
   }
 
-  String encodeJson(val, {bool pretty: false}) {
-    JsonEncoder e = encoder;
+  @override
+  String encodeJson(val, {bool pretty = false}) {
+    JsonEncoder? e = encoder;
     if (pretty) {
-      if (_prettyEncoder == null) {
-        _prettyEncoder =
-            encoder = new JsonEncoder.withIndent("  ", _safeEncoder);
-      }
+      _prettyEncoder ??= encoder = JsonEncoder.withIndent('  ', _safeEncoder);
       e = _prettyEncoder;
     }
-    return e.convert(val);
+    return e!.convert(val);
   }
 
-  JsonDecoder _unsafeDecoder;
+  JsonDecoder? _unsafeDecoder;
 
-  Map decodeBinaryFrame(List<int> bytes) {
+  @override
+  Map? decodeBinaryFrame(List<int> bytes) {
     return decodeStringFrame(const Utf8Decoder().convert(bytes));
   }
 
-  Map decodeStringFrame(String str) {
-    if (_reviver == null) {
-      _reviver = (key, value) {
-        if (value is String && value.startsWith("\u001Bbytes:")) {
-          try {
-            return ByteDataUtil.fromUint8List(
-                Base64.decode(value.substring(7)));
-          } catch (err) {
-            return null;
-          }
+  @override
+  Map? decodeStringFrame(String str) {
+    _reviver ??= (key, value) {
+      if (value is String && value.startsWith('\u001Bbytes:')) {
+        try {
+          return ByteDataUtil.fromUint8List(Base64.decode(value.substring(7))!);
+        } catch (err) {
+          return null;
         }
-        return value;
-      };
-    }
+      }
+      return value;
+    };
 
-    if (_unsafeDecoder == null) {
-      _unsafeDecoder = new JsonDecoder(_reviver);
-    }
+    _unsafeDecoder ??= JsonDecoder(_reviver);
 
-    var result = _unsafeDecoder.convert(str);
+    Map? result = _unsafeDecoder?.convert(str);
     return result;
   }
 
-  _Reviver _reviver;
-  _Encoder _encoder;
+  _Reviver? _reviver;
+  _Encoder? _encoder;
 
-  Object encodeFrame(Object val) {
-    if (_encoder == null) {
-      _encoder = (value) {
-        if (value is ByteData) {
-          return "\u001Bbytes:${Base64.encode(
-              ByteDataUtil.toUint8List(value))}";
-        }
-        return null;
-      };
-    }
+  @override
+  Object? encodeFrame(Object val) {
+    _encoder ??= (value) {
+      if (value is ByteData) {
+        return '\u001Bbytes:${Base64.encode(ByteDataUtil.toUint8List(value))}';
+      }
+      return null;
+    };
 
-    JsonEncoder c;
+    JsonEncoder? c;
 
-    if (_unsafeEncoder == null) {
-      _unsafeEncoder = new JsonEncoder(_encoder);
-    }
+    _unsafeEncoder ??= JsonEncoder(_encoder);
     c = _unsafeEncoder;
 
-    var result = c.convert(val);
+    var result = c?.convert(val);
     return result;
   }
 
-  JsonEncoder _unsafeEncoder;
+  JsonEncoder? _unsafeEncoder;
 }
 
 class DsMsgPackCodecImpl extends DsCodec {
-  static DsMsgPackCodecImpl instance = new DsMsgPackCodecImpl();
+  static DsMsgPackCodecImpl instance = DsMsgPackCodecImpl();
 
+  @override
   Map decodeBinaryFrame(List<int> input) {
-    Uint8List data = ByteDataUtil.list2Uint8List(input);
-    if (_unpacker == null) {
-      _unpacker = new Unpacker(data.buffer, data.offsetInBytes);
-    } else {
-      _unpacker.reset(data.buffer, 0);
-      _unpacker.offset = data.offsetInBytes;
-    }
-    Object rslt = _unpacker.unpack();
+    var data = ByteDataUtil.list2Uint8List(input);
+
+    _unpacker = Deserializer(data);
+
+    Object rslt = _unpacker?.decode();
     if (rslt is Map) {
       return rslt;
     }
-    _unpacker.data = null;
-    return {};
+    return <String, dynamic>{};
   }
 
-  Unpacker _unpacker;
+  Deserializer? _unpacker;
 
+  @override
   Map decodeStringFrame(String input) {
     // not supported
-    return {};
+    return <String, dynamic>{};
   }
 
-  Object encodeFrame(Map val) {
-    return pack(val);
+  @override
+  Object? encodeFrame(Map val) {
+    return serialize(val);
   }
 }
