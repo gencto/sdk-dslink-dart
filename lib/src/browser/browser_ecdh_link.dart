@@ -2,63 +2,70 @@ part of dslink.browser_client;
 
 /// a client link for websocket
 class BrowserECDHLink extends ClientLink {
-  Completer<Requester> _onRequesterReadyCompleter = new Completer<Requester>();
-  Completer _onConnectedCompleter = new Completer();
+  final Completer<Requester> _onRequesterReadyCompleter =
+      Completer<Requester>();
+  Completer _onConnectedCompleter = Completer<void>();
 
   Future get onConnected => _onConnectedCompleter.future;
 
+  @override
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   final String dsId;
-  final String token;
+  final String? token;
 
-  final Requester requester;
-  final Responder responder;
+  @override
+  final Requester? requester;
+  @override
+  final Responder? responder;
+  @override
   final PrivateKey privateKey;
 
-  ECDH _nonce;
+  late ECDH _nonce;
 
+  @override
   ECDH get nonce => _nonce;
 
-  WebSocketConnection _wsConnection;
+  WebSocketConnection? _wsConnection;
 
   bool enableAck = false;
 
-  String salt;
+  late String salt;
 
-  updateSalt(String salt) {
+  @override
+  void updateSalt(String salt) {
     this.salt = salt;
   }
 
-  String _wsUpdateUri;
+  late String _wsUpdateUri;
   String _conn;
-  String tokenHash;
+  String? tokenHash;
 
   /// formats sent to broker
-  List formats = ['msgpack', 'json'];
+  List<String> formats = ['msgpack', 'json'];
 
   /// format received from broker
   String format = 'json';
 
   BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider nodeProvider,
-      bool isRequester: true,
-      bool isResponder: true,
-      this.token, List formats})
+      {NodeProvider? nodeProvider,
+      bool isRequester = true,
+      bool isResponder = true,
+      this.token,
+      List<String>? formats})
       : privateKey = privateKey,
         dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
-        requester = isRequester ? new Requester() : null,
+        requester = isRequester ? Requester() : null,
         responder = (isResponder && nodeProvider != null)
-            ? new Responder(nodeProvider)
+            ? Responder(nodeProvider)
             : null {
     if (!_conn.contains('://')) {
       _conn = 'http://$_conn';
     }
-    if (token != null && token.length > 16) {
+    if (token != null && token!.length > 16) {
       // pre-generate tokenHash
-      String tokenId = token.substring(0, 16);
-      String hashStr = CryptoProvider.sha256(
-          toUTF8('$dsId$token'));
+      var tokenId = token!.substring(0, 16);
+      var hashStr = CryptoProvider.sha256(toUTF8('$dsId$token'));
       tokenHash = '&token=$tokenId$hashStr';
     }
     if (formats != null) {
@@ -71,17 +78,18 @@ class BrowserECDHLink extends ClientLink {
 
   int _connDelay = 1;
 
-  connect() async {
+  @override
+  void connect() async {
     if (_closed) return;
     lockCryptoProvider();
-    String connUrl = '$_conn?dsId=$dsId';
+    var connUrl = '$_conn?dsId=$dsId';
     if (tokenHash != null) {
       connUrl = '$connUrl$tokenHash';
     }
-    Uri connUri = Uri.parse(connUrl);
+    var connUri = Uri.parse(connUrl);
     logger.info('Connecting: $connUri');
     try {
-      Map requestJson = {
+      Map requestJson = <String, dynamic>{
         'publicKey': privateKey.publicKey.qBase64,
         'isRequester': requester != null,
         'isResponder': responder != null,
@@ -89,12 +97,12 @@ class BrowserECDHLink extends ClientLink {
         'version': DSA_VERSION,
         'enableWebSocketCompression': true
       };
-      HttpRequest request = await HttpRequest.request(connUrl,
+      var request = await HttpRequest.request(connUrl,
           method: 'POST',
           withCredentials: false,
           mimeType: 'application/json',
           sendData: DsJson.encode(requestJson));
-      Map serverConfig = DsJson.decode(request.responseText);
+      Map serverConfig = DsJson.decode(request.responseText ?? '');
       //read salt
       salt = serverConfig['salt'];
 
@@ -126,36 +134,35 @@ class BrowserECDHLink extends ClientLink {
 
   int _wsDelay = 1;
 
-  initWebsocket([bool reconnect = true]) {
+  void initWebsocket([bool reconnect = true]) {
     if (_closed) return;
-    String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(
-        salt)}&format=$format';
-    var socket = new WebSocket(wsUrl);
+    var wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salt)}&format=$format';
+    var socket = WebSocket(wsUrl);
     _wsConnection =
-    new WebSocketConnection(socket, this, enableAck: enableAck, onConnect: () {
+        WebSocketConnection(socket, this, enableAck: enableAck, onConnect: () {
       if (!_onConnectedCompleter.isCompleted) {
         _onConnectedCompleter.complete();
       }
     }, useCodec: DsCodec.getCodec(format));
 
     if (responder != null) {
-      responder.connection = _wsConnection.responderChannel;
+      responder!.connection = _wsConnection!.responderChannel;
     }
 
     if (requester != null) {
-      _wsConnection.onRequesterReady.then((channel) {
+      _wsConnection!.onRequesterReady.then((channel) {
         if (_closed) return;
-        requester.connection = channel;
+        requester!.connection = channel;
         if (!_onRequesterReadyCompleter.isCompleted) {
           _onRequesterReadyCompleter.complete(requester);
         }
       });
     }
-    _wsConnection.onDisconnected.then((authError) {
+    _wsConnection!.onDisconnected.then((authError) {
       logger.info('Disconnected');
       if (_closed) return;
 
-      if (_wsConnection._opened) {
+      if (_wsConnection!._opened) {
         _wsDelay = 1;
         if (authError) {
           connect();
@@ -178,12 +185,13 @@ class BrowserECDHLink extends ClientLink {
 
   bool _closed = false;
 
+  @override
   void close() {
-    _onConnectedCompleter = new Completer();
+    _onConnectedCompleter = Completer<void>();
     if (_closed) return;
     _closed = true;
     if (_wsConnection != null) {
-      _wsConnection.close();
+      _wsConnection!.close();
       _wsConnection = null;
     }
   }

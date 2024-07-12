@@ -9,31 +9,31 @@ abstract class ConnectionProcessor {
 }
 
 abstract class ConnectionHandler {
-  ConnectionChannel _conn;
-  StreamSubscription _connListener;
-  ConnectionChannel get connection => _conn;
+  ConnectionChannel? _conn;
+  StreamSubscription? _connListener;
+  ConnectionChannel? get connection => _conn;
 
-  set connection(ConnectionChannel conn) {
+  set connection(ConnectionChannel? conn) {
     if (_connListener != null) {
-      _connListener.cancel();
+      _connListener!.cancel();
       _connListener = null;
-      _onDisconnected(_conn);
+      _onDisconnected(_conn!);
     }
     _conn = conn;
-    _connListener = _conn.onReceive.listen(onData);
-    _conn.onDisconnected.then(_onDisconnected);
+    _connListener = _conn?.onReceive.listen(onData);
+    _conn?.onDisconnected.then(_onDisconnected);
     // resend all requests after a connection
-    if (_conn.connected) {
+    if (_conn!.connected) {
       onReconnected();
     } else {
-      _conn.onConnected.then((conn) => onReconnected());
+      _conn?.onConnected.then((conn) => onReconnected());
     }
   }
 
   void _onDisconnected(ConnectionChannel conn) {
     if (_conn == conn) {
       if (_connListener != null) {
-        _connListener.cancel();
+        _connListener?.cancel();
         _connListener = null;
       }
       onDisconnected();
@@ -44,7 +44,7 @@ abstract class ConnectionHandler {
   void onDisconnected();
   void onReconnected() {
     if (_pendingSend) {
-      _conn.sendWhenReady(this);
+      _conn?.sendWhenReady(this);
     }
   }
 
@@ -56,7 +56,7 @@ abstract class ConnectionHandler {
     _toSendList.add(m);
     if (!_pendingSend) {
       if (_conn != null) {
-        _conn.sendWhenReady(this);
+        _conn?.sendWhenReady(this);
       }
       _pendingSend = true;
     }
@@ -71,7 +71,7 @@ abstract class ConnectionHandler {
     _processors.add(processor);
     if (!_pendingSend) {
       if (_conn != null) {
-        _conn.sendWhenReady(this);
+        _conn?.sendWhenReady(this);
       }
       _pendingSend = true;
     }
@@ -82,14 +82,14 @@ abstract class ConnectionHandler {
   /// gather all the changes from
   ProcessorResult getSendingData(int currentTime, int waitingAckId) {
     _pendingSend = false;
-    List<ConnectionProcessor> processors = _processors;
+    var processors = _processors;
     _processors = [];
-    for (ConnectionProcessor proc in processors) {
+    for (var proc in processors) {
       proc.startSendingData(currentTime, waitingAckId);
     }
-    List<Map> rslt = _toSendList;
+    var rslt = _toSendList;
     _toSendList = [];
-    return new ProcessorResult(rslt, processors);
+    return ProcessorResult(rslt, processors);
   }
 
   void clearProcessors() {

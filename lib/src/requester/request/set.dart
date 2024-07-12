@@ -1,12 +1,12 @@
 part of dslink.requester;
 
 class SetController implements RequestUpdater {
-  final Completer<RequesterUpdate> completer = new Completer<RequesterUpdate>();
+  final Completer<RequesterUpdate> completer = Completer<RequesterUpdate>();
   Future<RequesterUpdate> get future => completer.future;
   final Requester requester;
   final String path;
-  final Object value;
-  Request _request;
+  final Object? value;
+  // Request? _request;
 
   SetController(this.requester, this.path, this.value,
       [int maxPermission = Permission.CONFIG]) {
@@ -20,14 +20,20 @@ class SetController implements RequestUpdater {
       reqMap['permit'] = Permission.names[maxPermission];
     }
 
-    _request = requester._sendRequest(reqMap, this);
+    //_request =
+    requester._sendRequest(reqMap, this);
   }
 
-  void onUpdate(String status, List updates, List columns, Map meta, DSError error) {
-    completer.complete(new RequesterUpdate(status, error));
+  @override
+  void onUpdate(
+      String? status, List? updates, List? columns, Map? meta, DSError? error) {
+    // TODO implement error
+    completer.complete(RequesterUpdate(status));
   }
 
+  @override
   void onDisconnect() {}
 
+  @override
   void onReconnect() {}
 }

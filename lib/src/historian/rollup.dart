@@ -10,7 +10,7 @@ abstract class Rollup {
 
 class FirstRollup extends Rollup {
   @override
-  void add(input) {
+  void add(dynamic input) {
     if (set) {
       return;
     }
@@ -23,28 +23,33 @@ class FirstRollup extends Rollup {
     set = false;
   }
 
+  @override
   dynamic value;
   bool set = false;
 }
 
 class LastRollup extends Rollup {
   @override
-  void add(input) {
+  void add(dynamic input) {
     value = input;
   }
 
   @override
-  void reset() {
-  }
+  void reset() {}
 
+  @override
   dynamic value;
 }
 
 class AvgRollup extends Rollup {
   @override
-  void add(input) {
+  void add(dynamic input) {
     if (input is String) {
-      input = num.parse(input, (e) => input.length);
+      try {
+        input = num.parse(input);
+      } catch (e) {
+        input = input.length;
+      }
     }
 
     if (input is! num) {
@@ -63,15 +68,16 @@ class AvgRollup extends Rollup {
 
   dynamic total = 0.0;
 
+  @override
   dynamic get value => total / count;
   int count = 0;
 }
 
 class SumRollup extends Rollup {
   @override
-  void add(input) {
+  void add(dynamic input) {
     if (input is String) {
-      input = num.parse(input, (e) => input.length);
+      input = num.tryParse(input);
     }
 
     if (input is! num) {
@@ -86,12 +92,13 @@ class SumRollup extends Rollup {
     value = 0.0;
   }
 
+  @override
   dynamic value = 0.0;
 }
 
 class CountRollup extends Rollup {
   @override
-  void add(input) {
+  void add(dynamic input) {
     value++;
   }
 
@@ -100,21 +107,22 @@ class CountRollup extends Rollup {
     value = 0;
   }
 
+  @override
   dynamic value = 0;
 }
 
 class MaxRollup extends Rollup {
   @override
-  void add(input) {
+  void add(dynamic input) {
     if (input is String) {
-      input = num.parse(input, (e) => null);
+      input = num.tryParse(input);
     }
 
     if (input is! num) {
       return;
     }
 
-    value = max(value == null ? double_NEGATIVE_INFINITY : value as num, input as num);
+    value = max(value == null ? double_NEGATIVE_INFINITY : value as num, input);
   }
 
   @override
@@ -122,21 +130,22 @@ class MaxRollup extends Rollup {
     value = null;
   }
 
+  @override
   dynamic value;
 }
 
 class MinRollup extends Rollup {
   @override
-  void add(input) {
+  void add(dynamic input) {
     if (input is String) {
-      input = num.parse(input, (e) => null);
+      input = num.tryParse(input);
     }
 
     if (input is! num) {
       return;
     }
 
-    value = min(value == null ? double_INFINITY : value as num, input as num);
+    value = min(value == null ? double_INFINITY : value as num, input);
   }
 
   @override
@@ -144,19 +153,20 @@ class MinRollup extends Rollup {
     value = null;
   }
 
+  @override
   dynamic value;
 }
 
-typedef Rollup RollupFactory();
+typedef RollupFactory = Rollup? Function();
 
-final Map<String, RollupFactory> _rollups = {
-  "none": () => null,
-  "delta": () => new FirstRollup(),
-  "first": () => new FirstRollup(),
-  "last": () => new LastRollup(),
-  "max": () => new MaxRollup(),
-  "min": () => new MinRollup(),
-  "count": () => new CountRollup(),
-  "sum": () => new SumRollup(),
-  "avg": () => new AvgRollup()
+final Map<String, RollupFactory?> _rollups = {
+  'none': () => null,
+  'delta': () => FirstRollup(),
+  'first': () => FirstRollup(),
+  'last': () => LastRollup(),
+  'max': () => MaxRollup(),
+  'min': () => MinRollup(),
+  'count': () => CountRollup(),
+  'sum': () => SumRollup(),
+  'avg': () => AvgRollup()
 };

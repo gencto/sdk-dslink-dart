@@ -2,23 +2,21 @@ part of dslink.responder;
 
 /// Base Class for responder-side nodes.
 abstract class LocalNode extends Node {
-  BroadcastStreamController<String> _listChangeController;
+  BroadcastStreamController<String>? _listChangeController;
 
   /// Changes to nodes will be added to this controller's stream.
   /// See [updateList].
   BroadcastStreamController<String> get listChangeController {
-    if (_listChangeController == null) {
-      _listChangeController = new BroadcastStreamController<String>(
-        () {
-          onStartListListen();
-        }, () {
-          onAllListCancel();
-        }, null, true);
-    }
-    return _listChangeController;
+    _listChangeController ??= BroadcastStreamController<String>(() {
+      onStartListListen();
+    }, () {
+      onAllListCancel();
+    }, null, true);
+    return _listChangeController!;
   }
 
-  void overrideListChangeController(BroadcastStreamController<String> controller) {
+  void overrideListChangeController(
+      BroadcastStreamController<String> controller) {
     _listChangeController = controller;
   }
 
@@ -35,20 +33,21 @@ abstract class LocalNode extends Node {
   bool get _hasListListener => _listChangeController?.hasListener ?? false;
 
   /// Node Provider
-  NodeProvider get provider;
+  NodeProvider? get provider;
 
   /// Node Path
-  final String path;
+  final String? path;
 
   LocalNode(this.path);
 
   /// Subscription Callbacks
-  Map<ValueUpdateCallback, int> callbacks = new Map<ValueUpdateCallback, int>();
+  Map<ValueUpdateCallback, int> callbacks = <ValueUpdateCallback, int>{};
 
   /// Subscribes the given [callback] to this node.
-  RespSubscribeListener subscribe(callback(ValueUpdate update), [int qos = 0]) {
+  RespSubscribeListener subscribe(Function(ValueUpdate update) callback,
+      [int qos = 0]) {
     callbacks[callback] = qos;
-    return new RespSubscribeListener(this, callback);
+    return RespSubscribeListener(this, callback);
   }
 
   /// Unsubscribe the given [callback] from this node.
@@ -58,42 +57,41 @@ abstract class LocalNode extends Node {
     }
   }
 
-  ValueUpdate _lastValueUpdate;
+  ValueUpdate? _lastValueUpdate;
 
   /// Gets the last value update of this node.
-  ValueUpdate get lastValueUpdate {
-    if (_lastValueUpdate == null) {
-      _lastValueUpdate = new ValueUpdate(null);
-    }
-    return _lastValueUpdate;
+  ValueUpdate? get lastValueUpdate {
+    _lastValueUpdate ??= new ValueUpdate(null);
+    return _lastValueUpdate!;
   }
 
   /// Gets the current value of this node.
   dynamic get value {
     if (_lastValueUpdate != null) {
-      return _lastValueUpdate.value;
+      return _lastValueUpdate?.value;
     }
     return null;
   }
 
   bool _valueReady = false;
+
   /// Is the value ready?
   bool get valueReady => _valueReady;
 
   /// Updates this node's value to the specified [value].
-  void updateValue(Object update, {bool force: false}) {
+  void updateValue(Object? update, {bool force = false}) {
     _valueReady = true;
     if (update is ValueUpdate) {
       _lastValueUpdate = update;
       callbacks.forEach((callback, qos) {
-        callback(_lastValueUpdate);
+        callback(_lastValueUpdate!);
       });
     } else if (_lastValueUpdate == null ||
-        _lastValueUpdate.value != update ||
+        _lastValueUpdate?.value != update ||
         force) {
-      _lastValueUpdate = new ValueUpdate(update);
+      _lastValueUpdate = ValueUpdate(update);
       callbacks.forEach((callback, qos) {
-        callback(_lastValueUpdate);
+        callback(_lastValueUpdate!);
       });
     }
   }
@@ -112,13 +110,12 @@ abstract class LocalNode extends Node {
   bool get listReady => true;
 
   /// Disconnected Timestamp
-  String get disconnected => null;
+  String? get disconnected => null;
   List getDisconnectedListResponse() {
-    return [
+    return <dynamic>[
       [r'$disconnectedTs', disconnected]
     ];
   }
-
 
   /// Checks if this node has a subscriber.
   /// Use this for things like polling when you
@@ -137,21 +134,19 @@ abstract class LocalNode extends Node {
 
   /// Called by the link internals to invoke this node.
   InvokeResponse invoke(
-    Map<String, dynamic> params,
-    Responder responder,
-    InvokeResponse response,
-    Node parentNode, [int maxPermission = Permission.CONFIG]) {
+      Map params, Responder responder, InvokeResponse response, Node parentNode,
+      [int maxPermission = Permission.CONFIG]) {
     return response..close();
   }
 
   /// Called by the link internals to set an attribute on this node.
-  Response setAttribute(
-      String name, Object value, Responder responder, Response response) {
+  Response? setAttribute(
+      String name, Object value, Responder responder, Response? response) {
     if (response != null) {
       return response..close();
     } else {
-      if (!name.startsWith("@")) {
-        name = "@${name}";
+      if (!name.startsWith('@')) {
+        name = '@$name';
       }
 
       attributes[name] = value;
@@ -165,13 +160,13 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to remove an attribute from this node.
-  Response removeAttribute(
-      String name, Responder responder, Response response) {
+  Response? removeAttribute(
+      String name, Responder responder, Response? response) {
     if (response != null) {
       return response..close();
     } else {
-      if (!name.startsWith("@")) {
-        name = "@${name}";
+      if (!name.startsWith('@')) {
+        name = '@$name';
       }
 
       attributes.remove(name);
@@ -185,13 +180,13 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to set a config on this node.
-  Response setConfig(
-      String name, Object value, Responder responder, Response response) {
+  Response? setConfig(
+      String name, Object value, Responder responder, Response? response) {
     if (response != null) {
       return response..close();
     } else {
-      if (!name.startsWith(r"$")) {
-        name = "\$${name}";
+      if (!name.startsWith(r'$')) {
+        name = '\$$name';
       }
 
       configs[name] = value;
@@ -201,12 +196,12 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to remove a config from this node.
-  Response removeConfig(String name, Responder responder, Response response) {
+  Response? removeConfig(String name, Responder responder, Response? response) {
     if (response != null) {
       return response..close();
     } else {
-      if (!name.startsWith(r"$")) {
-        name = "\$${name}";
+      if (!name.startsWith(r'$')) {
+        name = '\$$name';
       }
       configs.remove(name);
 
@@ -215,36 +210,35 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to set a value of a node.
-  Response setValue(Object value, Responder responder, Response response,
+  Response? setValue(Object value, Responder? responder, Response? response,
       [int maxPermission = Permission.CONFIG]) {
-    return response..close();
+    return response?..close();
   }
 
   /// Shortcut to [get].
-  operator [](String name) {
+  Object? operator [](String name) {
     return get(name);
   }
 
   /// Set a config, attribute, or child on this node.
   operator []=(String name, Object value) {
-    if (name.startsWith(r"$")) {
+    if (name.startsWith(r'$')) {
       configs[name] = value;
-    } else if (name.startsWith(r"@")) {
+    } else if (name.startsWith(r'@')) {
       attributes[name] = value;
     } else if (value is Node) {
       addChild(name, value);
     }
   }
 
-  void load(Map<String, dynamic> map) {
-  }
+  void load(Map map) {}
 }
 
 /// Provides Nodes for a responder.
 /// A single node provider can be reused by multiple responder.
 abstract class NodeProvider {
   /// Gets an existing node.
-  LocalNode getNode(String path);
+  LocalNode? getNode(String? path);
 
   /// Gets a node at the given [path] if it exists.
   /// If it does not exist, create a new node and return it.
@@ -253,15 +247,15 @@ abstract class NodeProvider {
   LocalNode getOrCreateNode(String path, [bool addToTree = true]);
 
   /// Gets an existing node, or creates a dummy node for a requester to listen on.
-  LocalNode operator [](String path) {
+  LocalNode? operator [](String path) {
     return getNode(path);
   }
 
   /// Get the root node.
-  LocalNode operator ~() => getOrCreateNode("/", false);
+  LocalNode operator ~() => getOrCreateNode('/', false);
 
   /// Create a Responder
-  Responder createResponder(String dsId, String sessionId);
+  Responder createResponder(String? dsId, String sessionId);
 
   /// Get Permissions.
   IPermissionManager get permissions;

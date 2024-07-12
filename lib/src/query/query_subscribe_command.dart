@@ -1,9 +1,9 @@
 part of dslink.query;
 
 class _QuerySubscription {
-  final QueryCommandSubscribe command;
+  final QueryCommandSubscribe? command;
   final LocalNode node;
-  RespSubscribeListener listener;
+  late RespSubscribeListener listener;
 
   /// if removed, the subscription will be destroyed next frame
   bool removed = false;
@@ -15,29 +15,29 @@ class _QuerySubscription {
     listener = node.subscribe(valueCallback);
   }
 
-  ValueUpdate lastUpdate;
-  void valueCallback(ValueUpdate value) {
+  ValueUpdate? lastUpdate;
+  void valueCallback(ValueUpdate? value) {
     lastUpdate = value;
-    command.updateRow(getRowData());
+    command?.updateRow(getRowData());
   }
 
-  List getRowData() {
+  List? getRowData() {
     // TODO: make sure node still in tree
     // because list remove node update could come one frame later
     if (!removed && lastUpdate != null) {
       if (justAdded) {
         justAdded = false;
-        return [node.path, '+', lastUpdate.value, lastUpdate.ts];
+        return <dynamic>[node.path, '+', lastUpdate?.value, lastUpdate?.ts];
       } else {
-        return [node.path, '', lastUpdate.value, lastUpdate.ts];
+        return <dynamic>[node.path, '', lastUpdate?.value, lastUpdate?.ts];
       }
     }
     return null;
   }
 
-  List getRowDataForNewResponse() {
+  List? getRowDataForNewResponse() {
     if (!removed && !justAdded && lastUpdate != null) {
-      return [node.path, '+', lastUpdate.value, lastUpdate.ts];
+      return <dynamic>[node.path, '+', lastUpdate?.value, lastUpdate?.ts];
     }
     return null;
   }
@@ -48,7 +48,7 @@ class _QuerySubscription {
 }
 
 class QueryCommandSubscribe extends BrokerQueryCommand {
-  static List columns = [
+  static List<Map<String, String>> columns = [
     {'name': 'path', 'type': 'string'},
     {'name': 'change', 'type': 'string'},
     {'name': 'value', 'type': 'string'},
@@ -57,6 +57,7 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
 
   QueryCommandSubscribe(BrokerQueryManager manager) : super(manager);
 
+  @override
   void addResponse(InvokeResponse response) {
     if (_pending) {
       // send all pending update to existing responses
@@ -64,9 +65,9 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
       _doUpdate();
     }
     super.addResponse(response);
-    List rows = [];
+    var rows = <dynamic>[];
     subscriptions.forEach((String path, _QuerySubscription sub) {
-      List data = sub.getRowDataForNewResponse();
+      var data = sub.getRowDataForNewResponse();
       if (data != null) {
         rows.add(data);
       }
@@ -74,9 +75,9 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
     response.updateStream(rows, columns: columns);
   }
 
-  Set<String> _changes = new Set<String>();
+  final Set<String> _changes = <String>{};
   Map<String, _QuerySubscription> subscriptions =
-      new Map<String, _QuerySubscription>();
+      <String, _QuerySubscription>{};
 
   bool _pending = false;
   void updatePath(String path) {
@@ -87,8 +88,8 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
     }
   }
 
-  List _pendingRows = [];
-  void updateRow(List row) {
+  List _pendingRows = <dynamic>[];
+  void updateRow(List? row) {
     _pendingRows.add(row);
     if (!_pending) {
       _pending = true;
@@ -101,10 +102,10 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
       return;
     }
     _pending = false;
-    List rows = _pendingRows;
-    _pendingRows = [];
-    for (String path in _changes) {
-      _QuerySubscription sub = subscriptions[path];
+    var rows = _pendingRows;
+    _pendingRows = <dynamic>[];
+    for (var path in _changes) {
+      var sub = subscriptions[path];
       if (sub != null) {
         if (sub.removed) {
           if (!sub.justAdded) {
@@ -113,7 +114,7 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
           subscriptions.remove(path);
           sub.destroy();
         } else {
-          List data = sub.getRowData();
+          var data = sub.getRowData();
           if (data != null) {
             rows.add(data);
           }
@@ -129,30 +130,33 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
   // must be list result
   // new matched node [node,'+']
   // remove matched node [node, '-']
+  @override
   void updateFromBase(List updates) {
     for (List data in updates) {
       if (data[0] is LocalNode) {
         LocalNode node = data[0];
         if (data[1] == '+') {
           if (!subscriptions.containsKey(node.path)) {
-            subscriptions[node.path] = new _QuerySubscription(this, node);
+            subscriptions[node.path!] = _QuerySubscription(this, node);
           } else {
-            subscriptions[node.path].removed = false;
+            subscriptions[node.path]?.removed = false;
           }
         } else if (data[1] == '-') {
           if (subscriptions.containsKey(node.path)) {
-            subscriptions[node.path].removed = true;
-            updatePath(node.path);
+            subscriptions[node.path]?.removed = true;
+            updatePath(node.path!);
           }
         }
       }
     }
   }
 
+  @override
   String toString() {
     return r'subscribe $value';
   }
 
+  @override
   void destroy() {
     super.destroy();
     subscriptions.forEach((String key, _QuerySubscription sub) {

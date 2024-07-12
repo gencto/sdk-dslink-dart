@@ -3,11 +3,11 @@ part of dslink.historian;
 abstract class HistorianAdapter {
   Future<HistorianDatabaseAdapter> getDatabase(Map config);
 
-  List<Map<String, dynamic>> getCreateDatabaseParameters();
+  List<Map> getCreateDatabaseParameters();
 }
 
 abstract class HistorianDatabaseAdapter {
-  Future<HistorySummary> getSummary(String group, String path);
+  Future<HistorySummary> getSummary(String? group, String path);
   Future store(List<ValueEntry> entries);
   Stream<ValuePair> fetchHistory(String group, String path, TimeRange range);
   Future purgePath(String group, String path, TimeRange range);
@@ -15,6 +15,6 @@ abstract class HistorianDatabaseAdapter {
 
   Future close();
 
-  addWatchPathExtensions(WatchPathNode node) {}
-  addWatchGroupExtensions(WatchGroupNode node) {}
+  void addWatchPathExtensions(WatchPathNode node) {}
+  void addWatchGroupExtensions(WatchGroupNode node) {}
 }

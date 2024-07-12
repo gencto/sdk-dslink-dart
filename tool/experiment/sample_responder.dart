@@ -5,32 +5,37 @@ import 'package:dslink/common.dart';
 import 'dart:async';
 
 class TestNodeProvider extends NodeProvider {
-  TestNode onlyNode;
+  late TestNode onlyNode;
 
   TestNodeProvider() {
-    onlyNode = new TestNode('/', this);
+    onlyNode = TestNode('/', this);
   }
 
-  LocalNode getNode(String path) {
+  @override
+  LocalNode? getNode(String? path) {
     return onlyNode;
   }
 
-  IPermissionManager permissions = new DummyPermissionManager();
+  @override
+  IPermissionManager permissions = DummyPermissionManager();
 
-  Responder createResponder(String dsId, String sessionId) {
-    return new Responder(this, dsId);
+  @override
+  Responder createResponder(String? dsId, String sessionId) {
+    return Responder(this, dsId);
   }
 
+  @override
   LocalNode getOrCreateNode(String path, [bool addToTree = true]) {
     return onlyNode;
   }
 }
 
 class TestNode extends LocalNodeImpl {
+  @override
   NodeProvider provider;
 
   TestNode(String path, this.provider) : super(path) {
-    new Timer.periodic(const Duration(seconds: 5), updateTime);
+    Timer.periodic(const Duration(seconds: 5), updateTime);
     configs[r'$is'] = 'node';
     configs[r'$test'] = 'hello world';
   }
@@ -41,23 +46,25 @@ class TestNode extends LocalNodeImpl {
     updateValue(count++);
   }
 
+  @override
   bool get exists => true;
 
   @override
-  InvokeResponse invoke(Map params,
-    Responder responder,
-    InvokeResponse response,
-    Node parentNode,
-    [int maxPermission = Permission.CONFIG]) {
+  InvokeResponse invoke(
+      Map params, Responder responder, InvokeResponse response, Node parentNode,
+      [int maxPermission = Permission.CONFIG]) {
     response.updateStream(
-      [[1, 2]], streamStatus: StreamStatus.closed, columns: [{
-      'name': 'v1',
-      'type': 'number'
-    }, {
-      'name': 'v2',
-      'type': 'number'
-    }
-    ]);
+        <List<dynamic>>[
+          <int>[1, 2]
+        ],
+        streamStatus: StreamStatus.closed,
+        columns: <List<Map<String, String>>>[
+          <Map<String, String>>[
+            <String, String>{'name': 'v1', 'type': 'number'},
+            <String, String>{'name': 'v2', 'type': 'number'}
+          ]
+        ]);
+
     return response;
   }
 }

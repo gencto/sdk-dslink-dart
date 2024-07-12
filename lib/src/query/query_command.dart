@@ -2,11 +2,11 @@ part of dslink.query;
 
 abstract class BrokerQueryCommand {
   final BrokerQueryManager _manager;
-  BrokerQueryCommand(this._manager) {}
+  BrokerQueryCommand(this._manager);
 
-  BrokerQueryCommand base;
-  Set<BrokerQueryCommand> nexts = new Set<BrokerQueryCommand>();
-  Set<InvokeResponse> responses = new Set<InvokeResponse>();
+  BrokerQueryCommand? base;
+  Set<BrokerQueryCommand> nexts = <BrokerQueryCommand>{};
+  Set<InvokeResponse> responses = <InvokeResponse>{};
 
   void addResponse(InvokeResponse response) {
     response.onClose = _onResponseClose;
@@ -37,16 +37,16 @@ abstract class BrokerQueryCommand {
   void updateFromBase(List updats);
 
   void destroy() {
-    for (InvokeResponse resp in responses) {
+    for (var resp in responses) {
       resp.close;
     }
     if (base != null) {
-      base.removeNext(this);
+      base?.removeNext(this);
     }
     _manager._dict.remove(getQueryId());
   }
 
-  String _cachedQueryId;
+  String? _cachedQueryId;
 
   /// return a unified String as the key of the map
   String getQueryId() {
@@ -57,6 +57,6 @@ abstract class BrokerQueryCommand {
         _cachedQueryId = toString();
       }
     }
-    return _cachedQueryId;
+    return _cachedQueryId!;
   }
 }

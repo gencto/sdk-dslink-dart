@@ -9,24 +9,25 @@ import '../../utils.dart';
 CryptoProvider _CRYPTO_PROVIDER = DartCryptoProvider.INSTANCE;
 bool _isCryptoProviderLocked = false;
 
-setCryptoProvider(CryptoProvider provider) {
-  if(_isCryptoProviderLocked)
-    throw new StateError("crypto provider is locked");
+void setCryptoProvider(CryptoProvider provider) {
+  if (_isCryptoProviderLocked) {
+    throw StateError('crypto provider is locked');
+  }
   _CRYPTO_PROVIDER = provider;
   _isCryptoProviderLocked = true;
 }
 
-lockCryptoProvider() => _isCryptoProviderLocked = true;
+bool lockCryptoProvider() => _isCryptoProviderLocked = true;
 
 abstract class CryptoProvider {
-  static String sha256(List<int> list){
-    Uint8List bytes = ByteDataUtil.list2Uint8List(list);
+  static String sha256(List<int> list) {
+    var bytes = ByteDataUtil.list2Uint8List(list);
     return _CRYPTO_PROVIDER.base64_sha256(bytes);
   }
 
   DSRandom get random;
 
-  Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old);
+  Future<ECDH> assign(PublicKey? publicKeyRemote, ECDH? old);
   Future<ECDH> getSecret(PublicKey publicKeyRemote);
 
   Future<PrivateKey> generate();
@@ -42,8 +43,8 @@ abstract class CryptoProvider {
 abstract class ECDH {
   String get encodedPublicKey;
 
-  static Future<ECDH> assign(PublicKey publicKeyRemote, ECDH old) async =>
-    _CRYPTO_PROVIDER.assign(publicKeyRemote, old);
+  static Future<ECDH> assign(PublicKey? publicKeyRemote, ECDH? old) async =>
+      _CRYPTO_PROVIDER.assign(publicKeyRemote, old);
 
   String hashSalt(String salt);
 
@@ -59,7 +60,7 @@ abstract class PublicKey {
   PublicKey();
 
   factory PublicKey.fromBytes(Uint8List bytes) =>
-    _CRYPTO_PROVIDER.getKeyFromBytes(bytes);
+      _CRYPTO_PROVIDER.getKeyFromBytes(bytes);
 
   String getDsId(String prefix) {
     return '$prefix$qHash64';
@@ -73,16 +74,15 @@ abstract class PublicKey {
 abstract class PrivateKey {
   PublicKey get publicKey;
 
-  static Future<PrivateKey> generate() async =>
-    _CRYPTO_PROVIDER.generate();
+  static Future<PrivateKey> generate() async => _CRYPTO_PROVIDER.generate();
 
-  factory PrivateKey.generateSync() =>
-    _CRYPTO_PROVIDER.generateSync();
+  factory PrivateKey.generateSync() => _CRYPTO_PROVIDER.generateSync();
 
   factory PrivateKey.loadFromString(String str) =>
-    _CRYPTO_PROVIDER.loadFromString(str);
+      _CRYPTO_PROVIDER.loadFromString(str);
 
   String saveToString();
+
   /// get the secret from the remote public key
   Future<ECDH> getSecret(String tempKey);
 }
@@ -92,7 +92,7 @@ abstract class DSRandom {
   bool get needsEntropy;
 
   int nextUint16() {
-    var data = new ByteData(2);
+    var data = ByteData(2);
     data.setUint8(0, nextUint8());
     data.setUint8(1, nextUint8());
 
@@ -105,14 +105,17 @@ abstract class DSRandom {
 }
 
 class DummyECDH implements ECDH {
-  final String encodedPublicKey = "";
+  @override
+  final String encodedPublicKey = '';
 
   const DummyECDH();
 
+  @override
   String hashSalt(String salt) {
     return '';
   }
 
+  @override
   bool verifySalt(String salt, String hash) {
     return true;
   }
