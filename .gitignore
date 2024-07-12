@@ -4,6 +4,7 @@
 packages
 build
 pubspec.lock
+.vscode
 .idea
 *.iml
 /test/experiment/.dslink.key
