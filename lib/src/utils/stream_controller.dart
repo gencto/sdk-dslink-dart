@@ -146,7 +146,7 @@ class CachedStreamWrapper<T> extends Stream<T> {
   StreamSubscription<T> listen(void Function(T event)? onData,
       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     if (_onListen != null && onData != null) {
-      _onListen!(onData);
+      _onListen(onData);
     }
 
     return _stream.listen(onData,
