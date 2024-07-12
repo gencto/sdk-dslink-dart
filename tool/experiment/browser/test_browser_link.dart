@@ -13,7 +13,7 @@ void main() {
       PrivateKey.loadFromString('M6S41GAL0gH0I97Hhy7A2-icf8dHnxXPmYIRwem03HE');
 
   var link = BrowserECDHLink(
-      'http://dev.sviteco.ua/conn', 'test-browser-responder-', key,
+      'http://dev.gencto.uk/conn', 'test-browser-responder-', key,
       isResponder: true, nodeProvider: TestNodeProvider());
 
   link.connect();

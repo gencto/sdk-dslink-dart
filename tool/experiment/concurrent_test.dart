@@ -53,7 +53,7 @@ Future<void> main() async {
       help: 'Number of Link Pairs',
       defaultsTo: '1000',
       valueHelp: 'pairs');
-  var opts = argp.parse(['https://dev.sviteco.ua/conn']);
+  var opts = argp.parse(['https://dev.gencto.uk/conn']);
 
   try {
     pairCount = int.parse(opts['pairs']);
@@ -126,11 +126,11 @@ PrivateKey key = PrivateKey.loadFromString(
 void createLinkPair() async {
   var provider = TestNodeProvider();
   var linkResp = HttpClientLink(
-      'https://dev.sviteco.ua/conn', 'responder-$pairIndex-', key,
+      'https://dev.gencto.uk/conn', 'responder-$pairIndex-', key,
       isRequester: false, isResponder: true, nodeProvider: provider);
 
   var linkReq = HttpClientLink(
-      'https://dev.sviteco.ua/conn', 'requester-$pairIndex-', key,
+      'https://dev.gencto.uk/conn', 'requester-$pairIndex-', key,
       isRequester: true);
   linkReq.connect();
 

@@ -9,7 +9,7 @@ late LinkProvider link;
 int current = 0;
 
 void main() {
-  link = LinkProvider(['--broker', 'https://dev.sviteco.ua/conn'], 'Large-',
+  link = LinkProvider(['--broker', 'https://dev.gencto.uk/conn'], 'Large-',
       defaultNodes: <String, dynamic>{
         'Generate': {
           r'$invokable': 'write',

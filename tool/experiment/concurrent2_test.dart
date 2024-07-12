@@ -44,7 +44,7 @@ class TestNode extends LocalNodeImpl {
 }
 
 int pairCount = 1000;
-String broker = 'https://dev.sviteco.ua/conn';
+String broker = 'https://dev.gencto.uk/conn';
 Stopwatch? stopwatch;
 Random random = Random();
 
@@ -59,7 +59,7 @@ Future<void> main() async {
   argp.addOption('broker',
       abbr: 'b',
       help: 'Broker Url',
-      defaultsTo: 'https://dev.sviteco.ua/conn',
+      defaultsTo: 'https://dev.gencto.uk/conn',
       valueHelp: 'broker');
   argp.addOption('prefix',
       abbr: 'f',
@@ -67,7 +67,7 @@ Future<void> main() async {
       defaultsTo: '',
       valueHelp: 'previx');
 
-  var opts = argp.parse(['https://dev.sviteco.ua/conn']);
+  var opts = argp.parse(['https://dev.gencto.uk/conn']);
 
   try {
     pairCount = int.parse(opts['pairs']);
