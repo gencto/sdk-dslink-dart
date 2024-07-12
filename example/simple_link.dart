@@ -9,7 +9,7 @@ void main(List<String> args) async {
   link = LinkProvider(
       [
         '--broker',
-        'http://dev.sviteco.ua/conn',
+        'http://dev.gencto.uk/conn',
       ],
       'Simple-',
       defaultNodes: <String, dynamic>{

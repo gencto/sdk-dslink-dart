@@ -82,7 +82,7 @@ void main() {
   }, profiles);
 
   var rng = Random();
-  HttpClientLink('https://dev.sviteco.ua/conn', 'locker-', key,
+  HttpClientLink('https://dev.gencto.uk/conn', 'locker-', key,
           isResponder: true, nodeProvider: nodeProvider)
       .connect();
   Timer.periodic(Duration(seconds: 2), (v) {

@@ -6,7 +6,7 @@ void main(List<String> args) async {
   link = LinkProvider(
     [
       '--broker',
-      'https://dev.sviteco.ua/conn',
+      'https://dev.gencto.uk/conn',
     ],
     'Simple-Requester-', // DSLink Prefix
     defaultLogLevel: 'DEBUG',

@@ -17,7 +17,7 @@ Future<void> main() async {
   var storedNodes = await storage.load();
 
   link = LinkProvider(
-      ['-b', 'https://dev.sviteco.ua/conn', '--log', 'finest'], 'qos-resp',
+      ['-b', 'https://dev.gencto.uk/conn', '--log', 'finest'], 'qos-resp',
       defaultNodes: defaultNodes);
 
   if (link.link == null) {
