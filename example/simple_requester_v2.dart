@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:dslink/dslink.dart';
 import 'package:dslink/nodes.dart';
 
@@ -108,12 +106,10 @@ void main(List<String> args) async {
   link?.connect();
 }
 
-Future<bool> doesNodeHaveChildren(String path) async {
+doesNodeHaveChildren(String path) async {
   RequesterListUpdate? update = await link?.requester
       ?.list(path)
       .first
-      .timeout(const Duration(seconds: 1), onTimeout: () {
-    return Future.value(null);
-  });
+      .timeout(const Duration(seconds: 1));
   return update == null ? false : update.node.children.isNotEmpty;
 }
