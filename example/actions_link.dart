@@ -4,7 +4,7 @@ late LinkProvider? link;
 
 void main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
-  link = LinkProvider(['--broker', 'https://dev.gencto.uk/conn'], 'Actions-',
+  link = LinkProvider(['--broker', 'https://dev.sviteco.ua/conn'], 'Actions-',
       defaultNodes: <String, dynamic>{
         'message': {
           r'$name': 'Message', // The pretty name of this node.
