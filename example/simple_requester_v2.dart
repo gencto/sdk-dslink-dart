@@ -4,7 +4,7 @@ import 'package:dslink/nodes.dart';
 LinkProvider? link;
 
 void main(List<String> args) async {
-  link = LinkProvider(['--broker', 'http://dev.gencto.uk/conn'], 'Requester-s',
+  link = LinkProvider(['--broker', 'http://localhost:80/conn'], 'Requester-s',
       defaultNodes: <String, dynamic>{
         'Get': {
           r'$is': 'get',

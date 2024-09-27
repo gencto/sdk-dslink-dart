@@ -4,7 +4,7 @@ import 'package:dslink/dslink.dart';
 
 Future main(List<String> args) async {
   var link = LinkProvider(
-      ['--broker', 'http://dev.gencto.uk/conn'], 'Example-',
+      ['--broker', 'http://localhost:80/conn'], 'Example-',
       profiles: {TesterNode.isType: (String path) => TesterNode(path)});
 
   var numGen = Random();
