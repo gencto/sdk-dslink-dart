@@ -1,8 +1,8 @@
 import 'package:dslink/historian.dart';
 
 void main(List<String> args) {
-  var historian = historianMain(
-      ['--broker', 'https://dev.gencto.uk/conn', '--log','debug'], 'history', HA());
+  historianMain(['--broker', 'https://localhost:443/conn', '--log', 'debug'],
+      'history', HA());
 }
 
 class HA extends HistorianAdapter {

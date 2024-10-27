@@ -4,7 +4,7 @@ import 'package:dslink/nodes.dart';
 LinkProvider? link;
 
 void main(List<String> args) async {
-  link = LinkProvider(['--broker', 'http://dev.gencto.uk/conn'], 'Requester-s',
+  link = LinkProvider(['--broker', 'http://dsa.gencto.uk/conn'], 'Requester-s',
       defaultNodes: <String, dynamic>{
         'Get': {
           r'$is': 'get',
@@ -42,13 +42,12 @@ void main(List<String> args) async {
               String path = params['node'];
               var update = await link!.requester!.list(path).first;
               var list = <dynamic>[];
-
-              for (var key in update.node.configs.keys) {
-                list.add(<String, dynamic>{
-                  'key': key,
-                  'value': update.node.configs[key]
-                });
-              }
+                for (var key in update.node.configs.keys) {
+                  list.add(<String, dynamic>{
+                    'key': key,
+                    'value': update.node.configs[key]
+                  });
+                }
 
               for (var key in update.node.attributes.keys) {
                 list.add({'key': key, 'value': update.node.attributes[key]});
@@ -106,10 +105,8 @@ void main(List<String> args) async {
   link?.connect();
 }
 
-doesNodeHaveChildren(String path) async {
+Future<bool> doesNodeHaveChildren(String path) async {
   RequesterListUpdate? update = await link?.requester
-      ?.list(path)
-      .first
-      .timeout(const Duration(seconds: 1));
-  return update == null ? false : update.node.children.isNotEmpty;
+      ?.list(path).first;
+  return update?.node.children.isNotEmpty ?? false;
 }
