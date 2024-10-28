@@ -4,7 +4,7 @@ late LinkProvider link;
 
 void main(List<String> args) async {
   link = LinkProvider(
-    ['--broker', 'http://dsa.gencto.uk/conn', '--log', 'debug'],
+    ['--broker', 'http://127.0.0.1:8080/conn', '--log', 'debug'],
     'Simple-Requester-', // DSLink Prefix
     defaultLogLevel: 'DEBUG',
     isResponder: false,

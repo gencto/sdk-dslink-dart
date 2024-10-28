@@ -9,7 +9,7 @@ void main(List<String> args) async {
   link = LinkProvider(
       [
         '--broker',
-        'http://dev.gencto.uk/conn',
+        'http://127.0.0.1:8080/conn',
       ],
       'Simple-',
       defaultNodes: <String, dynamic>{
