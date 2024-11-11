@@ -162,7 +162,7 @@ class SubscribeResponse extends Response {
     subscriptions.clear();
     if (pendingControllers != null) {
       for (RespSubscribeController controller in pendingControllers!) {
-        subscriptions[controller.node.path!] = controller;
+        subscriptions[controller.node.path] = controller;
       }
     }
 
@@ -242,9 +242,9 @@ class RespSubscribeController {
     var storageM = response.responder.storage;
     if (storageM != null) {
       if (_persist) {
-        _storage = storageM.getOrCreateValue(node.path!);
+        _storage = storageM.getOrCreateValue(node.path);
       } else if (_storage != null) {
-        storageM.destroyValue(node.path!);
+        storageM.destroyValue(node.path);
         _storage = null;
       }
     }
@@ -411,7 +411,7 @@ class RespSubscribeController {
   void destroy() {
     if (_storage != null) {
       var storageM = response.responder.storage!;
-      storageM.destroyValue(node.path!);
+      storageM.destroyValue(node.path);
       _storage = null;
     }
     _listener!.cancel();

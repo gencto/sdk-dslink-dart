@@ -2,7 +2,7 @@ part of dslink.historian;
 
 class GetHistoryNode extends SimpleNode {
   GetHistoryNode(String path)
-      : super(path, _link!.provider as SimpleNodeProvider?) {
+      : super(path, _link.provider as SimpleNodeProvider?) {
     configs[r'$is'] = 'getHistory';
     configs[r'$name'] = 'Get History';
     configs[r'$invokable'] = 'read';
@@ -105,9 +105,9 @@ class GetHistoryNode extends SimpleNode {
   }
 
   Stream<ValuePair> fetchHistoryData(TimeRange range) {
-    var p = Path(path!);
+    var p = Path(path);
     var mn = p.parent;
-    var pn = _link![mn.path] as WatchPathNode;
+    var pn = _link[mn.path] as WatchPathNode;
 
     return pn.fetchHistory(range) as Stream<ValuePair>;
   }

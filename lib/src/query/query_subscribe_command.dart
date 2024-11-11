@@ -137,14 +137,14 @@ class QueryCommandSubscribe extends BrokerQueryCommand {
         LocalNode node = data[0];
         if (data[1] == '+') {
           if (!subscriptions.containsKey(node.path)) {
-            subscriptions[node.path!] = _QuerySubscription(this, node);
+            subscriptions[node.path] = _QuerySubscription(this, node);
           } else {
             subscriptions[node.path]?.removed = false;
           }
         } else if (data[1] == '-') {
           if (subscriptions.containsKey(node.path)) {
             subscriptions[node.path]?.removed = true;
-            updatePath(node.path!);
+            updatePath(node.path);
           }
         }
       }

@@ -36,7 +36,7 @@ abstract class LocalNode extends Node {
   NodeProvider? get provider;
 
   /// Node Path
-  final String? path;
+  final String path;
 
   LocalNode(this.path);
 
@@ -238,7 +238,7 @@ abstract class LocalNode extends Node {
 /// A single node provider can be reused by multiple responder.
 abstract class NodeProvider {
   /// Gets an existing node.
-  LocalNode? getNode(String? path);
+  LocalNode? getNode(String path);
 
   /// Gets a node at the given [path] if it exists.
   /// If it does not exist, create a new node and return it.

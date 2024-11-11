@@ -7,7 +7,7 @@ late Requester r;
 
 void main() async {
   var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath(
-      'broker_url', 'http://localhost:8080/conn');
+      'broker_url', 'https://dsa.gencto.uk/conn');
 
   link = LinkProvider(brokerUrl, 'HtmlGrid-',
       isRequester: true, isResponder: false);

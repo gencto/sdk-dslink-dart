@@ -10,8 +10,8 @@ void main() {
   };
 
   link = LinkProvider(
-      ['-b', 'dev.gencto.uk/conn', '--log', 'finest'], 'qos-req',
-      defaultNodes: defaultNodes, isResponder: false, isRequester: true);
+      ['-b', 'dsa.gencto.uk/conn', '--log', 'finest'], 'qos-req',
+      defaultNodes: defaultNodes, isResponder: true, isRequester: true);
   if (link.link == null) {
     // initialization failed
     return;

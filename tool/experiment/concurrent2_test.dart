@@ -43,8 +43,8 @@ class TestNode extends LocalNodeImpl {
   }
 }
 
-int pairCount = 1000;
-String broker = 'https://dev.gencto.uk/conn';
+int pairCount = 10;
+String broker = 'https://dsa.gencto.uk/conn';
 Stopwatch? stopwatch;
 Random random = Random();
 
@@ -54,12 +54,12 @@ Future<void> main() async {
   argp.addOption('pairs',
       abbr: 'p',
       help: 'Number of Link Pairs',
-      defaultsTo: '1000',
+      defaultsTo: '10',
       valueHelp: 'pairs');
   argp.addOption('broker',
       abbr: 'b',
       help: 'Broker Url',
-      defaultsTo: 'https://dev.gencto.uk/conn',
+      defaultsTo: 'https://dsa.gencto.uk/conn',
       valueHelp: 'broker');
   argp.addOption('prefix',
       abbr: 'f',
@@ -67,7 +67,7 @@ Future<void> main() async {
       defaultsTo: '',
       valueHelp: 'previx');
 
-  var opts = argp.parse(['https://dev.gencto.uk/conn']);
+  var opts = argp.parse(['https://dsa.gencto.uk/conn']);
 
   try {
     pairCount = int.parse(opts['pairs']);

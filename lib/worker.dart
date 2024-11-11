@@ -345,7 +345,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
     } else if (type == 'req') {
       _handleRequest(msg['n'], msg['i'], msg['a']);
     } else if (type == 'res') {
-      String id = msg['i'];
+      int id = msg['i'];
       dynamic result = msg['r'];
       dynamic err = msg['e'];
       if (err != null) {
@@ -463,7 +463,7 @@ class WorkerSocket extends Stream<dynamic> implements StreamSink<dynamic> {
       }
     }
 
-    var completer = Completer<void>();
+    var completer = Completer();
 
     var rid = 0;
     while (_responseHandlers[rid] != null) {

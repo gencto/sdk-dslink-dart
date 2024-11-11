@@ -4,7 +4,7 @@ class HistorySummary {
   final ValuePair? first;
   final ValuePair? last;
 
-  HistorySummary(this.first, this.last);
+  HistorySummary({this.first, this.last});
 }
 
 class ValuePair {
