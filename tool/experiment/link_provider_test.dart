@@ -67,7 +67,7 @@ class RemoveSelfAction extends SimpleNode {
 
   @override
   Object? onInvoke(Map params) {
-    List p = path!.split('/')..removeLast();
+    List p = path.split('/')..removeLast();
     var parentPath = p.join('/');
     link.removeNode(parentPath);
     link.save();
@@ -137,7 +137,7 @@ void main() {
   };
 
   link = LinkProvider(
-      ['-b', 'dev.gencto.uk/conn', '--log', 'finest'], 'rick-resp-',
+      ['-b', 'dsa.gencto.uk/conn', '--log', 'finest'], 'rick-resp-',
       defaultNodes: defaultNodes,
       profiles: profiles /*, home:'dgSuper'*/,
       linkData: <String, dynamic>{'a': 1});
@@ -146,7 +146,7 @@ void main() {
     return;
   }
 
-  addNode = link.getNode('/add') as SimpleNode;
+  addNode = link.getNode('/add') as AddNodeAction;
   rootNode = link.getNode('/') as SimpleNode;
   lastNum = (addNode.configs[r'$lastNum'] ?? 0) as int;
 

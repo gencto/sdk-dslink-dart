@@ -1,7 +1,7 @@
 part of dslink.historian;
 
 FutureOr<void> historianMain(
-    List<String> args, String name, HistorianAdapter adapter) async {
+    List<String> args, String name, HistorianAdapter adapter) {
   _historian = adapter;
 
   _link = LinkProvider(args, '$name-',
@@ -26,14 +26,14 @@ FutureOr<void> historianMain(
         'watchPath': (String path) => WatchPathNode(path),
         'database': (String path) => DatabaseNode(path),
         'delete': (String path) => DeleteActionNode.forParent(
-                path, _link?.provider as MutableNodeProvider, onDelete: () {
-              _link?.save();
+                path, _link.provider as MutableNodeProvider, onDelete: () {
+              _link.save();
             }),
         'purgePath': (String path) => PurgePathNode(path),
         'purgeGroup': (String path) => PurgeGroupNode(path),
         'publishValue': (String path) => PublishValueAction(path)
       },
       encodePrettyJson: true);
-  _link?.init();
-  await _link?.connect();
+  _link.init();
+  _link.connect();
 }

@@ -247,7 +247,7 @@ abstract class SerializableNodeProvider {
 /// Interface for node providers that are mutable.
 abstract class MutableNodeProvider {
   /// Updates the value of the node at [path] to the given [value].
-  void updateValue(String path, Object? value);
+  void updateValue(String path, Object value);
 
   /// Adds a node at the given [path] that is initialized with the given data in [m].
   LocalNode? addNode(String path, Map m);
@@ -302,7 +302,7 @@ class SimpleNodeProvider extends NodeProviderImpl
   final List<SimpleNodeFactory> _resolverFactories = [];
 
   @override
-  LocalNode? getNode(String? path) {
+  LocalNode? getNode(String path) {
     return _getNode(path);
   }
 
@@ -481,9 +481,9 @@ class SimpleNodeProvider extends NodeProviderImpl
     root = SimpleNode('/', this);
     nodes['/'] = root;
     defs = SimpleHiddenNode('/defs', this);
-    nodes[defs!.path!] = defs!;
+    nodes[defs!.path] = defs!;
     sys = SimpleHiddenNode('/sys', this);
-    nodes[sys!.path!] = sys!;
+    nodes[sys!.path] = sys!;
 
     init(m, profiles);
   }
@@ -543,7 +543,7 @@ class SimpleNodeProvider extends NodeProviderImpl
 
     if (registerChildren) {
       for (var c in node.children.values.cast<SimpleNode>()) {
-        setNode(c.path!, c);
+        setNode(c.path, c);
       }
     }
   }
@@ -676,7 +676,7 @@ class SimpleNodeProvider extends NodeProviderImpl
     var buff = StringBuffer();
 
     void doNode(LocalNode node, [int depth = 0]) {
-      var p = Path(node.path!);
+      var p = Path(node.path);
       buff.write("${'  ' * depth}- ${p.name}");
 
       if (showInstances) {
@@ -758,7 +758,7 @@ class SimpleNode extends LocalNodeImpl {
   /// part of their parent.
   bool get isStubNode => _stub;
 
-  SimpleNode(String? path, [SimpleNodeProvider? nodeprovider])
+  SimpleNode(String path, [SimpleNodeProvider? nodeprovider])
       : provider = nodeprovider ?? SimpleNodeProvider.instance!,
         super(path);
 
@@ -1088,7 +1088,7 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Gets the parent node of this node.
   SimpleNode get parent =>
-      provider.getNode(Path(path!).parentPath) as SimpleNode;
+      provider.getNode(Path(path).parentPath) as SimpleNode;
 
   /// Callback used to accept or reject a value when it is set.
   /// Return true to reject the value, and false to accept it.
@@ -1142,13 +1142,13 @@ class SimpleNode extends LocalNodeImpl {
   /// Creates a child with the given [name].
   /// If [m] is specified, the node is loaded with that map.
   SimpleNode createChild(String name, [Map? m]) {
-    var tp = Path(path!).child(name).path;
+    var tp = Path(path).child(name).path;
     return provider.addNode(tp, m ?? <String, dynamic>{}) as SimpleNode;
   }
 
   /// Gets the name of this node.
   /// This is the last component of this node's path.
-  String get name => Path(path!).name;
+  String get name => Path(path).name;
 
   /// Gets the current display name of this node.
   /// This is the $name config. If it does not exist, then null is returned.
@@ -1214,7 +1214,7 @@ class SimpleNode extends LocalNodeImpl {
 
   /// Remove this node from it's parent.
   void remove() {
-    provider.removeNode(path!);
+    provider.removeNode(path);
   }
 
   /// Add this node to the given node.

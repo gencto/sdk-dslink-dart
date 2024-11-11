@@ -133,7 +133,7 @@ class _ListingNode {
       var childListing = command._dict[child.path];
       if (childListing == null) {
         childListing = _ListingNode(command, child, parsedpath);
-        command._dict[child.path!] = childListing;
+        command._dict[child.path] = childListing;
       }
       if (match == _ListNodeMatch.MATCHED) {
         childListing.addMatchPos(abspos + 1);
@@ -212,7 +212,7 @@ class QueryCommandList extends BrokerQueryCommand {
             print('not implemented');
           } else {
             var listing = _ListingNode(this, node, parsedpath);
-            _dict[node.path!] = listing;
+            _dict[node.path] = listing;
             listing.addMatchPos(1);
           }
         } else if (data[1] == '-') {

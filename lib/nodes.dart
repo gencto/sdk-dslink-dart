@@ -155,7 +155,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
       : super(defaultNodes, profiles);
 
   @override
-  LocalNode? getNode(String? path,
+  LocalNode? getNode(String path,
       {Completer<CallbackNode?>? onLoaded, bool forceHandle = false}) {
     var node = super.getNode(path);
     if (path != '/' && node != null && !forceHandle) {
@@ -275,7 +275,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
   Completer? onLoadedCompleter;
   ValueUpdateCallback<bool>? onValueSetCallback;
 
-  CallbackNode(String? path,
+  CallbackNode(String path,
       {SimpleNodeProvider? provider,
       this.onActionInvoke,
       ChildChangedCallback? onChildAdded,

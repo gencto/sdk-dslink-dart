@@ -19,8 +19,8 @@ part 'src/historian/container.dart';
 part 'src/historian/publish.dart';
 part 'src/historian/main.dart';
 
-LinkProvider? _link;
-HistorianAdapter? _historian;
+late LinkProvider _link;
+late HistorianAdapter _historian;
 
-HistorianAdapter? get historian => _historian;
-LinkProvider? get link => _link;
+HistorianAdapter get historian => _historian;
+LinkProvider get link => _link;

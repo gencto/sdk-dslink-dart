@@ -4,10 +4,9 @@ part of dslink.client;
 class HttpClientLink extends ClientLink {
   final Completer<Requester> _onRequesterReadyCompleter =
       Completer<Requester>();
-  Completer<void> _onConnectedCompleter = Completer<void>();
+  Completer _onConnectedCompleter = Completer();
 
-  @override
-  Future<Requester?> get onRequesterReady => _onRequesterReadyCompleter.future;
+  Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
   Future? get onConnected => _onConnectedCompleter.future;
 

@@ -311,7 +311,7 @@ class LinkProvider {
           if (provider is SimpleNodeProvider) {
             var prov = provider as SimpleNodeProvider;
             for (var node in prov.nodes.values) {
-              var p = Path(node.path!);
+              var p = Path(node.path);
               if (prov.nodes[p.parentPath] == null) {
                 print(node.path);
               } else if (!prov.nodes[p.parentPath]!.children
@@ -640,7 +640,7 @@ class LinkProvider {
   Requester? get requester => link?.requester;
 
   /// Completes when the requester is ready for use.
-  Future<Requester?> get onRequesterReady => link!.onRequesterReady;
+  Future<Requester> get onRequesterReady => link!.onRequesterReady;
 
   /// Closes the link by disconnecting from the broker.
   /// You can call [connect] again once you have closed a link.

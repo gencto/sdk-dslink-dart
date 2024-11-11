@@ -33,8 +33,8 @@ class Postgres extends HistorianDatabaseAdapter {
   Future<HistorySummary> getSummary(String? group, String path) {
     return Future.delayed(
         Duration(seconds: 1),
-        () => HistorySummary(ValuePair('2020-02-02T01:01:02', 2),
-            ValuePair('2020-02-02T01:01:01', 1)));
+        () => HistorySummary(first: ValuePair('2020-02-02T01:01:02', 2),
+            last: ValuePair('2020-02-02T01:01:01', 1)));
   }
 
   @override

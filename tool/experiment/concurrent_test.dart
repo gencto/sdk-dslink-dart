@@ -41,7 +41,7 @@ class TestNode extends LocalNodeImpl {
   }
 }
 
-int pairCount = 1000;
+int pairCount = 10;
 
 Stopwatch? stopwatch;
 Random random = Random();
@@ -51,9 +51,9 @@ Future<void> main() async {
   argp.addOption('pairs',
       abbr: 'p',
       help: 'Number of Link Pairs',
-      defaultsTo: '1000',
+      defaultsTo: '10',
       valueHelp: 'pairs');
-  var opts = argp.parse(['https://dev.gencto.uk/conn']);
+  var opts = argp.parse(['https://dsa.gencto.uk/conn']);
 
   try {
     pairCount = int.parse(opts['pairs']);
@@ -126,11 +126,11 @@ PrivateKey key = PrivateKey.loadFromString(
 void createLinkPair() async {
   var provider = TestNodeProvider();
   var linkResp = HttpClientLink(
-      'https://dev.gencto.uk/conn', 'responder-$pairIndex-', key,
+      'https://dsa.gencto.uk/conn', 'responder-$pairIndex-', key,
       isRequester: false, isResponder: true, nodeProvider: provider);
 
   var linkReq = HttpClientLink(
-      'https://dev.gencto.uk/conn', 'requester-$pairIndex-', key,
+      'https://dsa.gencto.uk/conn', 'requester-$pairIndex-', key,
       isRequester: true);
   linkReq.connect();
 
