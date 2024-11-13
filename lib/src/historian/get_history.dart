@@ -74,7 +74,7 @@ class GetHistoryNode extends SimpleNode {
     }
 
     try {
-      var pairs = calculateHistory(tr!, interval, rollup!);
+      var pairs = calculateHistory(tr!, interval, rollup);
 
       if (params['Real Time'] == true) {
         await for (ValuePair pair in pairs) {
@@ -113,7 +113,7 @@ class GetHistoryNode extends SimpleNode {
   }
 
   Stream<ValuePair> calculateHistory(
-      TimeRange range, Duration interval, Rollup rollup) async* {
+      TimeRange range, Duration interval, Rollup? rollup) async* {
     if (interval.inMilliseconds <= 0) {
       yield* fetchHistoryData(range);
       return;
@@ -125,7 +125,7 @@ class GetHistoryNode extends SimpleNode {
     ValuePair? result;
 
     await for (ValuePair pair in fetchHistoryData(range)) {
-      rollup.add(pair.value);
+      rollup?.add(pair.value);
       if (lastTimestamp != -1) {
         totalTime += pair.time.millisecondsSinceEpoch - lastTimestamp;
       }
@@ -135,10 +135,10 @@ class GetHistoryNode extends SimpleNode {
         result = ValuePair(
             DateTime.fromMillisecondsSinceEpoch(lastTimestamp)
                 .toIso8601String(),
-            rollup.value);
+            rollup?.value);
         yield result;
         result = null;
-        rollup.reset();
+        rollup?.reset();
       }
     }
 
