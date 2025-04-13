@@ -1,6 +1,6 @@
-part of dslink.utils;
+part of dsalink.utils;
 
-class DSLinkJSON {
+class DsalinkJSON {
   Map? _json;
 
   Map? get json => _json;
@@ -13,10 +13,10 @@ class DSLinkJSON {
   Map<String, Map> configs = {};
   List<String>? getDependencies = [];
 
-  DSLinkJSON();
+  DsalinkJSON();
 
-  factory DSLinkJSON.from(Map? map) {
-    var j = DSLinkJSON();
+  factory DsalinkJSON.from(Map? map) {
+    var j = DsalinkJSON();
     j._json = map;
     j.name = map?['name'];
     j.version = map?['version'];
@@ -30,11 +30,11 @@ class DSLinkJSON {
 
   void verify() {
     if (name == null) {
-      throw Exception('DSLink Name is required.');
+      throw Exception('dsalink Name is required.');
     }
 
     if (main == null) {
-      throw Exception('DSLink Main Script is required.');
+      throw Exception('dsalink Main Script is required.');
     }
   }
 

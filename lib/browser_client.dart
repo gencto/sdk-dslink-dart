@@ -1,19 +1,20 @@
 /// Base API for DSA in the Browser
-library dslink.browser_client;
+library dsalink.browser_client;
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:typed_data';
 
-import 'common.dart';
-import 'utils.dart';
-import 'requester.dart';
-import 'responder.dart';
+import 'package:dsalink/common.dart';
+import 'package:dsalink/requester.dart';
+import 'package:dsalink/responder.dart';
+import 'package:dsalink/utils.dart';
+import 'package:web/web.dart';
+import 'package:http/http.dart' as http;
 
 import 'src/crypto/pk.dart';
 
-part 'src/browser/browser_user_link.dart';
 part 'src/browser/browser_ecdh_link.dart';
+part 'src/browser/browser_user_link.dart';
 part 'src/browser/browser_ws_conn.dart';
 
 /// A Storage System for DSA Data
@@ -56,7 +57,7 @@ class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
   Future<String> get(String key) async => window.localStorage[key] ?? '';
 
   @override
-  Future<bool> has(String key) async => window.localStorage.containsKey(key);
+  Future<bool> has(String key) async => window.localStorage[key] != null;
 
   @override
   Future store(String key, String value) {
@@ -66,12 +67,14 @@ class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
 
   @override
   Future<String> remove(String key) async {
-    return window.localStorage.remove(key) ?? '';
+    window.localStorage.removeItem(key);
+    return key;
   }
 
   @override
   String removeSync(String key) {
-    return window.localStorage.remove(key)!;
+    window.localStorage.removeItem(key);
+    return key;
   }
 
   @override
@@ -80,7 +83,7 @@ class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
   }
 
   @override
-  bool hasSync(String key) => window.localStorage.containsKey(key);
+  bool hasSync(String key) => window.localStorage[key] != null;
 
   @override
   String getSync(String key) => window.localStorage[key] ?? '';
@@ -99,7 +102,8 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
 
   var keyPath = 'dsa_key:${window.location.pathname}';
   String? keyLockPath = 'dsa_key_lock:${window.location.pathname}';
-  var randomToken = '${DateTime.now().millisecondsSinceEpoch}'
+  var randomToken =
+      '${DateTime.now().millisecondsSinceEpoch}'
       ' ${DSRandom.instance.nextUint16()}'
       ' ${DSRandom.instance.nextUint16()}';
 
@@ -146,8 +150,10 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
 
   if (keyLockPath != null) {
     if (storage is SynchronousDataStorage) {
-      (storage as SynchronousDataStorage)
-          .storeSync(keyPath, _cachedPrivateKey!.saveToString());
+      (storage as SynchronousDataStorage).storeSync(
+        keyPath,
+        _cachedPrivateKey!.saveToString(),
+      );
       (storage as SynchronousDataStorage).storeSync(keyLockPath, randomToken);
     } else {
       await storage.store(keyPath, _cachedPrivateKey!.saveToString());
@@ -169,5 +175,5 @@ void _startStorageLock(String lockKey, String lockToken) {
     }
   }
 
-  window.onStorage.listen(onStorage);
+  window.addEventListener('storage', onStorage as EventListener);
 }

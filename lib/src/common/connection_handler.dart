@@ -1,4 +1,4 @@
-part of dslink.common;
+part of dsalink.common;
 
 abstract class ConnectionProcessor {
   static const int ACK_WAIT_COUNT = 16;

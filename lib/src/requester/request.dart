@@ -1,4 +1,4 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 /// request class handles raw response from responder
 /// Represents a request made by the requester.

@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 abstract class NodeProviderImpl extends NodeProvider {
   Map<String, dynamic> get nodes;
@@ -71,7 +71,11 @@ abstract class LocalNodeImpl extends LocalNode {
 
   @override
   Response? setAttribute(
-      String name, Object value, Responder responder, Response? response) {
+    String name,
+    Object value,
+    Responder responder,
+    Response? response,
+  ) {
     if (!attributes.containsKey(name) || attributes[name] != value) {
       attributes[name] = value;
       updateList(name);
@@ -85,7 +89,10 @@ abstract class LocalNodeImpl extends LocalNode {
 
   @override
   Response? removeAttribute(
-      String name, Responder responder, Response? response) {
+    String name,
+    Responder responder,
+    Response? response,
+  ) {
     if (attributes.containsKey(name)) {
       attributes.remove(name);
       updateList(name);
@@ -99,10 +106,15 @@ abstract class LocalNodeImpl extends LocalNode {
 
   @override
   Response? setConfig(
-      String name, Object value, Responder responder, Response? response) {
+    String name,
+    Object value,
+    Responder responder,
+    Response? response,
+  ) {
     var config = Configs.getConfig(name, profile);
-    response
-        ?.close((config as ConfigSetting).setConfig(value, this, responder));
+    response?.close(
+      (config as ConfigSetting).setConfig(value, this, responder),
+    );
     return response;
   }
 
@@ -114,8 +126,12 @@ abstract class LocalNodeImpl extends LocalNode {
   }
 
   @override
-  Response? setValue(Object? value, Responder? responder, Response? response,
-      [int maxPermission = Permission.CONFIG]) {
+  Response? setValue(
+    Object? value,
+    Responder? responder,
+    Response? response, [
+    int maxPermission = Permission.CONFIG,
+  ]) {
     updateValue(value);
     // TODO: check value type
     return response?..close();

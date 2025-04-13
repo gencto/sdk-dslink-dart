@@ -1,7 +1,8 @@
-import 'package:dslink/client.dart';
-import 'package:dslink/responder.dart';
 import 'dart:async';
 import 'dart:math';
+
+import 'package:dsalink/client.dart';
+import 'package:dsalink/responder.dart';
 
 late SimpleNodeProvider nodeProvider;
 
@@ -29,7 +30,8 @@ class ChangeLocker extends SimpleNode {
 
 void main() {
   var key = PrivateKey.loadFromString(
-      't5YRKgaZyhXNNberpciIoYzz3S1isttspwc4QQhiaVk BJ403K-ND1Eau8UJA7stsYI2hdgiOKhNVDItwg7sS6MfG2iSRGqM2UodSF0mb8GbD8s2OAukQ03DFLULw72bklo');
+    't5YRKgaZyhXNNberpciIoYzz3S1isttspwc4QQhiaVk BJ403K-ND1Eau8UJA7stsYI2hdgiOKhNVDItwg7sS6MfG2iSRGqM2UodSF0mb8GbD8s2OAukQ03DFLULw72bklo',
+  );
 
   var profiles = <String, NodeFactory>{
     'openLocker': (String path) {
@@ -46,13 +48,13 @@ void main() {
       'open': {
         // an action to open the door
         r'$invokable': 'read',
-        r'$is': 'openLocker'
+        r'$is': 'openLocker',
       },
       'opened': {
         // the open status value
         r'$type': 'bool',
-        '?value': false
-      }
+        '?value': false,
+      },
     },
     'locker2': {
       r'$is': 'locker',
@@ -60,14 +62,14 @@ void main() {
         // an action to open the door
         r'$invokable': 'read',
         r'$params': [
-          {'name': 'value', 'type': 'bool', 'default': true}
+          {'name': 'value', 'type': 'bool', 'default': true},
         ],
-        r'$is': 'changeLocker'
+        r'$is': 'changeLocker',
       },
       'opened': {
         // the open status value
         r'$type': 'bool',
-        '?value': false
+        '?value': false,
       },
       'test': {
         // the open status value
@@ -75,21 +77,25 @@ void main() {
         '?value': {
           'a': 'hello',
           'b': [1, 2, 3],
-          'c': {'d': 'hi', 'e': 3}
-        }
-      }
-    }
+          'c': {'d': 'hi', 'e': 3},
+        },
+      },
+    },
   }, profiles);
 
   var rng = Random();
-  HttpClientLink('https://dsa.gencto.uk/conn', 'locker-', key,
-          isResponder: true, nodeProvider: nodeProvider)
-      .connect();
+  HttpClientLink(
+    'https://127.0.0.1/conn',
+    'locker-',
+    key,
+    isResponder: true,
+    nodeProvider: nodeProvider,
+  ).connect();
   Timer.periodic(Duration(seconds: 2), (v) {
     nodeProvider.updateValue('/locker2/test', {
       'a': 'hello',
       'b': [1, 2, 3],
-      'c': {'d': 'hi', 'e': rng.nextInt(500)}
+      'c': {'d': 'hi', 'e': rng.nextInt(500)},
     });
   });
 }

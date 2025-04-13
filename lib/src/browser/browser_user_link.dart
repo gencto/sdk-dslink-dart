@@ -1,4 +1,4 @@
-part of dslink.browser_client;
+part of dsalink.browser_client;
 
 /// a client link for both http and ws
 class BrowserUserLink extends ClientLink {
@@ -8,7 +8,8 @@ class BrowserUserLink extends ClientLink {
   @override
   Future<Requester> get onRequesterReady => _onRequesterReadyCompleter.future;
 
-  static String session = DSRandom.instance.nextUint16().toRadixString(16) +
+  static String session =
+      DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16) +
       DSRandom.instance.nextUint16().toRadixString(16);
@@ -26,10 +27,7 @@ class BrowserUserLink extends ClientLink {
 
   bool enableAck;
 
-  static const Map<String, int> saltNameMap = {
-    'salt': 0,
-    'saltS': 1,
-  };
+  static const Map<String, int> saltNameMap = {'salt': 0, 'saltS': 1};
 
   @override
   void updateSalt(String salt) {
@@ -39,17 +37,18 @@ class BrowserUserLink extends ClientLink {
   late String wsUpdateUri;
   String format = 'json';
 
-  BrowserUserLink(
-      {NodeProvider? nodeProvider,
-      bool isRequester = true,
-      bool isResponder = true,
-      required this.wsUpdateUri,
-      this.enableAck = false,
-      String? format})
-      : requester = isRequester ? Requester() : null,
-        responder = (isResponder && nodeProvider != null)
-            ? Responder(nodeProvider)
-            : null {
+  BrowserUserLink({
+    NodeProvider? nodeProvider,
+    bool isRequester = true,
+    bool isResponder = true,
+    required this.wsUpdateUri,
+    this.enableAck = false,
+    String? format,
+  }) : requester = isRequester ? Requester() : null,
+       responder =
+           (isResponder && nodeProvider != null)
+               ? Responder(nodeProvider)
+               : null {
     if (wsUpdateUri.startsWith('http')) {
       wsUpdateUri = 'ws${wsUpdateUri.substring(4)}';
     }
@@ -73,8 +72,12 @@ class BrowserUserLink extends ClientLink {
 
   void initWebsocket([bool reconnect = true]) {
     var socket = WebSocket('$wsUpdateUri?session=$session&format=$format');
-    _wsConnection = WebSocketConnection(socket, this,
-        enableAck: enableAck, useCodec: DsCodec.getCodec(format));
+    _wsConnection = WebSocketConnection(
+      socket,
+      this,
+      enableAck: enableAck,
+      useCodec: DsCodec.getCodec(format),
+    );
 
     if (responder != null) {
       responder!.connection = _wsConnection!.responderChannel;

@@ -1,4 +1,4 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 /// manage cached nodes for requester
 /// TODO: cleanup nodes that are no longer in use
@@ -134,22 +134,36 @@ class RemoteNode extends Node {
   }
 
   void _subscribe(
-      Requester requester, Function(ValueUpdate update) callback, int qos) {
+    Requester requester,
+    Function(ValueUpdate update) callback,
+    int qos,
+  ) {
     _subscribeController ??= ReqSubscribeController(this, requester);
     _subscribeController?.listen(callback, qos);
   }
 
   void _unsubscribe(
-      Requester requester, Function(ValueUpdate update) callback) {
+    Requester requester,
+    Function(ValueUpdate update) callback,
+  ) {
     if (_subscribeController != null) {
       _subscribeController?.unlisten(callback);
     }
   }
 
-  Stream<RequesterInvokeUpdate> _invoke(Map params, Requester requester,
-      [int maxPermission = Permission.CONFIG, RequestConsumer? fetchRawReq]) {
-    return InvokeController(this, requester, params, maxPermission, fetchRawReq)
-        ._stream;
+  Stream<RequesterInvokeUpdate> _invoke(
+    Map params,
+    Requester requester, [
+    int maxPermission = Permission.CONFIG,
+    RequestConsumer? fetchRawReq,
+  ]) {
+    return InvokeController(
+      this,
+      requester,
+      params,
+      maxPermission,
+      fetchRawReq,
+    )._stream;
   }
 
   /// used by list api to update simple data for children

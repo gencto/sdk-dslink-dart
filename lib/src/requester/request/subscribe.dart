@@ -1,4 +1,4 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 class ReqSubscribeListener implements StreamSubscription<dynamic> {
   ValueUpdateCallback? callback;
@@ -57,7 +57,12 @@ class SubscribeController implements RequestUpdater {
 
   @override
   void onUpdate(
-      String? status, List? updates, List? columns, Map? meta, DSError? error) {
+    String? status,
+    List? updates,
+    List? columns,
+    Map? meta,
+    DSError? error,
+  ) {
     // do nothing
   }
 }
@@ -83,7 +88,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       <int, ReqSubscribeController>{};
 
   SubscribeRequest(Requester requester, int rid)
-      : super(requester, rid, SubscribeController(), null) {
+    : super(requester, rid, SubscribeController(), null) {
     (updater as SubscribeController).request = this;
   }
 
@@ -172,7 +177,8 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       prepareSending();
     } else if (subscriptionIds.containsKey(controller.sid)) {
       logger.severe(
-          'unexpected remoteSubscription in the requester, sid: ${controller.sid}');
+        'unexpected remoteSubscription in the requester, sid: ${controller.sid}',
+      );
     }
   }
 
@@ -205,8 +211,10 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       }
     }
     if (toAdd.isNotEmpty) {
-      requester._sendRequest(
-          <String, dynamic>{'method': 'subscribe', 'paths': toAdd}, null);
+      requester._sendRequest(<String, dynamic>{
+        'method': 'subscribe',
+        'paths': toAdd,
+      }, null);
     }
     if (toRemove.isNotEmpty) {
       var removeSids = <int>[];
@@ -218,8 +226,10 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
           sub._destroy();
         }
       });
-      requester._sendRequest(
-          <String, dynamic>{'method': 'unsubscribe', 'sids': removeSids}, null);
+      requester._sendRequest(<String, dynamic>{
+        'method': 'unsubscribe',
+        'sids': removeSids,
+      }, null);
       toRemove.clear();
     }
   }

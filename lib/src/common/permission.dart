@@ -1,4 +1,4 @@
-part of dslink.common;
+part of dsalink.common;
 
 class Permission {
   /// now allowed to do anything
@@ -25,7 +25,7 @@ class Permission {
     'read',
     'write',
     'config',
-    'never'
+    'never',
   ];
 
   static const Map<String, int> nameParser = {
@@ -34,7 +34,7 @@ class Permission {
     'read': READ,
     'write': WRITE,
     'config': CONFIG,
-    'never': NEVER
+    'never': NEVER,
   };
 
   static int parse(Object? obj, [int defaultVal = NEVER]) {

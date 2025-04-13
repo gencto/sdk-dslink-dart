@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 class ListResponse extends Response {
   LocalNode node;
@@ -6,9 +6,11 @@ class ListResponse extends Response {
   late int _permission;
 
   ListResponse(Responder responder, int rid, this.node)
-      : super(responder, rid, 'list') {
-    _permission =
-        responder.nodeProvider.permissions.getPermission(node.path, responder);
+    : super(responder, rid, 'list') {
+    _permission = responder.nodeProvider.permissions.getPermission(
+      node.path,
+      responder,
+    );
     _nodeChangeListener = node.listStream.listen(changed);
     if (node.listReady) {
       prepareSending();
@@ -60,8 +62,11 @@ class ListResponse extends Response {
     var updateChildren = <dynamic>[];
 
     if (node.disconnected != null) {
-      responder.updateResponse(this, node.getDisconnectedListResponse(),
-          streamStatus: StreamStatus.open);
+      responder.updateResponse(
+        this,
+        node.getDisconnectedListResponse(),
+        streamStatus: StreamStatus.open,
+      );
 
       _disconnectSent = true;
       changes.clear();
@@ -106,8 +111,9 @@ class ListResponse extends Response {
               }
             }
             if (name == r'$invokable') {
-              var invokePermission =
-                  Permission.parse(node.getConfig(r'$invokable'));
+              var invokePermission = Permission.parse(
+                node.getConfig(r'$invokable'),
+              );
               if (invokePermission > _permission) {
                 updateConfigs.add([r'$invokable', 'never']);
                 return;
@@ -146,8 +152,9 @@ class ListResponse extends Response {
               }
             }
             if (change == r'$invokable') {
-              var invokePermission =
-                  Permission.parse(node.getConfig(r'$invokable'));
+              var invokePermission = Permission.parse(
+                node.getConfig(r'$invokable'),
+              );
               if (invokePermission > _permission) {
                 updateConfigs.add([r'$invokable', 'never']);
                 continue;

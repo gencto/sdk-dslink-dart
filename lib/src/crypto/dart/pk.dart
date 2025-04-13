@@ -1,4 +1,4 @@
-library dslink.pk.dart;
+library dsalink.pk.dart;
 
 import 'dart:async';
 import 'dart:convert';
@@ -40,7 +40,9 @@ class DartCryptoProvider implements CryptoProvider {
     if (ECDHIsolate.running) {
       if (old is ECDHImpl) {
         return ECDHIsolate._sendRequest(
-            publicKeyRemote, old._ecPrivateKey.d!.toRadixString(16));
+          publicKeyRemote,
+          old._ecPrivateKey.d!.toRadixString(16),
+        );
       } else {
         return ECDHIsolate._sendRequest(publicKeyRemote, null);
       }
@@ -82,8 +84,7 @@ class DartCryptoProvider implements CryptoProvider {
     var rsapars = ECKeyGeneratorParameters(_secp256r1);
     var params = ParametersWithRandom(rsapars, random);
     gen.init(params);
-    var pair =
-        gen.generateKeyPair() as AsymmetricKeyPair<ECPublicKey, ECPrivateKey>;
+    var pair = gen.generateKeyPair();
 
     PublicKeyImpl? publicKeyRemoteImpl;
 
@@ -109,8 +110,7 @@ class DartCryptoProvider implements CryptoProvider {
     var params = ParametersWithRandom(rsapars, random);
     gen.init(params);
     var pair = gen.generateKeyPair();
-    return PrivateKeyImpl(
-        pair.privateKey as ECPrivateKey, pair.publicKey as ECPublicKey?);
+    return PrivateKeyImpl(pair.privateKey, pair.publicKey as ECPublicKey?);
   }
 
   @override
@@ -266,7 +266,7 @@ class DSRandomImpl implements DSRandom, SecureRandom {
       r.nextInt(256),
       r.nextInt(256),
       r.nextInt(256),
-      r.nextInt(256)
+      r.nextInt(256),
     ];
     final key = KeyParameter(Uint8List.fromList(keyBytes));
     r = Math.Random((DateTime.now()).millisecondsSinceEpoch);
@@ -278,7 +278,7 @@ class DSRandomImpl implements DSRandom, SecureRandom {
       r.nextInt(256),
       r.nextInt(256),
       r.nextInt(256),
-      r.nextInt(256)
+      r.nextInt(256),
     ]);
     final params = ParametersWithIV<CipherParameters>(key, iv);
     _delegate.seed(params);

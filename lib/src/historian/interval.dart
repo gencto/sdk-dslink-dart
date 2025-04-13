@@ -1,4 +1,4 @@
-part of dslink.historian;
+part of dsalink.historian;
 
 const Map<List<String>, int> _intervalTypes = {
   ['ms', 'millis', 'millisecond', 'milliseconds']: 1,
@@ -8,7 +8,7 @@ const Map<List<String>, int> _intervalTypes = {
   ['d', 'day', 'days']: 86400000,
   ['wk', 'week', 'weeks']: 604800000,
   ['n', 'month', 'months']: 2628000000,
-  ['year', 'years', 'y']: 31536000000
+  ['year', 'years', 'y']: 31536000000,
 };
 
 List<String>? __intervalAllTypes;
@@ -21,8 +21,9 @@ List<String>? get _intervalAllTypes {
   return __intervalAllTypes;
 }
 
-final RegExp _intervalPattern =
-    RegExp("^(\\d*?.?\\d*?)(${_intervalAllTypes?.join('|')})\$");
+final RegExp _intervalPattern = RegExp(
+  "^(\\d*?.?\\d*?)(${_intervalAllTypes?.join('|')})\$",
+);
 
 int parseInterval(String? input) {
   if (input == null) {

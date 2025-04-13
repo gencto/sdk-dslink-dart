@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 class Response implements ConnectionProcessor {
   final Responder responder;

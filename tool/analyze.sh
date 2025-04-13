@@ -6,7 +6,7 @@ FILES=(
     lib/browser_client.dart
     lib/client.dart
     lib/common.dart
-    lib/dslink.dart
+    lib/dsalink.dart
     lib/nodes.dart
     lib/requester.dart
     lib/responder.dart

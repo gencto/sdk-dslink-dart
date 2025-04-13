@@ -1,10 +1,14 @@
 import 'dart:async';
+
+import 'package:dsalink/historian.dart';
 import 'package:influxdb_client/api.dart';
-import 'package:dslink/historian.dart';
 
 void main(List<String> args) {
-  var historian = historianMain(
-      ['--broker', 'https://dev.gencto.uk/conn', '--log','debug'], 'history', HA());
+  historianMain(
+    ['--broker', 'https://127.0.0.1/conn', '--log', 'debug'],
+    'history',
+    HA(),
+  );
 }
 
 class HA extends HistorianAdapter {
@@ -16,10 +20,10 @@ class HA extends HistorianAdapter {
         'name': 'token',
         'type': 'string',
         'default':
-            'TRDX3sB8K3MW3iyZGz6qdIsV_ZfbLfafFX3q-BIIqPj-BeVPPu5PVLMgNNFceJxEoDfAmqtRqnzg72VRZ2mQLg=='
+            'TRDX3sB8K3MW3iyZGz6qdIsV_ZfbLfafFX3q-BIIqPj-BeVPPu5PVLMgNNFceJxEoDfAmqtRqnzg72VRZ2mQLg==',
       },
       {'name': 'org', 'type': 'string', 'default': 'mydb'},
-      {'name': 'bucket', 'type': 'string', 'default': 'mydb'}
+      {'name': 'bucket', 'type': 'string', 'default': 'mydb'},
     ];
   }
 
@@ -48,12 +52,7 @@ class InfluxDBAdapter extends HistorianDatabaseAdapter {
     required this.org,
     required this.bucket,
   }) {
-    client = InfluxDBClient(
-      url: url,
-      token: token,
-      org: org,
-      bucket: bucket,
-    );
+    client = InfluxDBClient(url: url, token: token, org: org, bucket: bucket);
     writeService = client.getWriteService();
     queryService = client.getQueryService();
   }
@@ -63,12 +62,7 @@ class InfluxDBAdapter extends HistorianDatabaseAdapter {
   late final QueryService queryService;
 
   void onCreated() {
-    client = InfluxDBClient(
-      url: url,
-      token: token,
-      org: org,
-      bucket: bucket,
-    );
+    client = InfluxDBClient(url: url, token: token, org: org, bucket: bucket);
     writeService = client.getWriteService();
     queryService = client.getQueryService();
   }
@@ -81,7 +75,10 @@ class InfluxDBAdapter extends HistorianDatabaseAdapter {
 
   @override
   Stream<ValuePair> fetchHistory(
-      String group, String path, TimeRange range) async* {
+    String group,
+    String path,
+    TimeRange range,
+  ) async* {
     var query = '''
 from(bucket: "mydb")
     |> range(start: 2024-09-22T21:00:00.000Z, stop: 2024-09-23T20:59:59.999Z)
@@ -99,9 +96,12 @@ from(bucket: "mydb")
   @override
   Future<HistorySummary> getSummary(String? group, String path) {
     return Future.delayed(
-        Duration(seconds: 1),
-        () => HistorySummary(ValuePair('2020-02-02T01:01:02', 2),
-            ValuePair('2020-02-02T01:01:01', 1)));
+      Duration(seconds: 1),
+      () => HistorySummary(
+        first: ValuePair('2020-02-02T01:01:02', 2),
+        last: ValuePair('2020-02-02T01:01:01', 1),
+      ),
+    );
   }
 
   @override
@@ -119,12 +119,13 @@ from(bucket: "mydb")
   @override
   Future store(List<ValueEntry> entries) async {
     if (entries.isNotEmpty) {
-      var points = entries.map((entry) {
-        return Point('dglux')
-            .addTag('sys', 'perseq')
-            .addField(entry.path, int.parse(entry.value))
-            .time(DateTime.now().toUtc());
-      }).toList();
+      var points =
+          entries.map((entry) {
+            return Point('dglux')
+                .addTag('sys', 'perseq')
+                .addField(entry.path, int.parse(entry.value))
+                .time(DateTime.now().toUtc());
+          }).toList();
 
       await writeService.write(points);
     }

@@ -1,10 +1,11 @@
-library dslink.storage.web;
+library dsalink.storage.web;
 
-import '../../responder.dart';
-import '../../common.dart';
-import 'dart:html';
-import '../../utils.dart';
 import 'dart:async';
+import 'dart:html';
+
+import '../../common.dart';
+import '../../responder.dart';
+import '../../utils.dart';
 
 class WebResponderStorage extends ISubscriptionResponderStorage {
   Map<String, WebNodeStorage> values = <String, WebNodeStorage>{};
@@ -64,7 +65,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   late String storePath;
 
   WebNodeStorage(String path, String prefix, WebResponderStorage storage)
-      : super(path, storage) {
+    : super(path, storage) {
     storePath = '$prefix$path';
   }
 
@@ -72,7 +73,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   @override
   void addValue(ValueUpdate value) {
     qos = 3;
-    value.storedData = '${DsJson.encode(value.toMap())}\n';
+    value.storedData = '${DsaJson.encode(value.toMap())}\n';
     if (window.localStorage.containsKey(storePath)) {
       window.localStorage[storePath] =
           (window.localStorage[storePath] ?? '') + value.storedData.toString();
@@ -84,7 +85,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
   @override
   void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue) {
     qos = 2;
-    newValue.storedData = ' ${DsJson.encode(newValue.toMap())}\n';
+    newValue.storedData = ' ${DsaJson.encode(newValue.toMap())}\n';
     // add a space when qos = 2
     window.localStorage[storePath] = newValue.storedData.toString();
   }
@@ -135,7 +136,7 @@ class WebNodeStorage extends ISubscriptionNodeStorage {
       }
 
       try {
-        Map m = DsJson.decode(s);
+        Map m = DsaJson.decode(s);
         var value = ValueUpdate(m['value'], ts: m['ts'], meta: m);
         rslt.add(value);
       } catch (err) {}

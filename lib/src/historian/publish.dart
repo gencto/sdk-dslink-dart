@@ -1,4 +1,4 @@
-part of dslink.historian;
+part of dsalink.historian;
 
 class PublishValueAction extends SimpleNode {
   PublishValueAction(String path) : super(path);
@@ -21,13 +21,15 @@ class PublishValueAction extends SimpleNode {
 
     WatchPathNode pn;
     if (node is! WatchPathNode) {
-      pn = _link.addNode(tp, <String, dynamic>{
-        r'$name': inputPath,
-        r'$is': 'watchPath',
-        r'$publish': true,
-        r'$type': 'dynamic',
-        r'$path': inputPath
-      }) as WatchPathNode;
+      pn =
+          _link.addNode(tp, <String, dynamic>{
+                r'$name': inputPath,
+                r'$is': 'watchPath',
+                r'$publish': true,
+                r'$type': 'dynamic',
+                r'$path': inputPath,
+              })
+              as WatchPathNode;
       _link.save();
     } else {
       pn = node;

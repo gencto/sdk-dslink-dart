@@ -1,8 +1,8 @@
-part of dslink.historian;
+part of dsalink.historian;
 
 class GetHistoryNode extends SimpleNode {
   GetHistoryNode(String path)
-      : super(path, _link.provider as SimpleNodeProvider?) {
+    : super(path, _link.provider as SimpleNodeProvider?) {
     configs[r'$is'] = 'getHistory';
     configs[r'$name'] = 'Get History';
     configs[r'$invokable'] = 'read';
@@ -11,7 +11,7 @@ class GetHistoryNode extends SimpleNode {
       {
         'name': 'Interval',
         'type': 'enum',
-        'editor': buildEnumType([
+        'editor': BuildEnumType([
           'default',
           'none',
           '1Y',
@@ -34,22 +34,30 @@ class GetHistoryNode extends SimpleNode {
           '15S',
           '10S',
           '5S',
-          '1S'
+          '1S',
         ]),
-        'default': 'default'
+        'default': 'default',
       },
       {
         'name': 'Rollup',
-        'type': buildEnumType(
-            ['none', 'avg', 'min', 'max', 'sum', 'first', 'last', 'count'])
+        'type': BuildEnumType([
+          'none',
+          'avg',
+          'min',
+          'max',
+          'sum',
+          'first',
+          'last',
+          'count',
+        ]),
       },
       {'name': 'Real Time', 'type': 'bool', 'default': false},
-      {'name': 'Batch Size', 'type': 'number', 'default': 0}
+      {'name': 'Batch Size', 'type': 'number', 'default': 0},
     ];
 
     configs[r'$columns'] = [
       {'name': 'timestamp', 'type': 'time'},
-      {'name': 'value', 'type': 'dynamic'}
+      {'name': 'value', 'type': 'dynamic'},
     ];
 
     configs[r'$result'] = 'stream';
@@ -113,7 +121,10 @@ class GetHistoryNode extends SimpleNode {
   }
 
   Stream<ValuePair> calculateHistory(
-      TimeRange range, Duration interval, Rollup? rollup) async* {
+    TimeRange range,
+    Duration interval,
+    Rollup? rollup,
+  ) async* {
     if (interval.inMilliseconds <= 0) {
       yield* fetchHistoryData(range);
       return;
@@ -133,9 +144,9 @@ class GetHistoryNode extends SimpleNode {
       if (totalTime >= interval.inMilliseconds) {
         totalTime = 0;
         result = ValuePair(
-            DateTime.fromMillisecondsSinceEpoch(lastTimestamp)
-                .toIso8601String(),
-            rollup?.value);
+          DateTime.fromMillisecondsSinceEpoch(lastTimestamp).toIso8601String(),
+          rollup?.value,
+        );
         yield result;
         result = null;
         rollup?.reset();

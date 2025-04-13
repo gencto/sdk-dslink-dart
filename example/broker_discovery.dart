@@ -1,4 +1,4 @@
-import 'package:dslink/dslink.dart';
+import 'package:dsalink/dsalink.dart';
 
 void main() async {
   var client = BrokerDiscoveryClient();

@@ -1,4 +1,4 @@
-part of dslink.query;
+part of dsalink.query;
 
 class _ListNodeMatch {
   static const int MATCHED = 1;
@@ -87,7 +87,7 @@ class _ListingNode {
       } else if (absn < parsedpath.length) {
         listener ??= node.listStream.listen(onList);
 
-        node.children.forEach((String name, Node? node) {
+        node.children.forEach((String name, Node node) {
           if (node is LocalNode) {
             checkChild(name, node, n);
           }
@@ -175,8 +175,10 @@ class QueryCommandList extends BrokerQueryCommand {
   }
   @override
   void init() {
-    var parsedpath =
-        List<_ListNodeMatch>.filled(rawpath.length, _ListNodeMatch(''));
+    var parsedpath = List<_ListNodeMatch>.filled(
+      rawpath.length,
+      _ListNodeMatch(''),
+    );
     for (var i = 0; i < rawpath.length; ++i) {
       parsedpath[i] = _ListNodeMatch(rawpath[i]);
     }

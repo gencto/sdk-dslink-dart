@@ -1,10 +1,10 @@
-library dslink.pk;
+library dsalink.pk;
 
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'dart/pk.dart' show DartCryptoProvider;
 import '../../utils.dart';
+import 'dart/pk.dart' show DartCryptoProvider;
 
 CryptoProvider _CRYPTO_PROVIDER = DartCryptoProvider.INSTANCE;
 bool _isCryptoProviderLocked = false;

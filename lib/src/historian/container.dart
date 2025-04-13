@@ -1,4 +1,4 @@
-part of dslink.historian;
+part of dsalink.historian;
 
 class DatabaseNode extends SimpleNode {
   Map<dynamic, dynamic>? config;
@@ -36,14 +36,14 @@ class DatabaseNode extends SimpleNode {
         r'$is': 'createWatchGroup',
         r'$invokable': 'write',
         r'$params': [
-          {'name': 'Name', 'type': 'string'}
-        ]
+          {'name': 'Name', 'type': 'string'},
+        ],
       });
 
       _link.addNode('$path/delete', <String, dynamic>{
         r'$name': 'Delete',
         r'$invokable': 'write',
-        r'$is': 'delete'
+        r'$is': 'delete',
       });
     });
   }
@@ -82,21 +82,27 @@ class WatchPathNode extends SimpleNode {
 
     var groupName = group?._watchName;
 
-    _link.addNode('$path/lwv',
-        <String, dynamic>{r'$name': 'Last Written Value', r'$type': 'dynamic'});
+    _link.addNode('$path/lwv', <String, dynamic>{
+      r'$name': 'Last Written Value',
+      r'$type': 'dynamic',
+    });
 
-    _link.addNode('$path/startDate',
-        <String, dynamic>{r'$name': 'Start Date', r'$type': 'string'});
+    _link.addNode('$path/startDate', <String, dynamic>{
+      r'$name': 'Start Date',
+      r'$type': 'string',
+    });
 
-    _link.addNode('$path/endDate',
-        <String, dynamic>{r'$name': 'End Date', r'$type': 'string'});
+    _link.addNode('$path/endDate', <String, dynamic>{
+      r'$name': 'End Date',
+      r'$type': 'string',
+    });
 
     if (children['enabled'] == null) {
       _link.addNode('$path/enabled', <String, dynamic>{
         r'$name': 'Enabled',
         r'$type': 'bool',
         '?value': true,
-        r'$writable': 'write'
+        r'$writable': 'write',
       });
     }
 
@@ -112,8 +118,10 @@ class WatchPathNode extends SimpleNode {
     }
 
     if (summary?.last != null) {
-      var update =
-          ValueUpdate(summary?.last!.value, ts: summary?.last!.timestamp);
+      var update = ValueUpdate(
+        summary?.last!.value,
+        ts: summary?.last!.timestamp,
+      );
       _link.updateValue('$path/lwv', update);
       updateValue(update);
     }
@@ -131,15 +139,15 @@ class WatchPathNode extends SimpleNode {
       r'$name': 'Purge',
       r'$invokable': 'write',
       r'$params': [
-        {'name': 'timeRange', 'type': 'string', 'editor': 'daterange'}
+        {'name': 'timeRange', 'type': 'string', 'editor': 'daterange'},
       ],
-      r'$is': 'purgePath'
+      r'$is': 'purgePath',
     });
 
     _link.addNode('$path/delete', <String, dynamic>{
       r'$name': 'Delete',
       r'$invokable': 'write',
-      r'$is': 'delete'
+      r'$is': 'delete',
     });
 
     _link.onValueChange('$path/enabled').listen((ValueUpdate update) {
@@ -248,7 +256,7 @@ class WatchGroupNode extends SimpleNode {
   String? _watchName;
 
   WatchGroupNode(String path)
-      : super(path, _link.provider as SimpleNodeProvider?);
+    : super(path, _link.provider as SimpleNodeProvider?);
 
   @override
   void onCreated() {
@@ -263,8 +271,8 @@ class WatchGroupNode extends SimpleNode {
       r'$invokable': 'write',
       r'$is': 'addWatchPath',
       r'$params': [
-        {'name': 'Path', 'type': 'string'}
-      ]
+        {'name': 'Path', 'type': 'string'},
+      ],
     });
 
     _link.addNode('$path/publish', <String, dynamic>{
@@ -274,23 +282,23 @@ class WatchGroupNode extends SimpleNode {
       r'$params': [
         {'name': 'Path', 'type': 'string'},
         {'name': 'Value', 'type': 'dynamic'},
-        {'name': 'Timestamp', 'type': 'string'}
-      ]
+        {'name': 'Timestamp', 'type': 'string'},
+      ],
     });
 
     _link.addNode('$path/delete', <String, dynamic>{
       r'$name': 'Delete',
       r'$invokable': 'write',
-      r'$is': 'delete'
+      r'$is': 'delete',
     });
 
     _link.addNode('$path/purge', <String, dynamic>{
       r'$name': 'Purge',
       r'$invokable': 'write',
       r'$params': [
-        {'name': 'timeRange', 'type': 'string', 'editor': 'daterange'}
+        {'name': 'timeRange', 'type': 'string', 'editor': 'daterange'},
       ],
-      r'$is': 'purgeGroup'
+      r'$is': 'purgeGroup',
     });
 
     Future(() async {

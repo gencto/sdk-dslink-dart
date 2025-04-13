@@ -1,4 +1,4 @@
-part of dslink.historian;
+part of dsalink.historian;
 
 abstract class HistorianAdapter {
   Future<HistorianDatabaseAdapter> getDatabase(Map config);

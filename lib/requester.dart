@@ -1,5 +1,5 @@
 /// DSA Requester API
-library dslink.requester;
+library dsalink.requester;
 
 import 'dart:async';
 import 'dart:collection';
@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'common.dart';
 import 'utils.dart';
 
-export 'package:dslink/utils.dart' show parseEnumType;
+export 'package:dsalink/utils.dart' show parseEnumType;
 
 part 'src/requester/requester.dart';
 part 'src/requester/request.dart';

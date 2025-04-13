@@ -1,5 +1,5 @@
 /// DSA Query Implementation
-library dslink.query;
+library dsalink.query;
 
 import 'dart:async';
 

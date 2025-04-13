@@ -1,4 +1,4 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 class SetController implements RequestUpdater {
   final Completer<RequesterUpdate> completer = Completer<RequesterUpdate>();
@@ -8,12 +8,16 @@ class SetController implements RequestUpdater {
   final Object? value;
   // Request? _request;
 
-  SetController(this.requester, this.path, this.value,
-      [int maxPermission = Permission.CONFIG]) {
+  SetController(
+    this.requester,
+    this.path,
+    this.value, [
+    int maxPermission = Permission.CONFIG,
+  ]) {
     var reqMap = <String, dynamic>{
       'method': 'set',
       'path': path,
-      'value': value
+      'value': value,
     };
 
     if (maxPermission != Permission.CONFIG) {
@@ -26,7 +30,12 @@ class SetController implements RequestUpdater {
 
   @override
   void onUpdate(
-      String? status, List? updates, List? columns, Map? meta, DSError? error) {
+    String? status,
+    List? updates,
+    List? columns,
+    Map? meta,
+    DSError? error,
+  ) {
     // TODO implement error
     completer.complete(RequesterUpdate(status));
   }

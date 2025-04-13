@@ -1,8 +1,8 @@
-import 'package:dslink/dslink.dart';
-import 'package:dslink/utils.dart' show ByteDataUtil, DsTimer;
-
 import 'dart:async';
 import 'dart:math' as Math;
+
+import 'package:dsalink/dsalink.dart';
+import 'package:dsalink/utils.dart' show ByteDataUtil, DsTimer;
 
 late LinkProvider link;
 int lastNum = 0;
@@ -41,8 +41,8 @@ class AddNodeAction extends SimpleNode {
     tableRslt.onClose = closed;
     tableRslt.columns = <List<Map<String, String>>>[
       <Map<String, String>>[
-        {'name': 'a'}
-      ]
+        {'name': 'a'},
+      ],
     ];
     Timer.periodic(Duration(milliseconds: 50), (Timer t) {
       if (tcount++ > 5) {
@@ -51,12 +51,13 @@ class AddNodeAction extends SimpleNode {
         return;
       }
       tableRslt.update(
-          <List<int>>[
-            [1],
-            [2]
-          ],
-          StreamStatus.initialize,
-          <String, dynamic>{'a': 'abc'});
+        <List<int>>[
+          [1],
+          [2],
+        ],
+        StreamStatus.initialize,
+        <String, dynamic>{'a': 'abc'},
+      );
     });
     return tableRslt; //new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
   }
@@ -103,25 +104,22 @@ void main() {
               'type': 'string',
               'placeholder': 'ccc',
               'description': 'abcd',
-              'default': 123
+              'default': 123,
             },
             'source': {'type': 'string', 'editor': 'password'},
             'destination': {'type': 'string'},
             'queueSize': {'type': 'string'},
             'pem': {'type': 'string'},
             'filePrefix': {'type': 'bool[disable,enable]'},
-            'copyToPath': {'type': 'enum[a,b,c]'}
+            'copyToPath': {'type': 'enum[a,b,c]'},
           },
           //r'$columns':[{'name':'name','type':'string'}],
           r'$lastNum': 0,
-          r'$result': 'stream'
-        }
-      }
+          r'$result': 'stream',
+        },
+      },
     },
-    'add': {
-      r'$is': 'addNodeAction',
-      r'$invokable': 'write',
-    }
+    'add': {r'$is': 'addNodeAction', r'$invokable': 'write'},
   };
 
   var profiles = <String, NodeFactory>{
@@ -133,14 +131,16 @@ void main() {
     },
     'rng': (String path) {
       return RngNode(path);
-    }
+    },
   };
 
   link = LinkProvider(
-      ['-b', 'dsa.gencto.uk/conn', '--log', 'finest'], 'rick-resp-',
-      defaultNodes: defaultNodes,
-      profiles: profiles /*, home:'dgSuper'*/,
-      linkData: <String, dynamic>{'a': 1});
+    ['-b', '127.0.0.1/conn', '--log', 'finest'],
+    'rick-resp-',
+    defaultNodes: defaultNodes,
+    profiles: profiles /*, home:'dgSuper'*/,
+    linkData: <String, dynamic>{'a': 1},
+  );
   if (link.link == null) {
     // initialization failed
     return;

@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 abstract class IPermissionManager {
   int getPermission(String? path, Responder resp);

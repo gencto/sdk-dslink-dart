@@ -1,8 +1,8 @@
-part of dslink.historian;
+part of dsalink.historian;
 
 class CreateWatchGroupNode extends SimpleNode {
   CreateWatchGroupNode(String path)
-      : super(path, _link.provider as SimpleNodeProvider?);
+    : super(path, _link.provider as SimpleNodeProvider?);
 
   @override
   void onInvoke(Map params) async {
@@ -11,15 +11,17 @@ class CreateWatchGroupNode extends SimpleNode {
 
     var p = Path(path);
 
-    _link.addNode('${p.parentPath}/$realName',
-        <String, dynamic>{r'$is': 'watchGroup', r'$name': name});
+    _link.addNode('${p.parentPath}/$realName', <String, dynamic>{
+      r'$is': 'watchGroup',
+      r'$name': name,
+    });
     _link.save();
   }
 }
 
 class AddDatabaseNode extends SimpleNode {
   AddDatabaseNode(String path)
-      : super(path, _link.provider as SimpleNodeProvider?);
+    : super(path, _link.provider as SimpleNodeProvider?);
 
   @override
   void onInvoke(Map params) async {
@@ -29,7 +31,7 @@ class AddDatabaseNode extends SimpleNode {
     _link.addNode('/$realName', <String, dynamic>{
       r'$is': 'database',
       r'$name': name,
-      r'$$db_config': params
+      r'$$db_config': params,
     });
     _link.save();
   }
@@ -49,7 +51,7 @@ class AddWatchPathNode extends SimpleNode {
       r'$name': wp,
       r'$path': wp,
       r'$is': 'watchPath',
-      r'$type': node?.configs[r'$type']
+      r'$type': node?.configs[r'$type'],
     });
 
     _link.save();
@@ -68,7 +70,10 @@ class PurgePathNode extends SimpleNode {
 
     var watchPathNode = _link[Path(path).parentPath] as WatchPathNode;
     await watchPathNode.group?.db?.database?.purgePath(
-        watchPathNode.group!._watchName!, watchPathNode.valuePath!, tr);
+      watchPathNode.group!._watchName!,
+      watchPathNode.valuePath!,
+      tr,
+    );
   }
 }
 
@@ -83,7 +88,9 @@ class PurgeGroupNode extends SimpleNode {
     }
 
     var watchGroupNode = _link[Path(path).parentPath] as WatchGroupNode;
-    await watchGroupNode.db?.database
-        ?.purgeGroup(watchGroupNode._watchName!, tr);
+    await watchGroupNode.db?.database?.purgeGroup(
+      watchGroupNode._watchName!,
+      tr,
+    );
   }
 }

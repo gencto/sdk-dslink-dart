@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 typedef ResponseTraceCallback = Function(ResponseTrace update);
 
@@ -18,13 +18,18 @@ class ResponseTrace {
   /// rid, only needed by invoke
   int? rid;
 
-//  {'name': 'path', 'type': 'string'},
-//  {'name': 'type', 'type': 'string'},
-//  {'name': 'rid', 'type': 'number'},
-//  {'name': 'action', 'type': 'string'},
-//  {'name': 'change', 'type': 'string'},
+  //  {'name': 'path', 'type': 'string'},
+  //  {'name': 'type', 'type': 'string'},
+  //  {'name': 'rid', 'type': 'number'},
+  //  {'name': 'action', 'type': 'string'},
+  //  {'name': 'change', 'type': 'string'},
   List get rowData => <dynamic>[path, type, rid, action, change];
 
-  ResponseTrace(this.path, this.type, this.rid,
-      [this.change = '', this.action]);
+  ResponseTrace(
+    this.path,
+    this.type,
+    this.rid, [
+    this.change = '',
+    this.action,
+  ]);
 }

@@ -1,4 +1,4 @@
-part of dslink.query;
+part of dsalink.query;
 
 abstract class BrokerQueryCommand {
   final BrokerQueryManager _manager;

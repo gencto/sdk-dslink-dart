@@ -1,28 +1,27 @@
-import 'package:dslink/dslink.dart';
 import 'dart:io';
 import 'dart:typed_data';
+
+import 'package:dsalink/dsalink.dart';
 
 LinkProvider? link;
 
 void main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
   link = LinkProvider(
-      [
-        '--broker',
-        'http://127.0.0.1:8080/conn',
-      ],
-      'Simple-',
-      defaultNodes: <String, dynamic>{
-        'message': {
-          r'$name': 'Message', // The pretty name of this node.
-          r'$type': 'string', // The type of the node is a string.
-          r'$writable': 'write', // This node's value can be set by a requester.
-          '?value': null, // The default message value.
-          '@icon': 'dart-example-simple/message'
-        }
+    ['--broker', 'http://127.0.0.1:8080/conn'],
+    'Simple-',
+    defaultNodes: <String, dynamic>{
+      'message': {
+        r'$name': 'Message', // The pretty name of this node.
+        r'$type': 'string', // The type of the node is a string.
+        r'$writable': 'write', // This node's value can be set by a requester.
+        '?value': null, // The default message value.
+        '@icon': 'dart-example-simple/message',
       },
-      encodePrettyJson: true,
-      commandLineOptions: {'default-message': 'Hello World'});
+    },
+    encodePrettyJson: true,
+    commandLineOptions: {'default-message': 'Hello World'},
+  );
 
   var provider = link?.provider as SimpleNodeProvider;
 

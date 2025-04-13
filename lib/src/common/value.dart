@@ -1,4 +1,4 @@
-part of dslink.common;
+part of dsalink.common;
 
 typedef ValueUpdateCallback<T> = T Function(ValueUpdate update);
 typedef T ValueCallback<T>(Object? value);
@@ -67,14 +67,16 @@ class ValueUpdate {
   /// The timestamp for when this value update was created.
   DateTime? created;
 
-  ValueUpdate(this.value,
-      {this.ts,
-      Map? meta,
-      this.status,
-      this.count = 1,
-      this.sum = double.nan,
-      this.min = double.nan,
-      this.max = double.nan}) {
+  ValueUpdate(
+    this.value, {
+    this.ts,
+    Map? meta,
+    this.status,
+    this.count = 1,
+    this.sum = double.nan,
+    this.min = double.nan,
+    this.max = double.nan,
+  }) {
     ts ??= getTs();
 
     created = DateTime.now();
@@ -220,7 +222,14 @@ class ValueUpdate {
       return this;
     }
 
-    return ValueUpdate(value,
-        ts: ts, status: status, count: count, sum: sum, min: min, max: max);
+    return ValueUpdate(
+      value,
+      ts: ts,
+      status: status,
+      count: count,
+      sum: sum,
+      min: min,
+      max: max,
+    );
   }
 }

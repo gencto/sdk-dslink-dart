@@ -1,4 +1,4 @@
-part of dslink.query;
+part of dsalink.query;
 
 class BrokerQueryManager {
   NodeProvider provider;
@@ -12,7 +12,7 @@ class BrokerQueryManager {
 
   BrokerQueryCommand? parseDql(String str) {
     if (str.startsWith('[')) {
-      return parseList(DsJson.decode(str));
+      return parseList(DsaJson.decode(str));
     }
     // TODO: implement full dql spec
     // this is just a temp quick parser for basic /data node query
@@ -54,7 +54,7 @@ class BrokerQueryManager {
     } else if (command is QueryCommandList) {
       // all list command start from root node
       command.updateFromBase(<dynamic>[
-        [provider.getNode('/'), '+']
+        [provider.getNode('/'), '+'],
       ]);
     }
     _dict[key] = command;

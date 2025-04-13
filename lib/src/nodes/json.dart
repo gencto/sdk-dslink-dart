@@ -1,8 +1,8 @@
-part of dslink.nodes;
+part of dsalink.nodes;
 
 class DsaJsonNode extends SimpleNode {
   DsaJsonNode(String path, [SimpleNodeProvider? provider])
-      : super(path, provider);
+    : super(path, provider);
 
   dynamic _json;
 
@@ -52,9 +52,12 @@ class DsaJsonNode extends SimpleNode {
         var child = node?.getChild(name) as DsaJsonNode?;
 
         if (child == null) {
-          child = provider.addNode(
-                  '${node?.path}/$name', buildNodeMap(diff.changed[key]?[1]))
-              as DsaJsonNode?;
+          child =
+              provider.addNode(
+                    '${node?.path}/$name',
+                    buildNodeMap(diff.changed[key]?[1]),
+                  )
+                  as DsaJsonNode?;
         } else {
           child.updateJsonValue(diff.changed[key]?[1]);
         }
@@ -65,9 +68,12 @@ class DsaJsonNode extends SimpleNode {
 
         var child = node?.getChild(name) as DsaJsonNode?;
 
-        child ??= provider.addNode(
-                '${node?.path}/$name', buildNodeMap(<String, dynamic>{}))
-            as DsaJsonNode?;
+        child ??=
+            provider.addNode(
+                  '${node?.path}/$name',
+                  buildNodeMap(<String, dynamic>{}),
+                )
+                as DsaJsonNode?;
 
         apply(diff.node[key]!, child);
       }
@@ -131,7 +137,7 @@ class DsaJsonNode extends SimpleNode {
         return <String, dynamic>{
           r'$is': 'json',
           r'$type': _guessType(value),
-          '?_json': value
+          '?_json': value,
         };
       }
     }

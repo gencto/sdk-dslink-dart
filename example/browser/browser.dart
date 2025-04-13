@@ -1,8 +1,15 @@
-import 'dart:html';
-
-import 'package:dslink/browser.dart';
-import 'package:dslink/nodes.dart';
-import 'package:dslink/utils.dart';
+import 'package:dsalink/browser.dart';
+import 'package:dsalink/common.dart';
+import 'package:dsalink/nodes.dart';
+import 'package:dsalink/utils.dart';
+import 'package:web/web.dart'
+    show
+        HTMLAudioElement,
+        MouseEvent,
+        document,
+        window,
+        HTMLElement,
+        EventListener;
 
 late LinkProvider link;
 
@@ -11,114 +18,111 @@ final Map<String, String> TRANSITION_TIMES = {
   '250ms': '0.25s',
   '500ms': '0.5s',
   '1s': '1s',
-  '2s': '2s'
+  '2s': '2s',
 };
 
 Map DEFAULT_NODES = <String, dynamic>{
   'User_Agent': {
     r'$name': 'User Agent',
     r'$type': 'string',
-    '?value': window.navigator.userAgent
+    '?value': window.navigator.userAgent,
   },
   'Page_Color': {
     // Page Background Color
     r'$name': 'Page Color',
     r'$type': 'color',
     r'$writable': 'write',
-    '?value': 'blue'
+    '?value': 'blue',
   },
   'Page_Gradient': {
     r'$name': 'Page Gradient',
     r'$type': 'gradient',
     r'$writable': 'write',
-    '?value': 'none'
+    '?value': 'none',
   },
   'Page_Color_Transition_Time': {
     r'$name': 'Page Color Transition Time',
     r'$type': TRANSITION_ENUM,
     r'$writable': 'write',
-    '?value': '1s'
+    '?value': '1s',
   },
   'Text': {
     // Text Message
     r'$name': 'Text',
     r'$type': 'string',
     r'$writable': 'write',
-    '?value': 'Hello World'
+    '?value': 'Hello World',
   },
   'Text_Size_Transition_Time': {
     r'$name': 'Text Size Transition Time',
     r'$type': TRANSITION_ENUM,
     r'$writable': 'write',
-    '?value': '1s'
+    '?value': '1s',
   },
   'Text_Color_Transition_Time': {
     r'$name': 'Text Color Transition Time',
     r'$type': TRANSITION_ENUM,
     r'$writable': 'write',
-    '?value': '1s'
+    '?value': '1s',
   },
   'Text_Color': {
     // Text Color
     r'$name': 'Text Color',
     r'$type': 'color',
     r'$writable': 'write',
-    '?value': 'white'
+    '?value': 'white',
   },
   'Text_Font': {
     r'$name': 'Text Font',
-    r'$type': buildEnumType([
+    r'$type': BuildEnumType([
       'Arial',
       'Arial Black',
       'Comic Sans MS',
       'Courier New',
       'Georgia',
       'Impact',
-      'Tahoma',
-      'Lucida Console',
       'Times New Roman',
       'Trebuchet MS',
-      'Verdana'
     ]),
     r'$writable': 'write',
-    '?value': 'Arial'
+    '?value': 'Arial',
   },
   'Text_Rotation': {
     r'$name': 'Text Rotation',
     r'$type': 'number',
     r'$writable': 'write',
-    '?value': 0.0
+    '?value': 0.0,
   },
   'Text_Size': {
     r'$name': 'Text Size',
     r'$type': 'number',
     r'$writable': 'write',
-    '?value': 72
+    '?value': 72,
   },
   'Click': {
     'ID': {r'$type': 'number', '?value': 0},
     'X': {r'$type': 'number', '?value': 0.0},
-    'Y': {r'$type': 'number', '?value': 0.0}
+    'Y': {r'$type': 'number', '?value': 0.0},
   },
   'Text_Hovering': {
     // If the user is currently hovering over the text.
     r'$name': 'Hovering over Text',
     r'$type': 'bool',
-    '?value': false
+    '?value': false,
   },
   'Mouse': {
     // Mouse-related stuff.
     'X': {
       // Mouse X position.
       r'$type': 'number',
-      '?value': 0.0
+      '?value': 0.0,
     },
     'Y': {
       // Mouse y position.
       r'$type': 'number',
-      '?value': 0.0
+      '?value': 0.0,
     },
-    'Down': {r'$type': 'bool', '?value': false}
+    'Down': {r'$type': 'bool', '?value': false},
   },
   'Play_Sound': {
     // An action to play a sound.
@@ -126,46 +130,53 @@ Map DEFAULT_NODES = <String, dynamic>{
     r'$is': 'playSound',
     r'$invokable': 'write',
     r'$params': [
-      {'name': 'url', 'type': 'string'}
-    ]
+      {'name': 'url', 'type': 'string'},
+    ],
   },
   'Stop_Sound': {
     r'$name': 'Stop Sound',
     r'$is': 'stopSound',
-    r'$invokable': 'write'
-  }
+    r'$invokable': 'write',
+  },
 };
 
-final String TRANSITION_ENUM = buildEnumType(TRANSITION_TIMES.keys);
+final String TRANSITION_ENUM = BuildEnumType(TRANSITION_TIMES.keys);
 
-Element? bodyElement = querySelector('#body');
-Element? textElement = querySelector('#text');
+HTMLElement? bodyElement = document.querySelector('#body') as HTMLElement?;
+HTMLElement? textElement = document.querySelector('#text') as HTMLElement?;
 
-AudioElement? audio;
+HTMLAudioElement? audio;
 
 void main() async {
   var brokerUrl = await BrowserUtils.fetchBrokerUrlFromPath(
-      'broker_url', 'http://localhost:8080/conn');
-  link = LinkProvider(brokerUrl, 'Browser-',
-      defaultNodes: DEFAULT_NODES,
-      profiles: {
-        'playSound': (String path) => SimpleActionNode(path, (Map params) {
-              if (audio != null) {
-                audio?.pause();
-                audio = null;
-              }
+    'broker_url',
+    'https://127.0.0.1/conn',
+  );
+  link = LinkProvider(
+    brokerUrl,
+    'Browser-',
+    defaultNodes: DEFAULT_NODES,
+    profiles: {
+      'playSound':
+          (String path) => SimpleActionNode(path, (Map params) {
+            if (audio != null) {
+              audio?.pause();
+              audio = null;
+            }
 
-              audio = AudioElement();
-              audio?.src = params['url'];
-              audio?.play();
-            }),
-        'stopSound': (String path) => SimpleActionNode(path, (Map params) {
-              if (audio != null) {
-                audio?.pause();
-                audio = null;
-              }
-            })
-      });
+            audio = HTMLAudioElement();
+            audio?.src = params['url'];
+            audio?.play();
+          }),
+      'stopSound':
+          (String path) => SimpleActionNode(path, (Map params) {
+            if (audio != null) {
+              audio?.pause();
+              audio = null;
+            }
+          }),
+    },
+  );
 
   await $.init();
 
@@ -178,15 +189,11 @@ void main() async {
   $.onValueChange('/Page_Color').listen((ValueUpdate? update) async {
     // Wait for background color changes.
     var color = update!.value as String?;
-    try {
-      color =
-          "#${int.parse(update.value.toString()).toRadixString(16).padLeft(6, '0')}";
-    } catch (e) {
-      logger.warning('Invalid color value: $color');
+    if (color != null) {
+      bodyElement
+        ?..style.removeProperty('background')
+        ..style.backgroundColor = color;
     }
-    bodyElement
-      ?..style.removeProperty('background')
-      ..style.backgroundColor = color;
     await $.save();
   });
 
@@ -223,9 +230,12 @@ void main() async {
 
   $.onValueChange('/Text').listen((ValueUpdate update) async {
     // Wait for message changes.
-    textElement
-      ?..text = update.value as String?
-      ..offsetHeight; // Trigger Re-flow
+    var text = update.value as String?;
+    if (text != null) {
+      textElement
+        ?..innerText = text
+        ..offsetHeight; // Trigger Re-flow
+    }
     await $.save();
   });
 
@@ -234,9 +244,9 @@ void main() async {
     await $.save();
   });
 
-  $
-      .onValueChange('/Page_Color_Transition_Time')
-      .listen((ValueUpdate update) async {
+  $.onValueChange('/Page_Color_Transition_Time').listen((
+    ValueUpdate update,
+  ) async {
     var n = update.value;
 
     if (TRANSITION_TIMES.containsKey(n)) {
@@ -262,9 +272,9 @@ void main() async {
     await $.save();
   });
 
-  $
-      .onValueChange('/Page_Color_Transition_Time')
-      .listen((ValueUpdate update) async {
+  $.onValueChange('/Page_Color_Transition_Time').listen((
+    ValueUpdate update,
+  ) async {
     var n = update.value;
 
     if (TRANSITION_TIMES.containsKey(n)) {
@@ -276,9 +286,9 @@ void main() async {
     await $.save();
   });
 
-  $
-      .onValueChange('/Text_Size_Transition_Time')
-      .listen((ValueUpdate update) async {
+  $.onValueChange('/Text_Size_Transition_Time').listen((
+    ValueUpdate update,
+  ) async {
     var n = update.value;
 
     if (TRANSITION_TIMES.containsKey(n)) {
@@ -290,9 +300,9 @@ void main() async {
     await $.save();
   });
 
-  $
-      .onValueChange('/Text_Color_Transition_Time')
-      .listen((ValueUpdate update) async {
+  $.onValueChange('/Text_Color_Transition_Time').listen((
+    ValueUpdate update,
+  ) async {
     var n = update.value;
 
     if (TRANSITION_TIMES.containsKey(n)) {
@@ -304,28 +314,53 @@ void main() async {
     await $.save();
   });
 
-  bodyElement?.onClick.listen((MouseEvent event) {
-    // Update Click Information
-    $.val('/Click/ID', (link['/Click/ID']?.lastValueUpdate?.value as int) + 1);
-    $.val('/Click/X', event.page.x);
-    $.val('/Click/Y', event.page.y);
-  });
+  bodyElement?.addEventListener(
+    'click',
+    (event) {
+          // Update Click Information
+          $.val(
+            '/Click/ID',
+            (link['/Click/ID']?.lastValueUpdate?.value as int) + 1,
+          );
+          $.val('/Click/X', (event as MouseEvent).pageX);
+          $.val('/Click/Y', (event).pageY);
+        }
+        as EventListener,
+  );
 
-  textElement?.onMouseEnter.listen((event) => $.val('/Text_Hovering', true));
-  textElement?.onMouseLeave.listen((event) => $.val('/Text_Hovering', false));
+  textElement?.addEventListener(
+    'mouseenter',
+    ((event) => $.val('/Text_Hovering', true)) as EventListener,
+  );
+  textElement?.addEventListener(
+    'mouseleave',
+    ((event) => $.val('/Text_Hovering', false)) as EventListener,
+  );
 
-  bodyElement?.onMouseMove.listen((MouseEvent event) {
-    $.val('/Mouse/X', event.page.x);
-    $.val('/Mouse/Y', event.page.y);
-  });
+  bodyElement?.addEventListener(
+    'mousemove',
+    (event) {
+          $.val('/Mouse/X', (event as MouseEvent).pageX);
+          $.val('/Mouse/Y', (event).pageY);
+        }
+        as EventListener,
+  );
 
-  bodyElement?.onMouseDown.listen((_) {
-    $.val('/Mouse/Down', true);
-  });
+  bodyElement?.addEventListener(
+    'mousedown',
+    (_) {
+          $.val('/Mouse/Down', true);
+        }
+        as EventListener,
+  );
 
-  bodyElement?.onMouseUp.listen((_) {
-    $.val('/Mouse/Down', false);
-  });
+  bodyElement?.addEventListener(
+    'mouseup',
+    (_) {
+          $.val('/Mouse/Down', false);
+        }
+        as EventListener,
+  );
 
   // Re-sync Values to trigger subscribers.
   [
@@ -337,7 +372,7 @@ void main() async {
     '/Text_Color',
     '/Text',
     '/Text_Font',
-    '/Text_Size'
+    '/Text_Size',
   ].forEach($.syncValue);
 
   await $.connect();

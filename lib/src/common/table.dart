@@ -1,4 +1,4 @@
-part of dslink.common;
+part of dsalink.common;
 
 class TableColumn {
   String? type;

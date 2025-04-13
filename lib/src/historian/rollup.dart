@@ -1,4 +1,4 @@
-part of dslink.historian;
+part of dsalink.historian;
 
 abstract class Rollup {
   dynamic get value;
@@ -168,5 +168,5 @@ final Map<String, RollupFactory?> _rollups = {
   'min': () => MinRollup(),
   'count': () => CountRollup(),
   'sum': () => SumRollup(),
-  'avg': () => AvgRollup()
+  'avg': () => AvgRollup(),
 };

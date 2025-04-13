@@ -1,4 +1,6 @@
-part of dslink.browser_client;
+part of dsalink.browser_client;
+
+
 
 class WebSocketConnection extends Connection {
   late PassiveChannel _responderChannel;
@@ -29,8 +31,13 @@ class WebSocketConnection extends Connection {
   Function? onConnect;
 
   /// clientLink is not needed when websocket works in server link
-  WebSocketConnection(this.socket, this.clientLink,
-      {this.onConnect, bool enableAck = false, DsCodec? useCodec}) {
+  WebSocketConnection(
+    this.socket,
+    this.clientLink, {
+    this.onConnect,
+    bool enableAck = false,
+    DsCodec? useCodec,
+  }) {
     if (useCodec != null) {
       codec = useCodec;
     }
@@ -101,7 +108,7 @@ class WebSocketConnection extends Connection {
     }
     _responderChannel.updateConnect();
     _requesterChannel.updateConnect();
-    socket.sendString('{}');
+    socket.send('{}' as dynamic);
     requireSend();
   }
 
@@ -162,7 +169,7 @@ class WebSocketConnection extends Connection {
       }
     } else if (e.data is String) {
       try {
-        m = codec.decodeStringFrame(e.data)!;
+        m = codec.decodeStringFrame(e.data as String)!;
         logger.fine('$m');
         checkBrowserThrottling();
 
@@ -257,7 +264,7 @@ class WebSocketConnection extends Connection {
         encoded = ByteDataUtil.list2Uint8List(encoded);
       }
       try {
-        socket.send(encoded);
+        socket.send(encoded as dynamic);
       } catch (e) {
         logger.severe('Unable to send on socket', e);
         close();

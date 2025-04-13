@@ -1,4 +1,4 @@
-part of dslink.pk.dart;
+part of dsalink.pk.dart;
 
 late ECPrivateKey _cachedPrivate;
 late ECPublicKey _cachedPublic;
@@ -19,11 +19,11 @@ List<dynamic> generate(List<int> publicKeyRemote, String oldPriKeyStr) {
     var params = ParametersWithRandom(rsapars, DSRandomImpl());
     gen.init(params);
     var pair = gen.generateKeyPair();
-    privateKey = pair.privateKey as ECPrivateKey;
-    publicKey = pair.publicKey as ECPublicKey;
+    privateKey = pair.privateKey;
+    publicKey = pair.publicKey;
     if (oldPriKeyStr != '') {
-      _cachedPrivate = pair.privateKey as ECPrivateKey;
-      _cachedPublic = pair.publicKey as ECPublicKey;
+      _cachedPrivate = pair.privateKey;
+      _cachedPublic = pair.publicKey;
       _cachedTime = ts;
     }
   } else {
@@ -35,7 +35,7 @@ List<dynamic> generate(List<int> publicKeyRemote, String oldPriKeyStr) {
   return <dynamic>[
     bigIntToBytes(privateKey.d!),
     publicKey.Q?.getEncoded(false),
-    Q2?.getEncoded(false)
+    Q2?.getEncoded(false),
   ];
 }
 
@@ -70,7 +70,10 @@ class ECDHIsolate {
         var Q1 = _secp256r1.curve.decodePoint(message[1] as List<int>);
         var Q2 = _secp256r1.curve.decodePoint(message[2] as List<int>);
         var ecdh = ECDHImpl(
-            ECPrivateKey(d1, _secp256r1), ECPublicKey(Q1, _secp256r1), Q2!);
+          ECPrivateKey(d1, _secp256r1),
+          ECPublicKey(Q1, _secp256r1),
+          Q2!,
+        );
         _waitingReq?._completer.complete(ecdh);
         _waitingReq = null;
       }
@@ -84,7 +87,7 @@ class ECDHIsolate {
       _waitingReq = _requests.removeFirst();
       _isolatePort.send([
         _waitingReq!.publicKeyRemote.ecPublicKey.Q?.getEncoded(false),
-        _waitingReq?.oldPrivate
+        _waitingReq?.oldPrivate,
       ]);
     }
   }
@@ -94,7 +97,9 @@ class ECDHIsolate {
 
   /// when oldprivate is '', don't use cache
   static Future<ECDH> _sendRequest(
-      PublicKey? publicKeyRemote, String? oldprivate) {
+    PublicKey? publicKeyRemote,
+    String? oldprivate,
+  ) {
     var req = ECDHIsolateRequest(publicKeyRemote as PublicKeyImpl, oldprivate);
     _requests.add(req);
     _checkRequest();

@@ -1,8 +1,9 @@
-library dslink.test.sampleresponder;
+library dsalink.test.sampleresponder;
 
-import 'package:dslink/responder.dart';
-import 'package:dslink/common.dart';
 import 'dart:async';
+
+import 'package:dsalink/common.dart';
+import 'package:dsalink/responder.dart';
 
 class TestNodeProvider extends NodeProvider {
   late TestNode onlyNode;
@@ -51,19 +52,24 @@ class TestNode extends LocalNodeImpl {
 
   @override
   InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, Node parentNode,
-      [int maxPermission = Permission.CONFIG]) {
+    Map params,
+    Responder responder,
+    InvokeResponse response,
+    Node parentNode, [
+    int maxPermission = Permission.CONFIG,
+  ]) {
     response.updateStream(
-        <List<dynamic>>[
-          <int>[1, 2]
+      <List<dynamic>>[
+        <int>[1, 2],
+      ],
+      streamStatus: StreamStatus.closed,
+      columns: <List<Map<String, String>>>[
+        <Map<String, String>>[
+          <String, String>{'name': 'v1', 'type': 'number'},
+          <String, String>{'name': 'v2', 'type': 'number'},
         ],
-        streamStatus: StreamStatus.closed,
-        columns: <List<Map<String, String>>>[
-          <Map<String, String>>[
-            <String, String>{'name': 'v1', 'type': 'number'},
-            <String, String>{'name': 'v2', 'type': 'number'}
-          ]
-        ]);
+      ],
+    );
 
     return response;
   }

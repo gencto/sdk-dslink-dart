@@ -1,7 +1,7 @@
 {
   "name": "test-link_provider",
   "version": "0.0.1",
-  "description": "An example dslink to illustrate the usage of a dart dslink",
+  "description": "An example dsalink to illustrate the usage of a dart dsalink",
   "author": {
     "name": "Rick Zhou",
     "email": "z.zhou@dglogik.com"
@@ -21,10 +21,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/IOT-DSA/sdk-dslink-dart"
+    "url": "https://github.com/IOT-DSA/sdk-dsalink-dart"
   },
   "bugs": {
-    "url": "https://github.com/IOT-DSA/sdk-dslink-dart/issues"
+    "url": "https://github.com/IOT-DSA/sdk-dsalink-dart/issues"
   },
   "keywords": [
     "test"
@@ -41,7 +41,7 @@
     },
     "key": {
       "type": "path",
-      "value": ".dslink.key",
+      "value": ".dsalink.key",
       "required": true
     }
   },

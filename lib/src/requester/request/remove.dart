@@ -1,4 +1,4 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 /// A controller for removing a request.
 ///
@@ -32,7 +32,12 @@ class RemoveController implements RequestUpdater {
   /// The [error] parameter represents any error that occurred during the update.
   @override
   void onUpdate(
-      String? status, List? updates, List? columns, Map? meta, DSError? error) {
+    String? status,
+    List? updates,
+    List? columns,
+    Map? meta,
+    DSError? error,
+  ) {
     // TODO implement error
     completer.complete(RequesterUpdate(status));
   }

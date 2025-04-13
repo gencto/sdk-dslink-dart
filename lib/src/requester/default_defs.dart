@@ -1,4 +1,4 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 // TODO: merge with defaultProfileMap in common lib
 class DefaultDefNodes {
@@ -14,7 +14,7 @@ class DefaultDefNodes {
           'name': 'Interval',
           'type': 'enum',
           'default': 'none',
-          'editor': buildEnumType([
+          'editor': BuildEnumType([
             'default',
             'none',
             '1Y',
@@ -37,13 +37,13 @@ class DefaultDefNodes {
             '15S',
             '10S',
             '5S',
-            '1S'
-          ])
+            '1S',
+          ]),
         },
         {
           'name': 'Rollup',
           'default': 'none',
-          'type': buildEnumType([
+          'type': BuildEnumType([
             'none',
             'avg',
             'min',
@@ -52,15 +52,15 @@ class DefaultDefNodes {
             'first',
             'last',
             'count',
-            'delta'
-          ])
-        }
+            'delta',
+          ]),
+        },
       ],
       r'$columns': [
         {'name': 'timestamp', 'type': 'time'},
-        {'name': 'value', 'type': 'dynamic'}
-      ]
-    }
+        {'name': 'value', 'type': 'dynamic'},
+      ],
+    },
   };
 
   static final Map<String, Node> nameMap = () {
