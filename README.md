@@ -1,6 +1,6 @@
-# dsalink SDK for Dart
+# DSALink SDK for Dart
 
-dsalink SDK for Dart
+DSALink SDK for Dart
 
 ## Getting Started
 
