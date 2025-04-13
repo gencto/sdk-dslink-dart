@@ -2,7 +2,7 @@ part of dslink.historian;
 
 class GetHistoryNode extends SimpleNode {
   GetHistoryNode(String path)
-      : super(path, _link!.provider as SimpleNodeProvider?) {
+      : super(path, _link.provider as SimpleNodeProvider?) {
     configs[r'$is'] = 'getHistory';
     configs[r'$name'] = 'Get History';
     configs[r'$invokable'] = 'read';
@@ -74,7 +74,7 @@ class GetHistoryNode extends SimpleNode {
     }
 
     try {
-      var pairs = calculateHistory(tr!, interval, rollup!);
+      var pairs = calculateHistory(tr!, interval, rollup);
 
       if (params['Real Time'] == true) {
         await for (ValuePair pair in pairs) {
@@ -105,15 +105,15 @@ class GetHistoryNode extends SimpleNode {
   }
 
   Stream<ValuePair> fetchHistoryData(TimeRange range) {
-    var p = Path(path!);
+    var p = Path(path);
     var mn = p.parent;
-    var pn = _link![mn.path] as WatchPathNode;
+    var pn = _link[mn.path] as WatchPathNode;
 
     return pn.fetchHistory(range) as Stream<ValuePair>;
   }
 
   Stream<ValuePair> calculateHistory(
-      TimeRange range, Duration interval, Rollup rollup) async* {
+      TimeRange range, Duration interval, Rollup? rollup) async* {
     if (interval.inMilliseconds <= 0) {
       yield* fetchHistoryData(range);
       return;
@@ -125,7 +125,7 @@ class GetHistoryNode extends SimpleNode {
     ValuePair? result;
 
     await for (ValuePair pair in fetchHistoryData(range)) {
-      rollup.add(pair.value);
+      rollup?.add(pair.value);
       if (lastTimestamp != -1) {
         totalTime += pair.time.millisecondsSinceEpoch - lastTimestamp;
       }
@@ -135,10 +135,10 @@ class GetHistoryNode extends SimpleNode {
         result = ValuePair(
             DateTime.fromMillisecondsSinceEpoch(lastTimestamp)
                 .toIso8601String(),
-            rollup.value);
+            rollup?.value);
         yield result;
         result = null;
-        rollup.reset();
+        rollup?.reset();
       }
     }
 

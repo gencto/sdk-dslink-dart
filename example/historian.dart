@@ -2,13 +2,9 @@ import 'dart:async';
 import 'package:influxdb_client/api.dart';
 import 'package:dslink/historian.dart';
 
-late InfluxDBClient client;
-late WriteService writeApi;
-late QueryService queryService;
-
-void main(List<String> args) async {
-  historianMain(['--broker', 'http://localhost:80/conn', '--log', 'debug'],
-      'history', HA());
+void main(List<String> args) {
+  var historian = historianMain(
+      ['--broker', 'https://dev.gencto.uk/conn', '--log','debug'], 'history', HA());
 }
 
 class HA extends HistorianAdapter {
@@ -101,34 +97,11 @@ from(bucket: "mydb")
   }
 
   @override
-  Future<HistorySummary> getSummary(String? group, String path) async {
-    var query = '''
-from(bucket: "mydb")
-    |> range(start: 2024-09-22T21:00:00.000Z, stop: 2024-09-23T20:59:59.999Z)
-  |> filter(fn: (r) => r["_measurement"] == "dglux")
-  |> filter(fn: (r) => r["_field"] == "/sys/dataOutPerSecond")
-  |> filter(fn: (r) => r["sys"] == "perseq")
-    ''';
-
-    var result = await queryService.query(query);
-    List<ValuePair?> arr = [];
-    var res = HistorySummary(null, null);
-    result.listen(
-      (data) {
-        arr.add(ValuePair(data['_time'], data['_value']));
-      },
-      onError: (error) {
-        Error();
-      },
-      onDone: () {
-        if (arr.isNotEmpty)
-          res = HistorySummary(
-            arr.first,
-            arr.last,
-          );
-      },
-    );
-    return res;
+  Future<HistorySummary> getSummary(String? group, String path) {
+    return Future.delayed(
+        Duration(seconds: 1),
+        () => HistorySummary(ValuePair('2020-02-02T01:01:02', 2),
+            ValuePair('2020-02-02T01:01:01', 1)));
   }
 
   @override

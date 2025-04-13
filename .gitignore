@@ -22,3 +22,4 @@ doc/
 /storage/
 /tmp
 .dart_tool/
+.idx

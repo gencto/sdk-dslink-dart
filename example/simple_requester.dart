@@ -6,7 +6,7 @@ void main(List<String> args) async {
   link = LinkProvider(
     [
       '--broker',
-      'http://localhost:80/conn',
+      'https://dev.gencto.uk/conn',
     ],
     'Simple-Requester-', // DSLink Prefix
     defaultLogLevel: 'DEBUG',
@@ -18,8 +18,8 @@ void main(List<String> args) async {
   var requester =
       await link.onRequesterReady; // Wait for the requester to be ready.
 
-  await for (RequesterListUpdate update in requester!.list('/sys')) {
+  await for (RequesterListUpdate update in requester!.list('/')) {
     // List the nodes in /
-    print("- ${update.node.children.values.join(", ")}");
+    print("- ${update.node.children.keys.join(", ")}");
   } // This will not end until you break the for loop. Whenever a node is added or removed to/from the given path, it will receive an update.
 }

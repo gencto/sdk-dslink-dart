@@ -1,19 +1,19 @@
 import 'package:dslink/dslink.dart';
 import 'package:dslink/worker.dart';
 
-int workers = 20; // Number of Workers
+int workers = 10; // Number of Workers
 
 void main() async {
   var pool = createWorkerPool(workers, linkWorker); // Create a Worker Pool
   await pool.init(); // Initialize the Worker Pool
   await pool.divide('spawn',
-      1000); // Divide 1000 calls to "spawn" over all the workers, which is 50 links per worker.
+      10); // Divide 10 calls to "spawn" over all the workers, which is 50 links per worker.
 }
 
 void linkWorker(Worker worker) async {
   spawnLink(int i) async {
     updateLogLevel('OFF');
-    var link = LinkProvider([], 'Worker-$i-',
+    var link = LinkProvider(['-b', 'dsa.gencto.uk/conn', '--log', 'finest'], 'Worker-$i-',
         defaultNodes: <String, dynamic>{
           // Create a Link Provider
           'string': {

@@ -3,9 +3,11 @@ part of dslink.historian;
 class DatabaseNode extends SimpleNode {
   Map<dynamic, dynamic>? config;
   HistorianDatabaseAdapter? database;
-  List<Function> onDatabaseReady = [];
+  Completer<void>? _dbReadyCompleter;
 
-  DatabaseNode(String path) : super(path);
+  DatabaseNode(String path) : super(path) {
+    _dbReadyCompleter = Completer<void>();
+  }
 
   @override
   void onCreated() {
@@ -13,10 +15,8 @@ class DatabaseNode extends SimpleNode {
       config = configs[r'$$db_config'] as Map<dynamic, dynamic>?;
       while (removed != true) {
         try {
-          database = await _historian?.getDatabase(config!);
-          while (onDatabaseReady.isNotEmpty) {
-            onDatabaseReady.removeAt(0)();
-          }
+          database = await _historian.getDatabase(config!);
+          _dbReadyCompleter?.complete();
           break;
         } catch (e, stack) {
           logger.severe('Failed to connect to database for $path', e, stack);
@@ -31,7 +31,7 @@ class DatabaseNode extends SimpleNode {
         return;
       }
 
-      _link?.addNode('$path/createWatchGroup', <String, dynamic>{
+      _link.addNode('$path/createWatchGroup', <String, dynamic>{
         r'$name': 'Add Watch Group',
         r'$is': 'createWatchGroup',
         r'$invokable': 'write',
@@ -40,7 +40,7 @@ class DatabaseNode extends SimpleNode {
         ]
       });
 
-      _link?.addNode('$path/delete', <String, dynamic>{
+      _link.addNode('$path/delete', <String, dynamic>{
         r'$name': 'Delete',
         r'$invokable': 'write',
         r'$is': 'delete'
@@ -53,6 +53,10 @@ class DatabaseNode extends SimpleNode {
     if (database != null) {
       database?.close();
     }
+  }
+
+  Future<void> waitForDatabaseReady() async {
+    return _dbReadyCompleter?.future ?? Future.value();
   }
 }
 
@@ -74,21 +78,21 @@ class WatchPathNode extends SimpleNode {
     }
 
     valuePath = rp!;
-    group = _link![Path(path!).parentPath] as WatchGroupNode;
+    group = _link[Path(path).parentPath] as WatchGroupNode?;
 
     var groupName = group?._watchName;
 
-    _link?.addNode('$path/lwv',
+    _link.addNode('$path/lwv',
         <String, dynamic>{r'$name': 'Last Written Value', r'$type': 'dynamic'});
 
-    _link?.addNode('$path/startDate',
+    _link.addNode('$path/startDate',
         <String, dynamic>{r'$name': 'Start Date', r'$type': 'string'});
 
-    _link?.addNode('$path/endDate',
+    _link.addNode('$path/endDate',
         <String, dynamic>{r'$name': 'End Date', r'$type': 'string'});
 
     if (children['enabled'] == null) {
-      _link?.addNode('$path/enabled', <String, dynamic>{
+      _link.addNode('$path/enabled', <String, dynamic>{
         r'$name': 'Enabled',
         r'$type': 'bool',
         '?value': true,
@@ -97,22 +101,20 @@ class WatchPathNode extends SimpleNode {
     }
 
     if (group?.db?.database == null) {
-      var c = Completer<void>();
-      group?.db?.onDatabaseReady.add(c.complete);
-      await c.future;
+      await group?.db?.waitForDatabaseReady();
     }
 
-    var summary = await group!.db!.database!.getSummary(groupName, valuePath!);
+    var summary = await group?.db?.database?.getSummary(groupName, valuePath!);
 
-    if (summary.first != null) {
-      _link?.updateValue('$path/startDate', summary.first?.timestamp);
+    if (summary?.first != null) {
+      _link.updateValue('$path/startDate', summary?.first?.timestamp);
       isStartDateFilled = true;
     }
 
-    if (summary.last != null) {
+    if (summary?.last != null) {
       var update =
-          ValueUpdate(summary.last!.value, ts: summary.last!.timestamp);
-      _link!.updateValue('$path/lwv', update);
+          ValueUpdate(summary?.last!.value, ts: summary?.last!.timestamp);
+      _link.updateValue('$path/lwv', update);
       updateValue(update);
     }
 
@@ -122,10 +124,10 @@ class WatchPathNode extends SimpleNode {
 
     var ghn = GetHistoryNode('$path/getHistory');
     addChild('getHistory', ghn);
-    (_link?.provider as SimpleNodeProvider).setNode(ghn.path!, ghn);
+    (_link.provider as SimpleNodeProvider).setNode(ghn.path, ghn);
     updateList('getHistory');
 
-    _link?.addNode('$path/purge', <String, dynamic>{
+    _link.addNode('$path/purge', <String, dynamic>{
       r'$name': 'Purge',
       r'$invokable': 'write',
       r'$params': [
@@ -134,13 +136,13 @@ class WatchPathNode extends SimpleNode {
       r'$is': 'purgePath'
     });
 
-    _link?.addNode('$path/delete', <String, dynamic>{
+    _link.addNode('$path/delete', <String, dynamic>{
       r'$name': 'Delete',
       r'$invokable': 'write',
       r'$is': 'delete'
     });
 
-    _link?.onValueChange('$path/enabled').listen((ValueUpdate update) {
+    _link.onValueChange('$path/enabled').listen((ValueUpdate update) {
       if (update.value == true) {
         sub();
       } else {
@@ -151,7 +153,7 @@ class WatchPathNode extends SimpleNode {
       }
     });
 
-    if (_link?.val('$path/enabled') == true) {
+    if (_link.val('$path/enabled') == true) {
       sub();
     }
 
@@ -167,7 +169,7 @@ class WatchPathNode extends SimpleNode {
         valueSub = null;
       }
 
-      valueSub = _link?.requester?.subscribe(valuePath!, (ValueUpdate update) {
+      valueSub = _link.requester?.subscribe(valuePath!, (ValueUpdate update) {
         doUpdate(update);
       });
     }
@@ -190,11 +192,11 @@ class WatchPathNode extends SimpleNode {
     if (entries.isNotEmpty) {
       try {
         if (!isStartDateFilled) {
-          _link?.updateValue('$path/startDate', entries.first.timestamp);
+          _link.updateValue('$path/startDate', entries.first.timestamp);
         }
 
-        _link?.updateValue('$path/lwv', entries.last.value);
-        _link?.updateValue('$path/endDate', entries.last.timestamp);
+        _link.updateValue('$path/lwv', entries.last.value);
+        _link.updateValue('$path/endDate', entries.last.timestamp);
       } catch (e) {}
     }
     buffer.clear();
@@ -246,17 +248,17 @@ class WatchGroupNode extends SimpleNode {
   String? _watchName;
 
   WatchGroupNode(String path)
-      : super(path, _link?.provider as SimpleNodeProvider?);
+      : super(path, _link.provider as SimpleNodeProvider?);
 
   @override
   void onCreated() {
-    var p = Path(path!);
-    db = _link?[p.parentPath] as DatabaseNode?;
+    var p = Path(path);
+    db = _link[p.parentPath] as DatabaseNode?;
     _watchName = configs[r'$name'] as String?;
 
     _watchName ??= NodeNamer.decodeName(p.name);
 
-    _link?.addNode('$path/addWatchPath', <String, dynamic>{
+    _link.addNode('$path/addWatchPath', <String, dynamic>{
       r'$name': 'Add Watch Path',
       r'$invokable': 'write',
       r'$is': 'addWatchPath',
@@ -265,7 +267,7 @@ class WatchGroupNode extends SimpleNode {
       ]
     });
 
-    _link?.addNode('$path/publish', <String, dynamic>{
+    _link.addNode('$path/publish', <String, dynamic>{
       r'$name': 'Publish',
       r'$invokable': 'write',
       r'$is': 'publishValue',
@@ -276,13 +278,13 @@ class WatchGroupNode extends SimpleNode {
       ]
     });
 
-    _link?.addNode('$path/delete', <String, dynamic>{
+    _link.addNode('$path/delete', <String, dynamic>{
       r'$name': 'Delete',
       r'$invokable': 'write',
       r'$is': 'delete'
     });
 
-    _link?.addNode('$path/purge', <String, dynamic>{
+    _link.addNode('$path/purge', <String, dynamic>{
       r'$name': 'Purge',
       r'$invokable': 'write',
       r'$params': [
@@ -292,12 +294,7 @@ class WatchGroupNode extends SimpleNode {
     });
 
     Future(() async {
-      if (db?.database == null) {
-        var c = Completer<void>();
-        db?.onDatabaseReady.add(c.complete);
-        await c.future;
-      }
-
+      await db?.waitForDatabaseReady();
       db?.database?.addWatchGroupExtensions(this);
     });
   }

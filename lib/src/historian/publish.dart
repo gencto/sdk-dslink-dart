@@ -15,24 +15,24 @@ class PublishValueAction extends SimpleNode {
       throw 'Path not provided.';
     }
 
-    var p = Path(path!);
+    var p = Path(path);
     var tp = p.parent.child(NodeNamer.createName(inputPath)).path;
-    var node = _link![tp] as SimpleNode;
+    var node = _link[tp] as SimpleNode;
 
-    WatchPathNode? pn;
+    WatchPathNode pn;
     if (node is! WatchPathNode) {
-      pn = _link!.addNode(tp, <String, dynamic>{
+      pn = _link.addNode(tp, <String, dynamic>{
         r'$name': inputPath,
         r'$is': 'watchPath',
         r'$publish': true,
         r'$type': 'dynamic',
         r'$path': inputPath
-      }) as WatchPathNode?;
-      _link?.save();
+      }) as WatchPathNode;
+      _link.save();
     } else {
       pn = node;
     }
 
-    pn?.doUpdate(ValueUpdate(val, ts: ts));
+    pn.doUpdate(ValueUpdate(val, ts: ts));
   }
 }

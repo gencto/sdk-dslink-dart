@@ -5,7 +5,7 @@ late LinkProvider link;
 
 void main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
-  link = LinkProvider(args, 'CounterWorker-',
+  link = LinkProvider(['--broker', 'http://dsa.gencto.uk/conn', '--log', 'debug'], 'CounterWorker-',
       defaultNodes: <String, dynamic>{
         'Counter': {
           r'$type': 'number', // The type of the node is a number.

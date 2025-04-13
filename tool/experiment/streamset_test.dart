@@ -12,8 +12,8 @@ void main() {
   };
 
   link = LinkProvider(
-      ['-b', 'dev.gencto.uk/conn', '--log', 'finest'], 'streamset-req',
-      defaultNodes: defaultNodes, isResponder: false, isRequester: true);
+      ['-b', 'dsa.gencto.uk/conn', '--log', 'finest'], 'streamset-req',
+      defaultNodes: defaultNodes, isResponder: true, isRequester: true);
   if (link.link == null) {
     // initialization failed
     return;
@@ -27,18 +27,19 @@ void main() {
       var i = 0;
       Timer.periodic(Duration(seconds: 1), (Timer t) {
         rawreq
-            .addReqParams(<String, dynamic>{'Path': '/data/m1', 'Value': ++i});
+            .addReqParams(<String, dynamic>{'Path': '/downstream/streamset-req/node', 'Value': ++i});
       });
     }
 
     req
         ?.invoke(
-            '/data/streamingSet',
-            <String, dynamic>{'Path': '/data/m1', 'Value': 0},
+            '/downstream/streamset-req/node',
+            <String, dynamic>{'Path': '/downstream/streamset-req/node', 'Value': 0},
             Permission.CONFIG,
             fetchReq)
         .listen((update) {
       print(update.updates);
     });
   });
+  
 }
