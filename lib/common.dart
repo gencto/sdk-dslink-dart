@@ -1,22 +1,21 @@
 /// Shared APIs between all DSA Components.
-library dslink.common;
+library dsalink.common;
 
 import 'dart:async';
 import 'dart:collection';
 
 import 'requester.dart';
 import 'responder.dart';
+import 'src/crypto/pk.dart';
 import 'utils.dart';
 
-import 'src/crypto/pk.dart';
-
-part 'src/common/node.dart';
-part 'src/common/table.dart';
-part 'src/common/value.dart';
 part 'src/common/connection_channel.dart';
 part 'src/common/connection_handler.dart';
-part 'src/common/permission.dart';
 part 'src/common/default_defs.dart';
+part 'src/common/node.dart';
+part 'src/common/permission.dart';
+part 'src/common/table.dart';
+part 'src/common/value.dart';
 
 abstract class Connection {
   ConnectionChannel get requesterChannel;
@@ -166,8 +165,12 @@ abstract class ServerLinkManager {
 
   Requester? getRequester(String dsId);
 
-  Responder? getResponder(String dsId, NodeProvider nodeProvider,
-      [String? sessionId = '', bool trusted = false]);
+  Responder? getResponder(
+    String dsId,
+    NodeProvider nodeProvider, [
+    String? sessionId = '',
+    bool trusted = false,
+  ]);
 
   void updateLinkData(String dsId, Map? m);
 }
@@ -197,8 +200,13 @@ class DSError {
   String? path;
   String? phase;
 
-  DSError(this.type,
-      {this.msg, this.detail, this.path, this.phase = ErrorPhase.response});
+  DSError(
+    this.type, {
+    this.msg,
+    this.detail,
+    this.path,
+    this.phase = ErrorPhase.response,
+  });
 
   DSError.fromMap(Map m) {
     if (m['type'] is String) {
@@ -274,8 +282,10 @@ class DSError {
   static final DSError INVALID_PARAMETER = DSError('invalidParameter');
 
   /// Represents a disconnected error.
-  static final DSError DISCONNECTED =
-      DSError('disconnected', phase: ErrorPhase.request);
+  static final DSError DISCONNECTED = DSError(
+    'disconnected',
+    phase: ErrorPhase.request,
+  );
 
   /// Represents a failed error.
   static final DSError FAILED = DSError('failed');

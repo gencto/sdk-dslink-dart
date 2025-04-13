@@ -1,19 +1,22 @@
-import 'package:dslink/dslink.dart';
-import 'package:dslink/worker.dart';
+import 'package:dsalink/dsalink.dart';
+import 'package:dsalink/worker.dart';
 
 late LinkProvider link;
 
 void main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
-  link = LinkProvider(['--broker', 'http://dsa.gencto.uk/conn', '--log', 'debug'], 'CounterWorker-',
-      defaultNodes: <String, dynamic>{
-        'Counter': {
-          r'$type': 'number', // The type of the node is a number.
-          r'$writable': 'write', // This node's value can be set by a requester.
-          '?value': 0 // The default counter value.
-        }
+  link = LinkProvider(
+    ['--broker', 'http://127.0.0.1:8080/conn', '--log', 'debug'],
+    'CounterWorker-',
+    defaultNodes: <String, dynamic>{
+      'Counter': {
+        r'$type': 'number', // The type of the node is a number.
+        r'$writable': 'write', // This node's value can be set by a requester.
+        '?value': 0, // The default counter value.
       },
-      encodePrettyJson: true);
+    },
+    encodePrettyJson: true,
+  );
 
   // Connect to the broker.
   await link.connect();

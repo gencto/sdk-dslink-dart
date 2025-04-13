@@ -1,23 +1,23 @@
 /// Common Utilities for DSA Components
-library dslink.utils;
+library dsalink.utils;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:collection';
-import 'dart:typed_data';
+import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
-import 'package:msgpack_dart/msgpack_dart.dart';
+import 'package:pro_mpack/pro_mpack.dart';
 
 part 'src/utils/base64.dart';
-part 'src/utils/timer.dart';
-part 'src/utils/stream_controller.dart';
 part 'src/utils/codec.dart';
-part 'src/utils/dslink_json.dart';
+part 'src/utils/dsalink_json.dart';
 part 'src/utils/list.dart';
-part 'src/utils/uri_component.dart';
 part 'src/utils/promise_timeout.dart';
+part 'src/utils/stream_controller.dart';
+part 'src/utils/timer.dart';
+part 'src/utils/uri_component.dart';
 
 typedef ExecutableFunction();
 typedef T Producer<T>();
@@ -57,7 +57,7 @@ bool get DEBUG_MODE {
   return _DEBUG_MODE!;
 }
 
-class DSLogUtils {
+class DSALogUtils {
   static void withLoggerName(String name, Function() handler) {
     return runZoned(handler, zoneValues: {'dsa.logger.name': name});
   }
@@ -81,8 +81,11 @@ class DSLogUtils {
 
 const bool _isJavaScript = identical(1, 1.0);
 
-bool _getLogSetting(LogRecord record, String name,
-    [bool defaultValue = false]) {
+bool _getLogSetting(
+  LogRecord record,
+  String name, [
+  bool defaultValue = false,
+]) {
   if (record.zone?[name] is bool) {
     return record.zone?[name];
   }
@@ -108,8 +111,11 @@ Logger get logger {
     var lines = record.message.split('\n');
     var inlineErrors = _getLogSetting(record, 'dsa.logger.inline_errors', true);
 
-    var enableSequenceNumbers =
-        _getLogSetting(record, 'dsa.logger.sequence', false);
+    var enableSequenceNumbers = _getLogSetting(
+      record,
+      'dsa.logger.sequence',
+      false,
+    );
 
     if (inlineErrors) {
       if (record.error != null) {
@@ -117,11 +123,13 @@ Logger get logger {
       }
 
       if (record.stackTrace != null) {
-        lines.addAll(record.stackTrace
-            .toString()
-            .split('\n')
-            .where((x) => x.isNotEmpty)
-            .toList());
+        lines.addAll(
+          record.stackTrace
+              .toString()
+              .split('\n')
+              .where((x) => x.isNotEmpty)
+              .toList(),
+        );
       }
     }
 
@@ -131,8 +139,11 @@ Logger get logger {
       rname = record.zone?['dsa.logger.name'];
     }
 
-    var showTimestamps =
-        _getLogSetting(record, 'dsa.logger.show_timestamps', false);
+    var showTimestamps = _getLogSetting(
+      record,
+      'dsa.logger.show_timestamps',
+      false,
+    );
 
     if (!_getLogSetting(record, 'dsa.logger.show_name', true)) {
       rname = null;
@@ -174,14 +185,18 @@ Logger get logger {
     }
   });
 
-  updateLogLevel(const String.fromEnvironment('dsa.logger.default_level',
-      defaultValue: 'INFO'));
+  UpdateLogLevel(
+    const String.fromEnvironment(
+      'dsa.logger.default_level',
+      defaultValue: 'INFO',
+    ),
+  );
 
   return _logger!;
 }
 
 /// Updates the log level to the level specified [name].
-void updateLogLevel(String name) {
+void UpdateLogLevel(String name) {
   name = name.trim().toUpperCase();
 
   if (name == 'DEBUG') {
@@ -208,12 +223,15 @@ class Interval {
   static final Interval SIXTEEN_MILLISECONDS = Interval.forMilliseconds(16);
   static final Interval THIRTY_MILLISECONDS = Interval.forMilliseconds(30);
   static final Interval FIFTY_MILLISECONDS = Interval.forMilliseconds(50);
-  static final Interval ONE_HUNDRED_MILLISECONDS =
-      Interval.forMilliseconds(100);
-  static final Interval TWO_HUNDRED_MILLISECONDS =
-      Interval.forMilliseconds(200);
-  static final Interval THREE_HUNDRED_MILLISECONDS =
-      Interval.forMilliseconds(300);
+  static final Interval ONE_HUNDRED_MILLISECONDS = Interval.forMilliseconds(
+    100,
+  );
+  static final Interval TWO_HUNDRED_MILLISECONDS = Interval.forMilliseconds(
+    200,
+  );
+  static final Interval THREE_HUNDRED_MILLISECONDS = Interval.forMilliseconds(
+    300,
+  );
   static final Interval QUARTER_SECOND = Interval.forMilliseconds(250);
   static final Interval HALF_SECOND = Interval.forMilliseconds(500);
   static final Interval ONE_SECOND = Interval.forSeconds(1);
@@ -254,7 +272,7 @@ class FunctionDisposable extends Disposable {
 
 /// Schedule Tasks
 class Scheduler {
-  static Timer get currentTimer => Zone.current['dslink.scheduler.timer'];
+  static Timer get currentTimer => Zone.current['dsalink.scheduler.timer'];
 
   static void cancelCurrentTimer() {
     currentTimer.cancel();
@@ -274,7 +292,7 @@ class Scheduler {
     }
 
     return Timer.periodic(duration, (Timer timer) async {
-      runZoned<void>(action, zoneValues: {'dslink.scheduler.timer': timer});
+      runZoned<void>(action, zoneValues: {'dsalink.scheduler.timer': timer});
     });
   }
 
@@ -320,7 +338,8 @@ class Scheduler {
   static Future tick(int times, Interval interval, Function() action) async {
     for (var i = 1; i <= times; i++) {
       await Future<void>.delayed(
-          Duration(milliseconds: interval.inMilliseconds));
+        Duration(milliseconds: interval.inMilliseconds),
+      );
       await action();
     }
   }
@@ -342,7 +361,7 @@ class Scheduler {
   }
 }
 
-String buildEnumType(Iterable<String> values) => "enum[${values.join(",")}]";
+String BuildEnumType(Iterable<String> values) => "enum[${values.join(",")}]";
 
 List<String> parseEnumType(String type) {
   if (!type.startsWith('enum[') || !type.endsWith(']')) {
@@ -355,7 +374,7 @@ List<String> parseEnumType(String type) {
       .toList();
 }
 
-List<Map> buildActionIO(Map<String, String> types) {
+List<Map> BuildActionIO(Map<String, String> types) {
   return types.keys.map((it) => {'name': it, 'type': types[it]}).toList();
 }
 
@@ -364,7 +383,8 @@ String generateBasicId({int length = 30}) {
   var buffer = StringBuffer();
   for (var i = 1; i <= length; i++) {
     var r = Random(
-        r0.nextInt(0x70000000) + (DateTime.now()).millisecondsSinceEpoch);
+      r0.nextInt(0x70000000) + (DateTime.now()).millisecondsSinceEpoch,
+    );
     var n = r.nextInt(50);
     if (n >= 0 && n <= 32) {
       var letter = alphabet[r.nextInt(alphabet.length)];
@@ -383,7 +403,8 @@ String generateToken({int length = 50}) {
   var buffer = StringBuffer();
   for (var i = 1; i <= length; i++) {
     var r = Random(
-        r0.nextInt(0x70000000) + (DateTime.now()).millisecondsSinceEpoch);
+      r0.nextInt(0x70000000) + (DateTime.now()).millisecondsSinceEpoch,
+    );
     if (r.nextBool()) {
       var letter = alphabet[r.nextInt(alphabet.length)];
       buffer.write(r.nextBool() ? letter.toLowerCase() : letter);
@@ -420,7 +441,7 @@ const List<String> alphabet = [
   'W',
   'X',
   'Y',
-  'Z'
+  'Z',
 ];
 
 const List<int> numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];

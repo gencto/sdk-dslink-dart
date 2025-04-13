@@ -1,10 +1,10 @@
-library dslink.storage.simple;
+library dsalink.storage.simple;
 
 import 'dart:async';
 import 'dart:io';
 
-import '../../responder.dart';
 import '../../common.dart';
+import '../../responder.dart';
 import '../../utils.dart';
 
 void _ignoreError(Object obj) {}
@@ -32,7 +32,9 @@ class SimpleStorageManager implements IStorageManager {
       return rsponders[rpath]!;
     }
     var responder = SimpleResponderStorage(
-        '${subDir.path}/${Uri.encodeComponent(rpath)}', rpath);
+      '${subDir.path}/${Uri.encodeComponent(rpath)}',
+      rpath,
+    );
     rsponders[rpath] = responder;
     return responder;
   }
@@ -62,8 +64,11 @@ class SimpleStorageManager implements IStorageManager {
     for (var entity in subDir.listSync()) {
       if (await FileSystemEntity.type(entity.path) ==
           FileSystemEntityType.directory) {
-        var rpath = UriComponentDecoder.decode(entity.path
-            .substring(entity.path.lastIndexOf(Platform.pathSeparator) + 1));
+        var rpath = UriComponentDecoder.decode(
+          entity.path.substring(
+            entity.path.lastIndexOf(Platform.pathSeparator) + 1,
+          ),
+        );
         var responder = SimpleResponderStorage(entity.path, rpath);
         rsponders[rpath] = responder;
         loading.add(responder.load());
@@ -81,7 +86,9 @@ class SimpleStorageManager implements IStorageManager {
       return values[category]!;
     }
     var store = SimpleValueStorageBucket(
-        category, '${dir.path}/${Uri.encodeComponent(category)}');
+      category,
+      '${dir.path}/${Uri.encodeComponent(category)}',
+    );
     values[category] = store;
     return store;
   }
@@ -103,7 +110,8 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
 
   SimpleResponderStorage(String path, [String? responderPath]) {
     responderPath ??= UriComponentDecoder.decode(
-        path.substring(path.lastIndexOf(Platform.pathSeparator) + 1));
+      path.substring(path.lastIndexOf(Platform.pathSeparator) + 1),
+    );
 
     dir = Directory(path);
     if (!dir.existsSync()) {
@@ -116,8 +124,12 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
     if (values.containsKey(path)) {
       return values[path]!;
     }
-    var value =
-        SimpleNodeStorage(path, Uri.encodeComponent(path), dir.path, this);
+    var value = SimpleNodeStorage(
+      path,
+      Uri.encodeComponent(path),
+      dir.path,
+      this,
+    );
     values[path] = value;
     return value;
   }
@@ -126,8 +138,9 @@ class SimpleResponderStorage extends ISubscriptionResponderStorage {
   Future<List<ISubscriptionNodeStorage>> load() async {
     var loading = <Future<ISubscriptionNodeStorage>>[];
     for (var entity in dir.listSync()) {
-      var name = entity.path
-          .substring(entity.path.lastIndexOf(Platform.pathSeparator) + 1);
+      var name = entity.path.substring(
+        entity.path.lastIndexOf(Platform.pathSeparator) + 1,
+      );
       var path = UriComponentDecoder.decode(name);
       values[path] = SimpleNodeStorage(path, name, dir.path, this);
       loading.add(values[path]!.load());
@@ -156,9 +169,12 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
   late File file;
   late String filename;
 
-  SimpleNodeStorage(String path, this.filename, String parentPath,
-      SimpleResponderStorage storage)
-      : super(path, storage) {
+  SimpleNodeStorage(
+    String path,
+    this.filename,
+    String parentPath,
+    SimpleResponderStorage storage,
+  ) : super(path, storage) {
     file = File('$parentPath/$filename');
   }
 
@@ -166,7 +182,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
   @override
   void addValue(ValueUpdate value) {
     qos = 3;
-    value.storedData = '${DsJson.encode(value.toMap())}\n';
+    value.storedData = '${DsaJson.encode(value.toMap())}\n';
     file.openSync(mode: FileMode.append)
       ..writeStringSync(value.storedData.toString())
       ..closeSync();
@@ -175,7 +191,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
   @override
   void setValue(Iterable<ValueUpdate> removes, ValueUpdate newValue) {
     qos = 2;
-    newValue.storedData = ' ${DsJson.encode(newValue.toMap())}\n';
+    newValue.storedData = ' ${DsaJson.encode(newValue.toMap())}\n';
     // add a space when qos = 2
     file.writeAsStringSync(newValue.storedData.toString());
   }
@@ -223,7 +239,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
         continue;
       }
       try {
-        Map m = DsJson.decode(s);
+        Map m = DsaJson.decode(s);
         var value = ValueUpdate(m['value'], ts: m['ts'], meta: m);
         rslt.add(value);
       } catch (err) {}
@@ -265,12 +281,15 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
   Future<Map> load() async {
     Map rslt = <String, dynamic>{};
     for (var entity in dir.listSync()) {
-      var name = UriComponentDecoder.decode(entity.path
-          .substring(entity.path.lastIndexOf(Platform.pathSeparator) + 1));
+      var name = UriComponentDecoder.decode(
+        entity.path.substring(
+          entity.path.lastIndexOf(Platform.pathSeparator) + 1,
+        ),
+      );
       var f = File(entity.path);
       var str = f.readAsStringSync();
       try {
-        rslt[name] = DsJson.decode(str);
+        rslt[name] = DsaJson.decode(str);
       } catch (err) {
         logger.fine(err);
       }
@@ -301,7 +320,7 @@ class SimpleValueStorage extends IValueStorage {
     _pendingValue = null;
     _pendingSet = true;
     _file
-        .writeAsString(DsJson.encode(value!))
+        .writeAsString(DsaJson.encode(value!))
         .then(onSetDone)
         .catchError(onSetDone);
   }
@@ -326,7 +345,7 @@ class SimpleValueStorage extends IValueStorage {
       return _pendingValue;
     }
     try {
-      return DsJson.decode(await _file.readAsString());
+      return DsaJson.decode(await _file.readAsString());
     } catch (err) {}
     return null;
   }

@@ -1,4 +1,4 @@
-part of dslink.utils;
+part of dsalink.utils;
 
 typedef _Encoder = Object? Function(Object? input);
 typedef _Reviver = Object? Function(Object? key, Object? input);
@@ -21,11 +21,11 @@ class BinaryData {
 
 abstract class DsCodec {
   static final Map<String, DsCodec> _codecs = {
-    'json': DsJson.instance,
-    'msgpack': DsMsgPackCodecImpl.instance
+    'json': DsaJson.instance,
+    'msgpack': DsMsgPackCodecImpl.instance,
   };
 
-  static final DsCodec defaultCodec = DsJson.instance;
+  static final DsCodec defaultCodec = DsaJson.instance;
 
   static void register(String? name, DsCodec? codec) {
     if (name != null && codec != null) {
@@ -57,8 +57,8 @@ abstract class DsCodec {
   Map? decodeBinaryFrame(List<int> input);
 }
 
-abstract class DsJson {
-  static DsJsonCodecImpl instance = DsJsonCodecImpl();
+abstract class DsaJson {
+  static DsaJsonCodecImpl instance = DsaJsonCodecImpl();
 
   static String encode(Object val, {bool pretty = false}) {
     return instance.encodeJson(val, pretty: pretty);
@@ -76,7 +76,7 @@ abstract class DsJson {
   dynamic decodeJson(String str);
 }
 
-class DsJsonCodecImpl extends DsCodec implements DsJson {
+class DsaJsonCodecImpl extends DsCodec implements DsaJson {
   static dynamic _safeEncoder(dynamic value) {
     return null;
   }

@@ -1,4 +1,4 @@
-part of dslink.utils;
+part of dsalink.utils;
 
 /// a decoder class to decode malformed url encoded string
 class UriComponentDecoder {
@@ -27,7 +27,8 @@ class UriComponentDecoder {
       } else {
         if (bytes.isNotEmpty) {
           codes.addAll(
-              const Utf8Decoder(allowMalformed: true).convert(bytes).codeUnits);
+            const Utf8Decoder(allowMalformed: true).convert(bytes).codeUnits,
+          );
           bytes.clear();
         }
         if (codeUnit == _PLUS) {

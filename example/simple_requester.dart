@@ -1,17 +1,17 @@
-import 'package:dslink/dslink.dart';
+import 'package:dsalink/dsalink.dart';
 
 late LinkProvider link;
 
 void main(List<String> args) async {
   link = LinkProvider(
-    ['--broker', 'http://127.0.0.1:8080/conn', '--log', 'debug'],
-    'Simple-Requester-', // DSLink Prefix
+    ['--broker', 'https://127.0.0.1/conn'],
+    'Simple-Requester-', // dsalink Prefix
     defaultLogLevel: 'DEBUG',
     isResponder: false,
     isRequester: true, // We are just a requester.
   );
 
-  link.connect(); // Connect to the broker.
+  await link.connect(); // Connect to the broker.
   var requester =
       await link.onRequesterReady; // Wait for the requester to be ready.
 

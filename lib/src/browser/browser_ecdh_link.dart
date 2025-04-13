@@ -1,4 +1,4 @@
-part of dslink.browser_client;
+part of dsalink.browser_client;
 
 /// a client link for websocket
 class BrowserECDHLink extends ClientLink {
@@ -47,18 +47,22 @@ class BrowserECDHLink extends ClientLink {
   /// format received from broker
   String format = 'json';
 
-  BrowserECDHLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider? nodeProvider,
-      bool isRequester = true,
-      bool isResponder = true,
-      this.token,
-      List<String>? formats})
-      : privateKey = privateKey,
-        dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
-        requester = isRequester ? Requester() : null,
-        responder = (isResponder && nodeProvider != null)
-            ? Responder(nodeProvider)
-            : null {
+  BrowserECDHLink(
+    this._conn,
+    String dsIdPrefix,
+    PrivateKey privateKey, {
+    NodeProvider? nodeProvider,
+    bool isRequester = true,
+    bool isResponder = true,
+    this.token,
+    List<String>? formats,
+  }) : privateKey = privateKey,
+       dsId = '$dsIdPrefix${privateKey.publicKey.qHash64}',
+       requester = isRequester ? Requester() : null,
+       responder =
+           (isResponder && nodeProvider != null)
+               ? Responder(nodeProvider)
+               : null {
     if (!_conn.contains('://')) {
       _conn = 'http://$_conn';
     }
@@ -95,14 +99,18 @@ class BrowserECDHLink extends ClientLink {
         'isResponder': responder != null,
         'formats': formats,
         'version': DSA_VERSION,
-        'enableWebSocketCompression': true
+        'enableWebSocketCompression': true,
       };
-      var request = await HttpRequest.request(connUrl,
-          method: 'POST',
-          withCredentials: false,
-          mimeType: 'application/json',
-          sendData: DsJson.encode(requestJson));
-      Map serverConfig = DsJson.decode(request.responseText ?? '');
+      var request = await http.post(
+        Uri.https(connUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: DsaJson.encode(requestJson),
+      );
+
+      Map serverConfig = DsaJson.decode(request.body);
       //read salt
       salt = serverConfig['salt'];
 
@@ -138,12 +146,17 @@ class BrowserECDHLink extends ClientLink {
     if (_closed) return;
     var wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(salt)}&format=$format';
     var socket = WebSocket(wsUrl);
-    _wsConnection =
-        WebSocketConnection(socket, this, enableAck: enableAck, onConnect: () {
-      if (!_onConnectedCompleter.isCompleted) {
-        _onConnectedCompleter.complete();
-      }
-    }, useCodec: DsCodec.getCodec(format));
+    _wsConnection = WebSocketConnection(
+      socket,
+      this,
+      enableAck: enableAck,
+      onConnect: () {
+        if (!_onConnectedCompleter.isCompleted) {
+          _onConnectedCompleter.complete();
+        }
+      },
+      useCodec: DsCodec.getCodec(format),
+    );
 
     if (responder != null) {
       responder!.connection = _wsConnection!.responderChannel;

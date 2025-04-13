@@ -1,6 +1,6 @@
-# DSLink SDK for Dart
+# DSALink SDK for Dart
 
-DSLink SDK for Dart
+DSALink SDK for Dart
 
 ## Getting Started
 
@@ -12,7 +12,7 @@ DSLink SDK for Dart
 ### Install
 
 ```bash
-pub global activate -sgit https://github.com/gencto/sdk-dslink-dart.git # Globally install the DSA Broker
+pub global activate -sgit https://github.com/gencto/sdk-dsalink-dart.git # Globally install the DSA Broker
 ```
 
 ### Start a Broker
@@ -22,15 +22,15 @@ dsbroker # If you have the pub global executable path setup.
 pub global run dsbroker:broker # If you do not have the pub global executable path setup.
 ```
 
-You can edit the server configuration using `broker.json`. For more information about broker configuration, see [this page](https://github.com/IOT-DSA/sdk-dslink-dart/wiki/Configuring-a-Broker).
+You can edit the server configuration using `broker.json`. For more information about broker configuration, see [this page](https://github.com/IOT-DSA/sdk-dsalink-dart/wiki/Configuring-a-Broker).
 
 ### Create a Link
 
 For documentation, see [this page](http://iot-dsa.github.io/docs/sdks/dart/).
-For more examples, see [this page](https://github.com/IOT-DSA/sdk-dslink-dart/tree/master/example).
+For more examples, see [this page](https://github.com/IOT-DSA/sdk-dsalink-dart/tree/master/example).
 
 ```dart
-import "package:dslink/dslink.dart";
+import "package:dsalink/dsalink.dart";
 
 LinkProvider link;
 

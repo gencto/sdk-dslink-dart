@@ -1,5 +1,5 @@
 /// DSA Broker Server
-library dslink.server;
+library dsalink.server;
 
 import 'dart:io';
 
@@ -10,13 +10,18 @@ abstract class IRemoteRequester {
   String get responderPath;
 }
 
-ContentType _jsonContentType =
-    ContentType('application', 'json', charset: 'utf-8');
+ContentType _jsonContentType = ContentType(
+  'application',
+  'json',
+  charset: 'utf-8',
+);
 
-void updateResponseBeforeWrite(HttpRequest request,
-    [int? statusCode = HttpStatus.ok,
-    ContentType? contentType,
-    bool noContentType = false]) {
+void updateResponseBeforeWrite(
+  HttpRequest request, [
+  int? statusCode = HttpStatus.ok,
+  ContentType? contentType,
+  bool noContentType = false,
+]) {
   var response = request.response;
 
   if (statusCode != null) {

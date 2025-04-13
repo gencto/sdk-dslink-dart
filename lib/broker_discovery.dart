@@ -1,4 +1,4 @@
-library dslink.broker_discovery;
+library dsalink.broker_discovery;
 
 import 'dart:async';
 import 'dart:convert';
@@ -38,11 +38,17 @@ class BrokerDiscoveryClient {
     try {
       for (var interface in interfaces) {
         try {
-          socketJoinMulticast(_socket, InternetAddress('239.255.255.230'),
-              /*interface:*/ interface);
+          socketJoinMulticast(
+            _socket,
+            InternetAddress('239.255.255.230'),
+            /*interface:*/ interface,
+          );
         } catch (e) {
-          socketJoinMulticast(_socket, InternetAddress('239.255.255.230'),
-              /*interface:*/ interface);
+          socketJoinMulticast(
+            _socket,
+            InternetAddress('239.255.255.230'),
+            /*interface:*/ interface,
+          );
         }
       }
     } catch (e) {
@@ -98,7 +104,10 @@ class BrokerDiscoverRequest {
   }
 }
 
-void socketJoinMulticast(RawDatagramSocket socket, InternetAddress group,
-    [NetworkInterface? interface]) {
+void socketJoinMulticast(
+  RawDatagramSocket socket,
+  InternetAddress group, [
+  NetworkInterface? interface,
+]) {
   socket.joinMulticast(group, interface);
 }

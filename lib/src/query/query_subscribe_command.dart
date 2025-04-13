@@ -1,4 +1,4 @@
-part of dslink.query;
+part of dsalink.query;
 
 class _QuerySubscription {
   final QueryCommandSubscribe? command;

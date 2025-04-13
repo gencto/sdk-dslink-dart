@@ -1,4 +1,4 @@
-part of dslink.utils;
+part of dsalink.utils;
 
 /// difference from crypto lib CryptoUtils.bytesToBase64:
 /// 1) default to url filename safe base64
@@ -20,26 +20,30 @@ class Base64 {
   /// -1 : '\r' or '\n'
   /// 0 : = (Padding character).
   /// >=0 : Base 64 alphabet index of given byte.
-  static final List<int> _decodeTable = (() {
-    var table = List<int>.filled(256, 0);
-    table.fillRange(0, 256, -2);
-    var charCodes = _encodeTable.codeUnits;
-    var len = charCodes.length;
-    for (var i = 0; i < len; ++i) {
-      table[charCodes[i]] = i;
-    }
-    table[PLUS] = 62;
-    table[SLASH] = 63;
-    table[CR] = -1;
-    table[LF] = -1;
-    table[SP] = -1;
-    table[LF] = -1;
-    table[PAD] = 0;
-    return table;
-  })();
+  static final List<int> _decodeTable =
+      (() {
+        var table = List<int>.filled(256, 0);
+        table.fillRange(0, 256, -2);
+        var charCodes = _encodeTable.codeUnits;
+        var len = charCodes.length;
+        for (var i = 0; i < len; ++i) {
+          table[charCodes[i]] = i;
+        }
+        table[PLUS] = 62;
+        table[SLASH] = 63;
+        table[CR] = -1;
+        table[LF] = -1;
+        table[SP] = -1;
+        table[LF] = -1;
+        table[PAD] = 0;
+        return table;
+      })();
 
-  static String encodeString(String content,
-      [int lineSize = 0, int paddingSpace = 0]) {
+  static String encodeString(
+    String content, [
+    int lineSize = 0,
+    int paddingSpace = 0,
+  ]) {
     return Base64.encode(toUTF8(content), lineSize, paddingSpace);
   }
 
@@ -47,8 +51,11 @@ class Base64 {
     return const Utf8Decoder().convert(decode(input) as List<int>);
   }
 
-  static String encode(List<int> bytes,
-      [int lineSize = 0, int paddingSpace = 0]) {
+  static String encode(
+    List<int> bytes, [
+    int lineSize = 0,
+    int paddingSpace = 0,
+  ]) {
     var len = bytes.length;
     if (len == 0) {
       return '';
@@ -73,7 +80,8 @@ class Base64 {
       out[j++] = SP;
     }
     while (i < chunkLength) {
-      var x = (((bytes[i++] % 256) << 16) & 0xFFFFFF) |
+      var x =
+          (((bytes[i++] % 256) << 16) & 0xFFFFFF) |
           (((bytes[i++] % 256) << 8) & 0xFFFFFF) |
           (bytes[i++] % 256);
       out[j++] = _encodeTable.codeUnitAt(x >> 18);
@@ -96,8 +104,8 @@ class Base64 {
       var x = bytes[i] % 256;
       out[j++] = _encodeTable.codeUnitAt(x >> 2);
       out[j++] = _encodeTable.codeUnitAt((x << 4) & 0x3F);
-//     out[j++] = PAD;
-//     out[j++] = PAD;
+      //     out[j++] = PAD;
+      //     out[j++] = PAD;
       return String.fromCharCodes(out.sublist(0, outputLen - 2));
     } else if (remainderLength == 2) {
       var x = bytes[i] % 256;
@@ -105,7 +113,7 @@ class Base64 {
       out[j++] = _encodeTable.codeUnitAt(x >> 2);
       out[j++] = _encodeTable.codeUnitAt(((x << 4) | (y >> 4)) & 0x3F);
       out[j++] = _encodeTable.codeUnitAt((y << 2) & 0x3F);
-//     out[j++] = PAD;
+      //     out[j++] = PAD;
       return String.fromCharCodes(out.sublist(0, outputLen - 1));
     }
 

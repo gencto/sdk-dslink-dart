@@ -1,4 +1,4 @@
-import 'package:dslink/utils.dart';
+import 'package:dsalink/utils.dart';
 
 void main() {
   Scheduler.after(Duration(seconds: 5), () {

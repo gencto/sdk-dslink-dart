@@ -1,35 +1,18 @@
-/// Main DSLink API for Browsers
-library dslink.browser;
+/// Main dsalink API for Browsers
+library dsalink.browser;
 
 import 'dart:async';
-import 'dart:html';
-
 import 'dart:typed_data';
 
-import 'package:dslink/requester.dart';
-import 'package:dslink/responder.dart';
-import 'package:dslink/browser_client.dart';
-import 'package:dslink/common.dart';
+import 'package:dsalink/browser_client.dart';
+import 'package:dsalink/common.dart';
+import 'package:dsalink/requester.dart';
+import 'package:dsalink/responder.dart';
+import 'package:dsalink/src/crypto/pk.dart';
+import 'package:dsalink/utils.dart' show Base64, ByteDataUtil, DsaJson;
+import 'package:http/http.dart' as http;
 
-import 'package:dslink/src/crypto/pk.dart';
-import 'package:dslink/utils.dart';
-
-export 'package:dslink/common.dart';
-export 'package:dslink/requester.dart';
-export 'package:dslink/responder.dart';
-export 'package:dslink/browser_client.dart';
-export 'package:dslink/utils.dart'
-    show
-        Scheduler,
-        Interval,
-        DSLinkJSON,
-        updateLogLevel,
-        buildEnumType,
-        buildActionIO,
-        ByteDataUtil;
-export 'package:dslink/src/crypto/pk.dart' show PrivateKey;
-
-/// DSLink Provider for the Browser
+/// dsalink Provider for the Browser
 class LinkProvider {
   BrowserECDHLink? link;
   Map? defaultNodes;
@@ -44,15 +27,18 @@ class LinkProvider {
   bool isResponder;
   String? token;
 
-  LinkProvider(this.brokerUrl, this.prefix,
-      {this.defaultNodes,
-      this.profiles,
-      this.provider,
-      this.dataStore,
-      this.loadNodes = false,
-      this.isRequester = true,
-      this.isResponder = true,
-      this.token}) {
+  LinkProvider(
+    this.brokerUrl,
+    this.prefix, {
+    this.defaultNodes,
+    this.profiles,
+    this.provider,
+    this.dataStore,
+    this.loadNodes = false,
+    this.isRequester = true,
+    this.isResponder = true,
+    this.token,
+  }) {
     dataStore ??= LocalDataStorage.INSTANCE;
   }
 
@@ -74,7 +60,7 @@ class LinkProvider {
       if (!(await dataStore!.has('dsa_nodes'))) {
         (provider as SerializableNodeProvider).init(defaultNodes!);
       } else {
-        Map decoded = DsJson.decode(await dataStore!.get('dsa_nodes'));
+        Map decoded = DsaJson.decode(await dataStore!.get('dsa_nodes'));
 
         (provider as SerializableNodeProvider).init(decoded);
       }
@@ -90,11 +76,15 @@ class LinkProvider {
 
   Future initLinkWithPrivateKey() async {
     privateKey = (await getPrivateKey(storage: dataStore))!;
-    link = BrowserECDHLink(brokerUrl, prefix, privateKey,
-        nodeProvider: provider,
-        isRequester: isRequester,
-        isResponder: isResponder,
-        token: token);
+    link = BrowserECDHLink(
+      brokerUrl,
+      prefix,
+      privateKey,
+      nodeProvider: provider,
+      isRequester: isRequester,
+      isResponder: isResponder,
+      token: token,
+    );
   }
 
   Future resetSavedNodes() async {
@@ -105,18 +95,21 @@ class LinkProvider {
     RespSubscribeListener? listener;
     StreamController<ValueUpdate>? controller;
     var subs = 0;
-    controller = StreamController<ValueUpdate>.broadcast(onListen: () {
-      subs++;
-      listener ??= this[path]!.subscribe((ValueUpdate update) {
-        controller?.add(update);
-      }, cacheLevel);
-    }, onCancel: () {
-      subs--;
-      if (subs == 0) {
-        listener!.cancel();
-        listener = null;
-      }
-    });
+    controller = StreamController<ValueUpdate>.broadcast(
+      onListen: () {
+        subs++;
+        listener ??= this[path]!.subscribe((ValueUpdate update) {
+          controller?.add(update);
+        }, cacheLevel);
+      },
+      onCancel: () {
+        subs--;
+        if (subs == 0) {
+          listener!.cancel();
+          listener = null;
+        }
+      },
+    );
     return controller.stream;
   }
 
@@ -125,8 +118,10 @@ class LinkProvider {
       return;
     }
 
-    await dataStore?.store('dsa_nodes',
-        DsJson.encode((provider as SerializableNodeProvider).save()));
+    await dataStore?.store(
+      'dsa_nodes',
+      DsaJson.encode((provider as SerializableNodeProvider).save()),
+    );
   }
 
   /// Remote Path of Responder
@@ -202,16 +197,24 @@ class LinkProvider {
 
 class BrowserUtils {
   static Future<String> fetchBrokerUrlFromPath(
-      String path, String otherwise) async {
+    String path,
+    String otherwise,
+  ) async {
     try {
-      return (await HttpRequest.getString(path)).trim();
+      final response = await http.get(Uri.parse(path));
+      if (response.statusCode == 200) {
+        return response.body.trim();
+      }
     } catch (e) {
       return otherwise;
     }
+    return otherwise;
   }
 
-  static String createBinaryUrl(ByteData input,
-      {String type = 'application/octet-stream'}) {
+  static String createBinaryUrl(
+    ByteData input, {
+    String type = 'application/octet-stream',
+  }) {
     var data = ByteDataUtil.toUint8List(input);
     return 'data:$type;base64,${Base64.encode(data)}';
   }

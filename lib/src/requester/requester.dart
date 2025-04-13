@@ -1,10 +1,15 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 typedef RequestConsumer<T> = T Function(Request request);
 
 abstract class RequestUpdater {
   void onUpdate(
-      String status, List? updates, List? columns, Map? meta, DSError? error);
+    String status,
+    List? updates,
+    List? columns,
+    Map? meta,
+    DSError? error,
+  );
   void onDisconnect();
   void onReconnect();
 }
@@ -93,8 +98,10 @@ class Requester extends ConnectionHandler {
   }
 
   ReqSubscribeListener subscribe(
-      String path, Function(ValueUpdate update) callback,
-      [int qos = 0]) {
+    String path,
+    Function(ValueUpdate update) callback, [
+    int qos = 0,
+  ]) {
     var node = nodeCache.getRemoteNode(path);
     node._subscribe(this, callback, qos);
     return ReqSubscribeListener(this, path, callback);
@@ -104,18 +111,21 @@ class Requester extends ConnectionHandler {
     ReqSubscribeListener? listener;
     late StreamController<ValueUpdate> controller;
     var subs = 0;
-    controller = StreamController<ValueUpdate>.broadcast(onListen: () {
-      subs++;
-      listener ??= subscribe(path, (ValueUpdate update) {
-        controller.add(update);
-      }, qos);
-    }, onCancel: () {
-      subs--;
-      if (subs == 0) {
-        listener?.cancel();
-        listener = null;
-      }
-    });
+    controller = StreamController<ValueUpdate>.broadcast(
+      onListen: () {
+        subs++;
+        listener ??= subscribe(path, (ValueUpdate update) {
+          controller.add(update);
+        }, qos);
+      },
+      onCancel: () {
+        subs--;
+        if (subs == 0) {
+          listener?.cancel();
+          listener = null;
+        }
+      },
+    );
     return controller.stream;
   }
 
@@ -151,19 +161,23 @@ class Requester extends ConnectionHandler {
   Future<RemoteNode> getRemoteNode(String path) {
     var c = Completer<RemoteNode>();
     StreamSubscription? sub;
-    sub = list(path).listen((update) {
-      if (!c.isCompleted) {
-        c.complete(update.node);
-      }
+    sub = list(path).listen(
+      (update) {
+        if (!c.isCompleted) {
+          c.complete(update.node);
+        }
 
-      if (sub != null) {
-        sub.cancel();
-      }
-    }, onError: (dynamic e, StackTrace stack) {
-      if (!c.isCompleted) {
-        c.completeError(e, stack);
-      }
-    }, cancelOnError: true);
+        if (sub != null) {
+          sub.cancel();
+        }
+      },
+      onError: (dynamic e, StackTrace stack) {
+        if (!c.isCompleted) {
+          c.completeError(e, stack);
+        }
+      },
+      cancelOnError: true,
+    );
     return c.future;
   }
 
@@ -177,16 +191,21 @@ class Requester extends ConnectionHandler {
     return node._list(this);
   }
 
-  Stream<RequesterInvokeUpdate> invoke(String path,
-      [Map params = const {},
-      int maxPermission = Permission.CONFIG,
-      RequestConsumer? fetchRawReq]) {
+  Stream<RequesterInvokeUpdate> invoke(
+    String path, [
+    Map params = const {},
+    int maxPermission = Permission.CONFIG,
+    RequestConsumer? fetchRawReq,
+  ]) {
     var node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this, maxPermission, fetchRawReq);
   }
 
-  Future<RequesterUpdate> set(String path, Object? value,
-      [int maxPermission = Permission.CONFIG]) {
+  Future<RequesterUpdate> set(
+    String path,
+    Object? value, [
+    int maxPermission = Permission.CONFIG,
+  ]) {
     return SetController(this, path, value, maxPermission).future;
   }
 

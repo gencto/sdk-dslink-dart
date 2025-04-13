@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:dslink/dslink.dart';
-import 'package:dslink/src/storage/simple_storage.dart';
+import 'package:dsalink/dsalink.dart';
+import 'package:dsalink/src/storage/simple_storage.dart';
 
 late LinkProvider link;
 late int lastNum;
@@ -9,7 +9,7 @@ LocalNode? valueNode;
 
 Future<void> main() async {
   var defaultNodes = <String, dynamic>{
-    'node': {r'$type': 'string'}
+    'node': {r'$type': 'string'},
   };
 
   var storage = SimpleResponderStorage('storage');
@@ -17,8 +17,10 @@ Future<void> main() async {
   var storedNodes = await storage.load();
 
   link = LinkProvider(
-      ['-b', 'https://dsa.gencto.uk/conn', '--log', 'finest'], 'qos-resp',
-      defaultNodes: defaultNodes);
+    ['-b', 'https://127.0.0.1/conn', '--log', 'finest'],
+    'qos-resp',
+    defaultNodes: defaultNodes,
+  );
 
   if (link.link == null) {
     // initialization failed

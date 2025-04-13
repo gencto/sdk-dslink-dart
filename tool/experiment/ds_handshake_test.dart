@@ -1,5 +1,5 @@
-import 'package:dslink/src/crypto/pk.dart';
-import 'package:dslink/src/crypto/dart/pk.dart';
+import 'package:dsalink/src/crypto/dart/pk.dart';
+import 'package:dsalink/src/crypto/pk.dart';
 
 String clientPrivate = 'M6S41GAL0gH0I97Hhy7A2-icf8dHnxXPmYIRwem03HE';
 String clientPublic =

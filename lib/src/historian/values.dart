@@ -1,4 +1,4 @@
-part of dslink.historian;
+part of dsalink.historian;
 
 class HistorySummary {
   final ValuePair? first;

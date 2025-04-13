@@ -1,4 +1,4 @@
-part of dslink.common;
+part of dsalink.common;
 
 Map defaultProfileMap = <String, dynamic>{
   'node': <String, dynamic>{},
@@ -12,7 +12,7 @@ Map defaultProfileMap = <String, dynamic>{
       {
         'name': 'Interval',
         'type': 'enum',
-        'editor': buildEnumType([
+        'editor': BuildEnumType([
           'default',
           'none',
           '1Y',
@@ -35,12 +35,12 @@ Map defaultProfileMap = <String, dynamic>{
           '15S',
           '10S',
           '5S',
-          '1S'
-        ])
+          '1S',
+        ]),
       },
       {
         'name': 'Rollup',
-        'type': buildEnumType([
+        'type': BuildEnumType([
           'avg',
           'min',
           'max',
@@ -50,13 +50,13 @@ Map defaultProfileMap = <String, dynamic>{
           'and',
           'or',
           'count',
-          'auto'
-        ])
-      }
+          'auto',
+        ]),
+      },
     ],
     r'$columns': [
       {'name': 'timestamp', 'type': 'time'},
-      {'name': 'value', 'type': 'dynamic'}
-    ]
-  }
+      {'name': 'value', 'type': 'dynamic'},
+    ],
+  },
 };

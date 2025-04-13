@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 /// Base Class for responder-side nodes.
 abstract class LocalNode extends Node {
@@ -7,16 +7,22 @@ abstract class LocalNode extends Node {
   /// Changes to nodes will be added to this controller's stream.
   /// See [updateList].
   BroadcastStreamController<String> get listChangeController {
-    _listChangeController ??= BroadcastStreamController<String>(() {
-      onStartListListen();
-    }, () {
-      onAllListCancel();
-    }, null, true);
+    _listChangeController ??= BroadcastStreamController<String>(
+      () {
+        onStartListListen();
+      },
+      () {
+        onAllListCancel();
+      },
+      null,
+      true,
+    );
     return _listChangeController!;
   }
 
   void overrideListChangeController(
-      BroadcastStreamController<String> controller) {
+    BroadcastStreamController<String> controller,
+  ) {
     _listChangeController = controller;
   }
 
@@ -44,8 +50,10 @@ abstract class LocalNode extends Node {
   Map<ValueUpdateCallback, int> callbacks = <ValueUpdateCallback, int>{};
 
   /// Subscribes the given [callback] to this node.
-  RespSubscribeListener subscribe(Function(ValueUpdate update) callback,
-      [int qos = 0]) {
+  RespSubscribeListener subscribe(
+    Function(ValueUpdate update) callback, [
+    int qos = 0,
+  ]) {
     callbacks[callback] = qos;
     return RespSubscribeListener(this, callback);
   }
@@ -113,7 +121,7 @@ abstract class LocalNode extends Node {
   String? get disconnected => null;
   List getDisconnectedListResponse() {
     return <dynamic>[
-      [r'$disconnectedTs', disconnected]
+      [r'$disconnectedTs', disconnected],
     ];
   }
 
@@ -134,14 +142,22 @@ abstract class LocalNode extends Node {
 
   /// Called by the link internals to invoke this node.
   InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, Node parentNode,
-      [int maxPermission = Permission.CONFIG]) {
+    Map params,
+    Responder responder,
+    InvokeResponse response,
+    Node parentNode, [
+    int maxPermission = Permission.CONFIG,
+  ]) {
     return response..close();
   }
 
   /// Called by the link internals to set an attribute on this node.
   Response? setAttribute(
-      String name, Object value, Responder responder, Response? response) {
+    String name,
+    Object value,
+    Responder responder,
+    Response? response,
+  ) {
     if (response != null) {
       return response..close();
     } else {
@@ -161,7 +177,10 @@ abstract class LocalNode extends Node {
 
   /// Called by the link internals to remove an attribute from this node.
   Response? removeAttribute(
-      String name, Responder responder, Response? response) {
+    String name,
+    Responder responder,
+    Response? response,
+  ) {
     if (response != null) {
       return response..close();
     } else {
@@ -181,7 +200,11 @@ abstract class LocalNode extends Node {
 
   /// Called by the link internals to set a config on this node.
   Response? setConfig(
-      String name, Object value, Responder responder, Response? response) {
+    String name,
+    Object value,
+    Responder responder,
+    Response? response,
+  ) {
     if (response != null) {
       return response..close();
     } else {
@@ -210,8 +233,12 @@ abstract class LocalNode extends Node {
   }
 
   /// Called by the link internals to set a value of a node.
-  Response? setValue(Object value, Responder? responder, Response? response,
-      [int maxPermission = Permission.CONFIG]) {
+  Response? setValue(
+    Object value,
+    Responder? responder,
+    Response? response, [
+    int maxPermission = Permission.CONFIG,
+  ]) {
     return response?..close();
   }
 

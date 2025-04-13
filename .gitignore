@@ -7,9 +7,9 @@ pubspec.lock
 .vscode
 .idea
 *.iml
-/test/experiment/.dslink.key
-/dslink.json
-/.dslink.key
+/test/experiment/.dsalink.key
+/dsalink.json
+/.dsalink.key
 /broker.json
 /conns.json
 /nodes.json

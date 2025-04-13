@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 class RespSubscribeListener {
   ValueUpdateCallback? callback;
@@ -16,7 +16,7 @@ class RespSubscribeListener {
 
 class SubscribeResponse extends Response {
   SubscribeResponse(Responder responder, int rid)
-      : super(responder, rid, 'subscribe');
+    : super(responder, rid, 'subscribe');
 
   final Map<String, RespSubscribeController> subscriptions =
       <String, RespSubscribeController>{};
@@ -44,10 +44,17 @@ class SubscribeResponse extends Response {
         subscriptionChanged(controller);
       }
     } else {
-      var permission = responder.nodeProvider.permissions
-          .getPermission(node.path, responder);
+      var permission = responder.nodeProvider.permissions.getPermission(
+        node.path,
+        responder,
+      );
       controller = RespSubscribeController(
-          this, node, sid, permission >= Permission.READ, qos);
+        this,
+        node,
+        sid,
+        permission >= Permission.READ,
+        qos,
+      );
       subscriptions[path] = controller;
 
       if (sid >= 0) {
@@ -251,7 +258,12 @@ class RespSubscribeController {
   }
 
   RespSubscribeController(
-      this.response, this.node, this.sid, this._permitted, int qos) {
+    this.response,
+    this.node,
+    this.sid,
+    this._permitted,
+    int qos,
+  ) {
     qosLevel = qos;
     if (node.valueReady && node.lastValueUpdate != null) {
       addValue(node.lastValueUpdate);
@@ -374,8 +386,8 @@ class RespSubscribeController {
       }
     }
 
-    while (
-        !waitingValues!.isEmpty && waitingValues!.first.waitingAck == ackId) {
+    while (!waitingValues!.isEmpty &&
+        waitingValues!.first.waitingAck == ackId) {
       var removed = waitingValues!.removeFirst();
       if (_storage != null) {
         _storage!.removeValue(removed);

@@ -1,4 +1,4 @@
-part of dslink.client;
+part of dsalink.client;
 
 /// a client link for both http and ws
 class HttpClientLink extends ClientLink {
@@ -59,19 +59,22 @@ class HttpClientLink extends ClientLink {
   /// format received from broker
   String format = 'json';
 
-  HttpClientLink(this._conn, String dsIdPrefix, PrivateKey privateKey,
-      {NodeProvider? nodeProvider,
-      bool isRequester = true,
-      bool isResponder = true,
-      Requester? overrideRequester,
-      Responder? overrideResponder,
-      this.strictTls = false,
-      this.home,
-      this.token,
-      this.linkData,
-      List? formats})
-      : privateKey = privateKey,
-        dsId = '${Path.escapeName(dsIdPrefix)}${privateKey.publicKey.qHash64}' {
+  HttpClientLink(
+    this._conn,
+    String dsIdPrefix,
+    PrivateKey privateKey, {
+    NodeProvider? nodeProvider,
+    bool isRequester = true,
+    bool isResponder = true,
+    Requester? overrideRequester,
+    Responder? overrideResponder,
+    this.strictTls = false,
+    this.home,
+    this.token,
+    this.linkData,
+    List? formats,
+  }) : privateKey = privateKey,
+       dsId = '${Path.escapeName(dsIdPrefix)}${privateKey.publicKey.qHash64}' {
     if (isRequester) {
       if (overrideRequester != null) {
         requester = overrideRequester;
@@ -123,9 +126,7 @@ class HttpClientLink extends ClientLink {
     lockCryptoProvider();
     DsTimer.timerCancel(initWebsocket);
 
-    var headers = {
-      'Content-Type': 'application/json',
-    };
+    var headers = {'Content-Type': 'application/json'};
 
     var connUrl = '$_conn?dsId=${Uri.encodeComponent(dsId)}';
     if (home != null) {
@@ -155,17 +156,22 @@ class HttpClientLink extends ClientLink {
       if (response.statusCode == 301 || response.statusCode == 302) {
         var newUrl = response.headers['location'];
         if (newUrl != null) {
-          response = await http.post(Uri.parse(newUrl),
-              headers: headers, body: handshakePayload);
+          response = await http.post(
+            Uri.parse(newUrl),
+            headers: headers,
+            body: handshakePayload,
+          );
         } else {
           logger.finest(
-              formatLogMessage('Handshake Response: ${response.statusCode}'));
+            formatLogMessage('Handshake Response: ${response.statusCode}'),
+          );
         }
       }
 
       if (response.statusCode != 200) {
         logger.warning(
-            'Handshake failed with status code: ${response.statusCode}');
+          'Handshake failed with status code: ${response.statusCode}',
+        );
         return;
       }
 
@@ -224,14 +230,18 @@ class HttpClientLink extends ClientLink {
         wsUrl = '$wsUrl$tokenHash';
       }
 
-      var socket = await HttpHelper.connectToWebSocket(wsUrl,
-          useStandardWebSocket: useStandardWebSocket);
+      var socket = await HttpHelper.connectToWebSocket(
+        wsUrl,
+        useStandardWebSocket: useStandardWebSocket,
+      );
 
-      _wsConnection = WebSocketConnection(socket,
-          clientLink: this,
-          enableTimeout: true,
-          enableAck: enableAck,
-          useCodec: DsCodec.getCodec(format));
+      _wsConnection = WebSocketConnection(
+        socket,
+        clientLink: this,
+        enableTimeout: true,
+        enableAck: enableAck,
+        useCodec: DsCodec.getCodec(format),
+      );
 
       logger.info(formatLogMessage('Connected'));
       if (!_onConnectedCompleter.isCompleted) {
@@ -260,17 +270,23 @@ class HttpClientLink extends ClientLink {
       });
     } catch (error, stack) {
       logger.fine(
-          formatLogMessage('Error while initializing WebSocket'), error, stack);
+        formatLogMessage('Error while initializing WebSocket'),
+        error,
+        stack,
+      );
       if (error is WebSocketException &&
-          (error.message
-                  .contains('not upgraded to websocket') // error from dart
+          (error.message.contains(
+                'not upgraded to websocket',
+              ) // error from dart
               ||
               error.message.contains('(401)') // error from nodejs
-          )) {
+              )) {
         connDelay();
       } else if (reconnect) {
         DsTimer.timerOnceAfter(
-            initWebsocket, _wsDelay == 0 ? 20 : _wsDelay * 500);
+          initWebsocket,
+          _wsDelay == 0 ? 20 : _wsDelay * 500,
+        );
         if (_wsDelay < 30) _wsDelay++;
       }
     }

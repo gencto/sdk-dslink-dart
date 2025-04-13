@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 /// a responder for one connection
 class Responder extends ConnectionHandler {
@@ -15,7 +15,9 @@ class Responder extends ConnectionHandler {
   int maxPermission = Permission.CONFIG;
 
   void initStorage(
-      ISubscriptionResponderStorage s, List<ISubscriptionNodeStorage>? nodes) {
+    ISubscriptionResponderStorage s,
+    List<ISubscriptionNodeStorage>? nodes,
+  ) {
     if (storage != null) {
       storage?.destroy();
     }
@@ -164,11 +166,14 @@ class Responder extends ConnectionHandler {
     addToSendList(m);
   }
 
-  void updateResponse(Response response, List? updates,
-      {String? streamStatus,
-      List<dynamic>? columns,
-      Map? meta,
-      void Function(Map m)? handleMap}) {
+  void updateResponse(
+    Response response,
+    List? updates, {
+    String? streamStatus,
+    List<dynamic>? columns,
+    Map? meta,
+    void Function(Map m)? handleMap,
+  }) {
     if (_responses[response.rid] == response) {
       Map m = <String, dynamic>{'rid': response.rid};
       if (streamStatus != null && streamStatus != response._sentStreamStatus) {
@@ -207,13 +212,20 @@ class Responder extends ConnectionHandler {
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
 
-      _getNode(path, (LocalNode node) {
-        addResponse(ListResponse(this, rid, node), path);
-      }, (dynamic e, dynamic stack) {
-        var error =
-            DSError('nodeError', msg: e.toString(), detail: stack.toString());
-        closeResponse(m['rid'], error: error);
-      });
+      _getNode(
+        path,
+        (LocalNode node) {
+          addResponse(ListResponse(this, rid, node), path);
+        },
+        (dynamic e, dynamic stack) {
+          var error = DSError(
+            'nodeError',
+            msg: e.toString(),
+            detail: stack.toString(),
+          );
+          closeResponse(m['rid'], error: error);
+        },
+      );
     } else {
       closeResponse(m['rid'], error: DSError.INVALID_PATH);
     }
@@ -243,14 +255,21 @@ class Responder extends ConnectionHandler {
         var path = Path.getValidNodePath(pathstr);
 
         if (path != null && path.isAbsolute) {
-          _getNode(path, (LocalNode node) {
-            _subscription.add(path.path, node, sid, qos);
-            closeResponse(m['rid']);
-          }, (dynamic e, dynamic stack) {
-            var error = DSError('nodeError',
-                msg: e.toString(), detail: stack.toString());
-            closeResponse(m['rid'], error: error);
-          });
+          _getNode(
+            path,
+            (LocalNode node) {
+              _subscription.add(path.path, node, sid, qos);
+              closeResponse(m['rid']);
+            },
+            (dynamic e, dynamic stack) {
+              var error = DSError(
+                'nodeError',
+                msg: e.toString(),
+                detail: stack.toString(),
+              );
+              closeResponse(m['rid'], error: error);
+            },
+          );
         } else {
           closeResponse(m['rid']);
         }
@@ -260,22 +279,27 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void _getNode(Path p, Taker<LocalNode> func,
-      [TwoTaker<dynamic, dynamic>? onError]) {
+  void _getNode(
+    Path p,
+    Taker<LocalNode> func, [
+    TwoTaker<dynamic, dynamic>? onError,
+  ]) {
     try {
       var node = nodeProvider.getOrCreateNode(p.path, false);
 
       if (node is WaitForMe) {
-        (node as WaitForMe).onLoaded.then((dynamic n) {
-          if (n is LocalNode) {
-            node = n;
-          }
-          func(node);
-        }).catchError((dynamic e, StackTrace stack) {
-          if (onError != null) {
-            onError(e, stack);
-          }
-        });
+        (node as WaitForMe).onLoaded
+            .then((dynamic n) {
+              if (n is LocalNode) {
+                node = n;
+              }
+              func(node);
+            })
+            .catchError((dynamic e, StackTrace stack) {
+              if (onError != null) {
+                onError(e, stack);
+              }
+            });
       } else {
         func(node);
       }
@@ -329,8 +353,10 @@ class Responder extends ConnectionHandler {
             return;
           }
         }
-        var permission =
-            nodeProvider.permissions.getPermission(path.path, this);
+        var permission = nodeProvider.permissions.getPermission(
+          path.path,
+          this,
+        );
         var maxPermit = Permission.parse(m['permit']);
         if (maxPermit < permission) {
           permission = maxPermit;
@@ -349,27 +375,35 @@ class Responder extends ConnectionHandler {
 
         if (node.getInvokePermission() <= permission) {
           node.invoke(
-              params,
-              this,
-              addResponse(
+            params,
+            this,
+            addResponse(
                   InvokeResponse(this, rid, parentNode, node, path.name),
                   path,
-                  params) as InvokeResponse,
-              parentNode,
-              permission);
+                  params,
+                )
+                as InvokeResponse,
+            parentNode,
+            permission,
+          );
         } else {
           closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
         }
       }
 
       if (parentNode is WaitForMe) {
-        (parentNode as WaitForMe).onLoaded.then((dynamic _) {
-          doInvoke();
-        }).catchError((dynamic e, StackTrace stack) {
-          var err =
-              DSError('nodeError', msg: e.toString(), detail: stack.toString());
-          closeResponse(m['rid'], error: err);
-        });
+        (parentNode as WaitForMe).onLoaded
+            .then((dynamic _) {
+              doInvoke();
+            })
+            .catchError((dynamic e, StackTrace stack) {
+              var err = DSError(
+                'nodeError',
+                msg: e.toString(),
+                detail: stack.toString(),
+              );
+              closeResponse(m['rid'], error: err);
+            });
       } else {
         doInvoke();
       }
@@ -404,26 +438,38 @@ class Responder extends ConnectionHandler {
     Object? value = m['value'];
     int rid = m['rid'];
     if (path.isNode) {
-      _getNode(path, (LocalNode node) {
-        var permission =
-            nodeProvider.permissions.getPermission(node.path, this);
-        var maxPermit = Permission.parse(m['permit']);
-        if (maxPermit < permission) {
-          permission = maxPermit;
-        }
+      _getNode(
+        path,
+        (LocalNode node) {
+          var permission = nodeProvider.permissions.getPermission(
+            node.path,
+            this,
+          );
+          var maxPermit = Permission.parse(m['permit']);
+          if (maxPermit < permission) {
+            permission = maxPermit;
+          }
 
-        if (node.getSetPermission() <= permission) {
-          node.setValue(value as Object, this,
-              addResponse(Response(this, rid, 'set'), path, value));
-        } else {
-          closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
-        }
-        closeResponse(m['rid']);
-      }, (dynamic e, dynamic stack) {
-        var error =
-            DSError('nodeError', msg: e.toString(), detail: stack.toString());
-        closeResponse(m['rid'], error: error);
-      });
+          if (node.getSetPermission() <= permission) {
+            node.setValue(
+              value as Object,
+              this,
+              addResponse(Response(this, rid, 'set'), path, value),
+            );
+          } else {
+            closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+          }
+          closeResponse(m['rid']);
+        },
+        (dynamic e, dynamic stack) {
+          var error = DSError(
+            'nodeError',
+            msg: e.toString(),
+            detail: stack.toString(),
+          );
+          closeResponse(m['rid'], error: error);
+        },
+      );
     } else if (path.isConfig) {
       LocalNode node;
 
@@ -433,8 +479,12 @@ class Responder extends ConnectionHandler {
       if (permission < Permission.CONFIG) {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
-        node.setConfig(path.name, value!, this,
-            addResponse(Response(this, rid, 'set'), path, value));
+        node.setConfig(
+          path.name,
+          value!,
+          this,
+          addResponse(Response(this, rid, 'set'), path, value),
+        );
       }
     } else if (path.isAttribute) {
       LocalNode node;
@@ -444,8 +494,12 @@ class Responder extends ConnectionHandler {
       if (permission < Permission.WRITE) {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
-        node.setAttribute(path.name, value!, this,
-            addResponse(Response(this, rid, 'set'), path, value));
+        node.setAttribute(
+          path.name,
+          value!,
+          this,
+          addResponse(Response(this, rid, 'set'), path, value),
+        );
       }
     } else {
       // shouldn't be possible to reach here
@@ -472,7 +526,10 @@ class Responder extends ConnectionHandler {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeConfig(
-            path.name, this, addResponse(Response(this, rid, 'set'), path));
+          path.name,
+          this,
+          addResponse(Response(this, rid, 'set'), path),
+        );
       }
     } else if (path.isAttribute) {
       LocalNode node;
@@ -483,7 +540,10 @@ class Responder extends ConnectionHandler {
         closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
       } else {
         node.removeAttribute(
-            path.name, this, addResponse(Response(this, rid, 'set'), path));
+          path.name,
+          this,
+          addResponse(Response(this, rid, 'set'), path),
+        );
       }
     } else {
       // shouldn't be possible to reach here

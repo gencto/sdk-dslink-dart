@@ -1,4 +1,4 @@
-part of dslink.utils;
+part of dsalink.utils;
 
 class ByteDataUtil {
   static Uint8List list2Uint8List(List<int> input) {
@@ -26,8 +26,10 @@ class ByteDataUtil {
   }
 
   static ByteData fromUint8List(Uint8List uintsList) {
-    return uintsList.buffer
-        .asByteData(uintsList.offsetInBytes, uintsList.lengthInBytes);
+    return uintsList.buffer.asByteData(
+      uintsList.offsetInBytes,
+      uintsList.lengthInBytes,
+    );
   }
 
   static Uint8List toUint8List(ByteData bytes) {

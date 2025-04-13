@@ -1,4 +1,4 @@
-part of dslink.utils;
+part of dsalink.utils;
 
 class BroadcastStreamController<T> implements StreamController<T> {
   late StreamController<T> _controller;
@@ -9,16 +9,20 @@ class BroadcastStreamController<T> implements StreamController<T> {
   Function? onStartListen;
   Function? onAllCancel;
 
-  BroadcastStreamController(
-      [void Function()? onStartListen,
-      void Function()? onAllCancel,
-      void Function(Function(T value) callback)? onListen,
-      bool sync = false]) {
+  BroadcastStreamController([
+    void Function()? onStartListen,
+    void Function()? onAllCancel,
+    void Function(Function(T value) callback)? onListen,
+    bool sync = false,
+  ]) {
     _controller = StreamController<T>(sync: sync);
     _stream = CachedStreamWrapper(
-        _controller.stream
-            .asBroadcastStream(onListen: _onListen, onCancel: _onCancel),
-        onListen);
+      _controller.stream.asBroadcastStream(
+        onListen: _onListen,
+        onCancel: _onCancel,
+      ),
+      onListen,
+    );
     this.onStartListen = onStartListen;
     this.onAllCancel = onAllCancel;
   }
@@ -133,9 +137,10 @@ class CachedStreamWrapper<T> extends Stream<T> {
   CachedStreamWrapper(this._stream, this._onListen);
 
   @override
-  Stream<T> asBroadcastStream(
-      {void Function(StreamSubscription<T> subscription)? onListen,
-      void Function(StreamSubscription<T> subscription)? onCancel}) {
+  Stream<T> asBroadcastStream({
+    void Function(StreamSubscription<T> subscription)? onListen,
+    void Function(StreamSubscription<T> subscription)? onCancel,
+  }) {
     return this;
   }
 
@@ -143,13 +148,21 @@ class CachedStreamWrapper<T> extends Stream<T> {
   bool get isBroadcast => true;
 
   @override
-  StreamSubscription<T> listen(void Function(T event)? onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+  StreamSubscription<T> listen(
+    void Function(T event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
     if (_onListen != null && onData != null) {
-      _onListen!(onData);
+      _onListen(onData);
     }
 
-    return _stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    return _stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 }

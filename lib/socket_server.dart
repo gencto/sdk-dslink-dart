@@ -1,2 +1,2 @@
 /// Placeholder for future socket server support.
-library dslink.socket_server;
+library dsalink.socket_server;

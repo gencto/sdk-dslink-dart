@@ -1,71 +1,79 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:dslink/dslink.dart';
-import 'package:dslink/nodes.dart';
+import 'package:dsalink/dsalink.dart';
+import 'package:dsalink/nodes.dart';
 
 late LinkProvider link;
 
 int current = 0;
 
 void main() {
-  link = LinkProvider(['--broker', 'https://dsa.gencto.uk/conn'], 'Large-1',
-      defaultNodes: <String, dynamic>{
-        'Generate': {
-          r'$invokable': 'write',
-          r'$is': 'generate',
-          r'$params': [
-            {'name': 'count', 'type': 'number', 'default': 50}
-          ]
-        },
-        'Reduce': {
-          r'$invokable': 'write',
-          r'$is': 'reduce',
-          r'$params': [
-            {'name': 'target', 'type': 'number', 'default': 1}
-          ]
-        },
-        'Tick_Rate': {
-          r'$name': 'Tick Rate',
-          r'$type': 'number',
-          r'$writable': 'write',
-          '?value': 300
-        },
-        'RNG_Maximum': {
-          r'$name': 'Maximum Random Number',
-          r'$type': 'number',
-          r'$writable': 'write',
-          '?value': max
-        }
+  link = LinkProvider(
+    ['--broker', 'https://127.0.0.1/conn'],
+    'Large-1',
+    defaultNodes: <String, dynamic>{
+      'Generate': {
+        r'$invokable': 'write',
+        r'$is': 'generate',
+        r'$params': [
+          {'name': 'count', 'type': 'number', 'default': 50},
+        ],
       },
-      profiles: {
-        'generate': (String path) => SimpleActionNode(path, (Map params) {
-              int count = params['count'] ?? 50;
-              generate(count);
-            }),
-        'reduce': (String path) => SimpleActionNode(path, (Map params) {
-              int target = params['target'] ?? 1;
-              for (var name in link['/']!
-                  .children
-                  .keys
-                  .where((it) => it.startsWith('Node_'))
-                  .toList()) {
-                link.removeNode('/$name');
-              }
-              generate(target);
-            }),
-        'test': (String path) {
-          late CallbackNode node;
+      'Reduce': {
+        r'$invokable': 'write',
+        r'$is': 'reduce',
+        r'$params': [
+          {'name': 'target', 'type': 'number', 'default': 1},
+        ],
+      },
+      'Tick_Rate': {
+        r'$name': 'Tick Rate',
+        r'$type': 'number',
+        r'$writable': 'write',
+        '?value': 300,
+      },
+      'RNG_Maximum': {
+        r'$name': 'Maximum Random Number',
+        r'$type': 'number',
+        r'$writable': 'write',
+        '?value': max,
+      },
+    },
+    profiles: {
+      'generate':
+          (String path) => SimpleActionNode(path, (Map params) {
+            int count = params['count'] ?? 50;
+            generate(count);
+          }),
+      'reduce':
+          (String path) => SimpleActionNode(path, (Map params) {
+            int target = params['target'] ?? 1;
+            for (var name
+                in link['/']!.children.keys
+                    .where((it) => it.startsWith('Node_'))
+                    .toList()) {
+              link.removeNode('/$name');
+            }
+            generate(target);
+          }),
+      'test': (String path) {
+        late CallbackNode node;
 
-          node = CallbackNode(path, onCreated: () {
+        node = CallbackNode(
+          path,
+          onCreated: () {
             nodes.add(node);
-          }, onRemoving: () {
+          },
+          onRemoving: () {
             nodes.remove(node);
-          });
+          },
+        );
 
-          return node;
-        }
-      });
+        return node;
+      },
+    },
+  );
 
   link.onValueChange('/Tick_Rate').listen((ValueUpdate u) {
     if (schedule != null) {
@@ -73,8 +81,10 @@ void main() {
       schedule = null;
     }
 
-    schedule =
-        Scheduler.every(Interval.forMilliseconds(u.value as int), update);
+    schedule = Scheduler.every(
+      Interval.forMilliseconds(u.value as int),
+      update,
+    );
   });
 
   link.onValueChange('/RNG_Maximum').listen((ValueUpdate u) {
@@ -111,24 +121,24 @@ void generate(int count) {
           r'$name': 'String Value',
           r'$type': 'string',
           r'$writable': 'write',
-          '?value': 'Hello World'
+          '?value': 'Hello World',
         },
         'Number_Value': {
           r'$name': 'Number Value',
           r'$type': 'number',
           r'$writable': 'write',
-          '?value': 5.0
+          '?value': 5.0,
         },
         'Integer_Value': {
           r'$name': 'Integer Value',
           r'$type': 'number',
           r'$writable': 'write',
-          '?value': 5
-        }
+          '?value': 5,
+        },
       },
       'RNG': {
-        'Value': {r'$type': 'number', '?value': 0.0}
-      }
+        'Value': {r'$type': 'number', '?value': 0.0},
+      },
     });
     current++;
   }

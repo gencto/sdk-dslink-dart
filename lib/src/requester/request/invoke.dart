@@ -1,4 +1,4 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 class RequesterInvokeUpdate extends RequesterUpdate {
   List? rawColumns;

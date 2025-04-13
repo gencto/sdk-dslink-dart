@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 typedef OnInvokeClosed = void Function(InvokeResponse response);
 typedef OnInvokeSend = void Function(InvokeResponse response, Map m);
@@ -21,19 +21,25 @@ class InvokeResponse extends Response {
   final String name;
 
   InvokeResponse(
-      Responder responder, int rid, this.parentNode, this.node, this.name)
-      : super(responder, rid, 'invoke');
+    Responder responder,
+    int rid,
+    this.parentNode,
+    this.node,
+    this.name,
+  ) : super(responder, rid, 'invoke');
 
   List<_InvokeResponseUpdate> pendingData = [];
 
   bool _hasSentColumns = false;
 
   /// update data for the responder stream
-  void updateStream(List updates,
-      {List? columns,
-      String streamStatus = StreamStatus.open,
-      Map? meta,
-      bool autoSendColumns = true}) {
+  void updateStream(
+    List updates, {
+    List? columns,
+    String streamStatus = StreamStatus.open,
+    Map? meta,
+    bool autoSendColumns = true,
+  }) {
     if (meta != null && meta['mode'] == 'refresh') {
       pendingData.length = 0;
     }
@@ -51,8 +57,9 @@ class InvokeResponse extends Response {
       _hasSentColumns = true;
     }
 
-    pendingData
-        .add(_InvokeResponseUpdate(streamStatus, updates, columns, meta));
+    pendingData.add(
+      _InvokeResponseUpdate(streamStatus, updates, columns, meta),
+    );
     prepareSending();
   }
 
@@ -82,14 +89,18 @@ class InvokeResponse extends Response {
         outColumns = TableColumn.serializeColumns(update.columns!);
       }
 
-      responder.updateResponse(this, update.updates,
-          streamStatus: update.status,
-          columns: outColumns,
-          meta: update.meta, handleMap: (m) {
-        if (onSendUpdate != null) {
-          onSendUpdate!(this, m);
-        }
-      });
+      responder.updateResponse(
+        this,
+        update.updates,
+        streamStatus: update.status,
+        columns: outColumns,
+        meta: update.meta,
+        handleMap: (m) {
+          if (onSendUpdate != null) {
+            onSendUpdate!(this, m);
+          }
+        },
+      );
 
       if (_sentStreamStatus == StreamStatus.closed) {
         _close();
@@ -108,8 +119,9 @@ class InvokeResponse extends Response {
     if (pendingData.isNotEmpty) {
       pendingData.last.status = StreamStatus.closed;
     } else {
-      pendingData
-          .add(_InvokeResponseUpdate(StreamStatus.closed, null, null, null));
+      pendingData.add(
+        _InvokeResponseUpdate(StreamStatus.closed, null, null, null),
+      );
       prepareSending();
     }
   }

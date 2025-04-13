@@ -1,4 +1,4 @@
-part of dslink.utils;
+part of dsalink.utils;
 
 final class TimerFunctions extends LinkedListEntry<TimerFunctions> {
   /// for better performance, use a low accuracy timer, ts50 is the floor of ts/50
@@ -44,19 +44,19 @@ class DsTimer {
     _callbacks.add(callback);
   }
 
-//  /// call the function and remove it from the pending listh
-//  static void callNow(Function callback) {
-//    if (_callbacks.contains(callback)) {
-//      _callbacks.remove(callback);
-//    }
-//    callback();
-//  }
-//
-//  static void cancel(Function callback) {
-//    if (_callbacks.contains(callback)) {
-//      _callbacks.remove(callback);
-//    }
-//  }
+  //  /// call the function and remove it from the pending listh
+  //  static void callNow(Function callback) {
+  //    if (_callbacks.contains(callback)) {
+  //      _callbacks.remove(callback);
+  //    }
+  //    callback();
+  //  }
+  //
+  //  static void cancel(Function callback) {
+  //    if (_callbacks.contains(callback)) {
+  //      _callbacks.remove(callback);
+  //    }
+  //  }
 
   static final LinkedList<TimerFunctions> _pendingTimer =
       LinkedList<TimerFunctions>();
@@ -234,8 +234,9 @@ class DsTimer {
           if (timerTimer != null && timerTimer!.isActive) {
             timerTimer?.cancel();
           }
-          var duration =
-              Duration(milliseconds: timerTs50 * 50 + 1 - currentTime);
+          var duration = Duration(
+            milliseconds: timerTs50 * 50 + 1 - currentTime,
+          );
           timerTimer = Timer(duration, _startTimer);
         }
       }

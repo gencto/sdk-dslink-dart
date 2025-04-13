@@ -1,7 +1,7 @@
-part of dslink.common;
+part of dsalink.common;
 
 /// Base Class for any and all nodes in the SDK.
-/// If you are writing a link, please look at the [dslink.responder.SimpleNode] class.
+/// If you are writing a link, please look at the [dsalink.responder.SimpleNode] class.
 class Node {
   static String getDisplayName(String nameOrPath) {
     if (nameOrPath.contains('/')) {
@@ -251,10 +251,11 @@ class Path {
   Path get parent => Path(parentPath);
 
   /// Get a child of this path.
-  Path child(String name) =>
-      Path((path.endsWith('/') ? path.substring(0, path.length - 1) : path) +
-          '/' +
-          (name.startsWith('/') ? name.substring(1) : name));
+  Path child(String name) => Path(
+    (path.endsWith('/') ? path.substring(0, path.length - 1) : path) +
+        '/' +
+        (name.startsWith('/') ? name.substring(1) : name),
+  );
 
   /// The name of this path.
   /// This is the last component of the path.

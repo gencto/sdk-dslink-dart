@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 typedef NodeFactory = LocalNode Function(String path);
 typedef SimpleNodeFactory = SimpleNode? Function(String? path);
@@ -76,8 +76,12 @@ class AsyncTableResult {
 
     if (response != null &&
         (rows != null || meta != null || status == StreamStatus.closed)) {
-      response?.updateStream(rows!,
-          columns: columns, streamStatus: status, meta: meta);
+      response?.updateStream(
+        rows!,
+        columns: columns,
+        streamStatus: status,
+        meta: meta,
+      );
       rows = null;
       columns = null;
     }
@@ -106,11 +110,10 @@ class LiveTable {
 
   void onRowUpdate(LiveTableRow row) {
     if (_resp != null) {
-      _resp?.updateStream(<dynamic>[
-        row.values
-      ], meta: <String, String>{
-        'modify': 'replace ${row.index}-${row.index}'
-      });
+      _resp?.updateStream(
+        <dynamic>[row.values],
+        meta: <String, String>{'modify': 'replace ${row.index}-${row.index}'},
+      );
     }
   }
 
@@ -126,8 +129,10 @@ class LiveTable {
     row.index = rows!.length;
     rows?.add(row);
     if (ready && _resp != null) {
-      _resp?.updateStream(<dynamic>[row.values],
-          meta: <String, String>{'mode': 'append'});
+      _resp?.updateStream(
+        <dynamic>[row.values],
+        meta: <String, String>{'mode': 'append'},
+      );
     }
     return row;
   }
@@ -135,19 +140,25 @@ class LiveTable {
   void clear() {
     rows?.length = 0;
     if (_resp != null) {
-      _resp?.updateStream(<dynamic>[],
-          meta: <String, String>{'mode': 'refresh'}, columns: <dynamic>[]);
+      _resp?.updateStream(
+        <dynamic>[],
+        meta: <String, String>{'mode': 'refresh'},
+        columns: <dynamic>[],
+      );
     }
   }
 
   void refresh([int idx = -1]) {
     if (_resp != null) {
-      _resp?.updateStream(getCurrentState(),
-          columns: columns?.map((x) {
-            return x.getData();
-          }).toList(),
-          streamStatus: StreamStatus.open,
-          meta: <String, String>{'mode': 'refresh'});
+      _resp?.updateStream(
+        getCurrentState(),
+        columns:
+            columns?.map((x) {
+              return x.getData();
+            }).toList(),
+        streamStatus: StreamStatus.open,
+        meta: <String, String>{'mode': 'refresh'},
+      );
     }
   }
 
@@ -175,12 +186,15 @@ class LiveTable {
     };
 
     if (autoStartSend) {
-      resp.updateStream(getCurrentState(),
-          columns: columns?.map((x) {
-            return x.getData();
-          }).toList(),
-          streamStatus: StreamStatus.open,
-          meta: <String, String>{'mode': 'refresh'});
+      resp.updateStream(
+        getCurrentState(),
+        columns:
+            columns?.map((x) {
+              return x.getData();
+            }).toList(),
+        streamStatus: StreamStatus.open,
+        meta: <String, String>{'mode': 'refresh'},
+      );
     }
   }
 
@@ -260,16 +274,16 @@ abstract class MutableNodeProvider {
 
 class SysGetIconNode extends SimpleNode {
   SysGetIconNode(String path, [SimpleNodeProvider? provider])
-      : super(path, provider!) {
+    : super(path, provider!) {
     configs.addAll(<String, dynamic>{
       r'$invokable': 'read',
       r'$params': [
-        {'name': 'Icon', 'type': 'string'}
+        {'name': 'Icon', 'type': 'string'},
       ],
       r'$columns': [
-        {'name': 'Data', 'type': 'binary'}
+        {'name': 'Data', 'type': 'binary'},
       ],
-      r'$result': 'table'
+      r'$result': 'table',
     });
   }
 
@@ -281,7 +295,7 @@ class SysGetIconNode extends SimpleNode {
     var data = await resolver!(name);
 
     return [
-      [data]
+      [data],
     ];
   }
 }
@@ -338,8 +352,11 @@ class SimpleNodeProvider extends NodeProviderImpl
   /// When [addToTree] is false, the node will not be inserted into the node provider.
   /// When [init] is false, onCreated() is not called.
   @override
-  LocalNode getOrCreateNode(String path,
-      [bool addToTree = true, bool init = true]) {
+  LocalNode getOrCreateNode(
+    String path, [
+    bool addToTree = true,
+    bool init = true,
+  ]) {
     var node = _getNode(path, allowStubs: true);
 
     if (node != null) {
@@ -631,10 +648,11 @@ class SimpleNodeProvider extends NodeProviderImpl
 
       var baseSlashFreq = countCharacterFrequency(base, '/');
 
-      var targets = nodes.keys.where((String x) {
-        return x.startsWith(base) &&
-            baseSlashFreq == countCharacterFrequency(x, '/');
-      }).toList();
+      var targets =
+          nodes.keys.where((String x) {
+            return x.startsWith(base) &&
+                baseSlashFreq == countCharacterFrequency(x, '/');
+          }).toList();
 
       for (var target in targets) {
         removeNode(target);
@@ -704,8 +722,9 @@ class SimpleNode extends LocalNodeImpl {
   static KeyParameter? _encryptParams;
   static void initEncryption(String key) {
     _encryptEngine = AESEngine();
-    _encryptParams =
-        KeyParameter(Uint8List.fromList(utf8.encode(key).sublist(48, 80)));
+    _encryptParams = KeyParameter(
+      Uint8List.fromList(utf8.encode(key).sublist(48, 80)),
+    );
   }
 
   /// encrypt the string and prefix the value with '\u001Bpw:'
@@ -727,8 +746,9 @@ class SimpleNode extends LocalNodeImpl {
     if (str.startsWith('\u001Bpw:')) {
       _encryptEngine?.reset();
       _encryptEngine?.init(false, _encryptParams!);
-      var rslt = utf8
-          .decode(_encryptEngine!.process(Base64.decode(str.substring(4))!));
+      var rslt = utf8.decode(
+        _encryptEngine!.process(Base64.decode(str.substring(4))!),
+      );
       var pos = rslt.indexOf('\u0000');
       if (pos >= 0) rslt = rslt.substring(0, pos);
       return rslt;
@@ -759,8 +779,8 @@ class SimpleNode extends LocalNodeImpl {
   bool get isStubNode => _stub;
 
   SimpleNode(String path, [SimpleNodeProvider? nodeprovider])
-      : provider = nodeprovider ?? SimpleNodeProvider.instance!,
-        super(path);
+    : provider = nodeprovider ?? SimpleNodeProvider.instance!,
+      super(path);
 
   /// Marks a node as being removed.
   bool removed = false;
@@ -843,8 +863,12 @@ class SimpleNode extends LocalNodeImpl {
   /// Use [onInvoke] to handle when a node is invoked.
   @override
   InvokeResponse invoke(
-      Map params, Responder responder, InvokeResponse response, Node parentNode,
-      [int maxPermission = Permission.CONFIG]) {
+    Map params,
+    Responder responder,
+    InvokeResponse response,
+    Node parentNode, [
+    int maxPermission = Permission.CONFIG,
+  ]) {
     Object? rslt;
     try {
       rslt = onInvoke(params);
@@ -883,11 +907,17 @@ class SimpleNode extends LocalNodeImpl {
         out.add(rslt[x]);
       }
 
-      response.updateStream(<dynamic>[out],
-          columns: columns, streamStatus: StreamStatus.closed);
+      response.updateStream(
+        <dynamic>[out],
+        columns: columns,
+        streamStatus: StreamStatus.closed,
+      );
     } else if (rslt is SimpleTableResult) {
-      response.updateStream(rslt.rows!,
-          columns: rslt.columns, streamStatus: StreamStatus.closed);
+      response.updateStream(
+        rslt.rows!,
+        columns: rslt.columns,
+        streamStatus: StreamStatus.closed,
+      );
     } else if (rslt is AsyncTableResult) {
       (rslt).write(response);
       response.onClose = (var response) {
@@ -897,8 +927,11 @@ class SimpleNode extends LocalNodeImpl {
       };
       return response;
     } else if (rslt is Table) {
-      response.updateStream(rslt.rows,
-          columns: rslt.columns, streamStatus: StreamStatus.closed);
+      response.updateStream(
+        rslt.rows,
+        columns: rslt.columns,
+        streamStatus: StreamStatus.closed,
+      );
     } else if (rslt is Stream) {
       var r = AsyncTableResult();
 
@@ -919,35 +952,40 @@ class SimpleNode extends LocalNodeImpl {
           }
         };
 
-        sub = stream.listen((dynamic v) {
-          if (v is TableMetadata) {
-            r.meta = v.meta;
-            return;
-          } else if (v is TableColumns) {
-            r.columns = v.columns.map((x) => x.getData()).toList();
-            return;
-          }
-
-          if (v is Iterable) {
-            r.update(v.toList(), StreamStatus.open);
-          } else if (v is Map) {
-            dynamic meta;
-            if (v.containsKey('__META__')) {
-              meta = v['__META__'];
+        sub = stream.listen(
+          (dynamic v) {
+            if (v is TableMetadata) {
+              r.meta = v.meta;
+              return;
+            } else if (v is TableColumns) {
+              r.columns = v.columns.map((x) => x.getData()).toList();
+              return;
             }
-            r.update(<dynamic>[v], StreamStatus.open, meta);
-          } else {
-            throw Exception('Unknown Value from Stream');
-          }
-        }, onDone: () {
-          r.close();
-        }, onError: (dynamic e, StackTrace stack) {
-          var error = DSError('invokeException', msg: e.toString());
-          try {
-            error.detail = stack.toString();
-          } catch (e) {}
-          response.close(error);
-        }, cancelOnError: true);
+
+            if (v is Iterable) {
+              r.update(v.toList(), StreamStatus.open);
+            } else if (v is Map) {
+              dynamic meta;
+              if (v.containsKey('__META__')) {
+                meta = v['__META__'];
+              }
+              r.update(<dynamic>[v], StreamStatus.open, meta);
+            } else {
+              throw Exception('Unknown Value from Stream');
+            }
+          },
+          onDone: () {
+            r.close();
+          },
+          onError: (dynamic e, StackTrace stack) {
+            var error = DSError('invokeException', msg: e.toString());
+            try {
+              error.detail = stack.toString();
+            } catch (e) {}
+            response.close(error);
+          },
+          cancelOnError: true,
+        );
         r.write(response);
         return response;
       } else {
@@ -960,32 +998,37 @@ class SimpleNode extends LocalNodeImpl {
           }
         };
 
-        sub = stream.listen((dynamic v) {
-          if (v is TableMetadata) {
-            r.meta = v.meta;
-            return;
-          } else if (v is TableColumns) {
-            r.columns = v.columns.map((x) => x.getData()).toList();
-            return;
-          }
+        sub = stream.listen(
+          (dynamic v) {
+            if (v is TableMetadata) {
+              r.meta = v.meta;
+              return;
+            } else if (v is TableColumns) {
+              r.columns = v.columns.map((x) => x.getData()).toList();
+              return;
+            }
 
-          if (v is Iterable) {
-            list.addAll(v);
-          } else if (v is Map) {
-            list.add(v);
-          } else {
-            throw Exception('Unknown Value from Stream');
-          }
-        }, onDone: () {
-          r.update(list);
-          r.close();
-        }, onError: (dynamic e, StackTrace stack) {
-          var error = DSError('invokeException', msg: e.toString());
-          try {
-            error.detail = stack.toString();
-          } catch (e) {}
-          response.close(error);
-        }, cancelOnError: true);
+            if (v is Iterable) {
+              list.addAll(v);
+            } else if (v is Map) {
+              list.add(v);
+            } else {
+              throw Exception('Unknown Value from Stream');
+            }
+          },
+          onDone: () {
+            r.update(list);
+            r.close();
+          },
+          onError: (dynamic e, StackTrace stack) {
+            var error = DSError('invokeException', msg: e.toString());
+            try {
+              error.detail = stack.toString();
+            } catch (e) {}
+            response.close(error);
+          },
+          cancelOnError: true,
+        );
       }
       r.write(response);
       return response;
@@ -998,65 +1041,72 @@ class SimpleNode extends LocalNodeImpl {
         }
       };
 
-      rslt.then((dynamic value) {
-        if (value is LiveTable) {
-          r = null;
-          value.sendTo(response);
-        } else if (value is Stream) {
-          var stream = value;
-          StreamSubscription? sub;
+      rslt
+          .then((dynamic value) {
+            if (value is LiveTable) {
+              r = null;
+              value.sendTo(response);
+            } else if (value is Stream) {
+              var stream = value;
+              StreamSubscription? sub;
 
-          r?.onClose = (_) {
-            if (sub != null) {
-              sub.cancel();
-            }
-          };
+              r?.onClose = (_) {
+                if (sub != null) {
+                  sub.cancel();
+                }
+              };
 
-          sub = stream.listen((dynamic v) {
-            if (v is TableMetadata) {
-              r?.meta = v.meta;
-              return;
-            } else if (v is TableColumns) {
-              r?.columns = v.columns.map((x) => x.getData()).toList();
-              return;
-            }
+              sub = stream.listen(
+                (dynamic v) {
+                  if (v is TableMetadata) {
+                    r?.meta = v.meta;
+                    return;
+                  } else if (v is TableColumns) {
+                    r?.columns = v.columns.map((x) => x.getData()).toList();
+                    return;
+                  }
 
-            if (v is Iterable) {
-              r?.update(v.toList());
-            } else if (v is Map) {
-              Map? meta;
-              if (v.containsKey('__META__')) {
-                meta = v['__META__'];
-              }
-              r?.update(<dynamic>[v], StreamStatus.open, meta);
+                  if (v is Iterable) {
+                    r?.update(v.toList());
+                  } else if (v is Map) {
+                    Map? meta;
+                    if (v.containsKey('__META__')) {
+                      meta = v['__META__'];
+                    }
+                    r?.update(<dynamic>[v], StreamStatus.open, meta);
+                  } else {
+                    throw Exception('Unknown Value from Stream');
+                  }
+                },
+                onDone: () {
+                  r?.close();
+                },
+                onError: (dynamic e, StackTrace stack) {
+                  var error = DSError('invokeException', msg: e.toString());
+                  try {
+                    error.detail = stack.toString();
+                  } catch (e) {}
+                  response.close(error);
+                },
+                cancelOnError: true,
+              );
+            } else if (value is Table) {
+              var table = value;
+              r?.columns = table.columns.map((x) => x.getData()).toList();
+              r?.update(table.rows, StreamStatus.closed, table.meta);
+              r?.close();
             } else {
-              throw Exception('Unknown Value from Stream');
+              r?.update(value is Iterable ? value.toList() : <dynamic>[value]);
+              r?.close();
             }
-          }, onDone: () {
-            r?.close();
-          }, onError: (dynamic e, StackTrace stack) {
+          })
+          .catchError((dynamic e, StackTrace stack) {
             var error = DSError('invokeException', msg: e.toString());
             try {
               error.detail = stack.toString();
             } catch (e) {}
             response.close(error);
-          }, cancelOnError: true);
-        } else if (value is Table) {
-          var table = value;
-          r?.columns = table.columns.map((x) => x.getData()).toList();
-          r?.update(table.rows, StreamStatus.closed, table.meta);
-          r?.close();
-        } else {
-          r?.update(value is Iterable ? value.toList() : <dynamic>[value]);
-          r?.close();
-        }
-      }).catchError((dynamic e, StackTrace stack) {
-        var error = DSError('invokeException', msg: e.toString());
-        try {
-          error.detail = stack.toString();
-        } catch (e) {}
-        response.close(error);
-      });
+          });
       r?.write(response);
       return response;
     } else if (rslt is LiveTable) {
@@ -1254,7 +1304,11 @@ class SimpleNode extends LocalNodeImpl {
 
   @override
   Response? setAttribute(
-      String name, dynamic value, Responder responder, Response? response) {
+    String name,
+    dynamic value,
+    Responder responder,
+    Response? response,
+  ) {
     if (onSetAttribute(name, value) != true) {
       // when callback returns true, value is rejected
       super.setAttribute(name, value, responder, response);
@@ -1264,7 +1318,11 @@ class SimpleNode extends LocalNodeImpl {
 
   @override
   Response? setConfig(
-      String name, dynamic value, Responder responder, Response? response) {
+    String name,
+    dynamic value,
+    Responder responder,
+    Response? response,
+  ) {
     if (onSetConfig(name, value) != true) {
       // when callback returns true, value is rejected
       super.setConfig(name, value, responder, response);
@@ -1273,8 +1331,12 @@ class SimpleNode extends LocalNodeImpl {
   }
 
   @override
-  Response? setValue(dynamic value, Responder? responder, Response? response,
-      [int maxPermission = Permission.CONFIG]) {
+  Response? setValue(
+    dynamic value,
+    Responder? responder,
+    Response? response, [
+    int maxPermission = Permission.CONFIG,
+  ]) {
     if (onSetValue(value) != true) {
       // when callback returns true, value is rejected
       super.setValue(value, responder, response, maxPermission);
@@ -1306,7 +1368,7 @@ class SimpleNode extends LocalNodeImpl {
 /// A hidden node.
 class SimpleHiddenNode extends SimpleNode {
   SimpleHiddenNode(String path, SimpleNodeProvider provider)
-      : super(path, provider) {
+    : super(path, provider) {
     configs[r'$hidden'] = true;
   }
 

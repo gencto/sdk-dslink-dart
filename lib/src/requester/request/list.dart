@@ -1,4 +1,4 @@
-part of dslink.requester;
+part of dsalink.requester;
 
 class RequesterListUpdate extends RequesterUpdate {
   /// this is only a list of changed fields
@@ -7,7 +7,7 @@ class RequesterListUpdate extends RequesterUpdate {
   RemoteNode node;
 
   RequesterListUpdate(this.node, this.changes, String? streamStatus)
-      : super(streamStatus);
+    : super(streamStatus);
 }
 
 class ListDefListener {
@@ -18,10 +18,14 @@ class ListDefListener {
 
   bool ready = false;
 
-  ListDefListener(this.node, this.requester,
-      void Function(RequesterListUpdate u) callback) {
-    listener =
-        requester.list(node.remotePath).listen((RequesterListUpdate update) {
+  ListDefListener(
+    this.node,
+    this.requester,
+    void Function(RequesterListUpdate u) callback,
+  ) {
+    listener = requester.list(node.remotePath).listen((
+      RequesterListUpdate update,
+    ) {
       ready = update.streamStatus != StreamStatus.initialize;
       callback(update);
     });
@@ -42,7 +46,10 @@ class ListController implements RequestUpdater, ConnectionProcessor {
 
   ListController(this.node, this.requester) {
     _controller = BroadcastStreamController<RequesterListUpdate>(
-        onStartListen, _onAllCancel, _onListen);
+      onStartListen,
+      _onAllCancel,
+      _onListen,
+    );
   }
 
   bool get initialized {
@@ -56,7 +63,8 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     disconnectTs = ValueUpdate.getTs();
     node.configs[r'$disconnectedTs'] = disconnectTs!;
     _controller.add(
-        RequesterListUpdate(node, [r'$disconnectedTs'], request!.streamStatus));
+      RequesterListUpdate(node, [r'$disconnectedTs'], request!.streamStatus),
+    );
   }
 
   @override
@@ -71,8 +79,13 @@ class ListController implements RequestUpdater, ConnectionProcessor {
   LinkedHashSet changes = LinkedHashSet<String>();
 
   @override
-  void onUpdate(String streamStatus, List? updates, List? columns, Map? meta,
-      DSError? error) {
+  void onUpdate(
+    String streamStatus,
+    List? updates,
+    List? columns,
+    Map? meta,
+    DSError? error,
+  ) {
     var reseted = false;
     // TODO implement error handling
     if (updates != null) {
@@ -172,14 +185,17 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     if ((node.profile is RemoteNode) && !(node.profile as RemoteNode).listed) {
       _ready = false;
       _profileLoader = ListDefListener(
-          node.profile as RemoteNode, requester, _onProfileUpdate);
+        node.profile as RemoteNode,
+        requester,
+        _onProfileUpdate,
+      );
     }
   }
 
   static const List _ignoreProfileProps = [
     r'$is',
     r'$permission',
-    r'$settings'
+    r'$settings',
   ];
 
   void _onProfileUpdate(RequesterListUpdate update) {
@@ -190,7 +206,8 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     _profileLoader?.cancel();
     _profileLoader = null;
     changes.addAll(
-        update.changes!.where((str) => !_ignoreProfileProps.contains(str)));
+      update.changes!.where((str) => !_ignoreProfileProps.contains(str)),
+    );
     _ready = true;
     onProfileUpdated();
   }
@@ -201,7 +218,8 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     if (_ready) {
       if (request?.streamStatus != StreamStatus.initialize) {
         _controller.add(
-            RequesterListUpdate(node, changes.toList(), request!.streamStatus));
+          RequesterListUpdate(node, changes.toList(), request!.streamStatus),
+        );
         changes.clear();
       }
       if (request!.streamStatus == StreamStatus.closed) {
@@ -229,8 +247,10 @@ class ListController implements RequestUpdater, ConnectionProcessor {
     if (!waitToSend) {
       return;
     }
-    request = requester._sendRequest(
-        <String, dynamic>{'method': 'list', 'path': node.remotePath}, this);
+    request = requester._sendRequest(<String, dynamic>{
+      'method': 'list',
+      'path': node.remotePath,
+    }, this);
     waitToSend = false;
   }
 

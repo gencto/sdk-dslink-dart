@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 class ConfigSetting {
   final String name;
@@ -12,8 +12,8 @@ class ConfigSetting {
 
   ConfigSetting(this.name, this.type, {this.defaultValue});
   ConfigSetting.fromMap(this.name, Map m)
-      : type = m.containsKey('type') ? m['type'] : 'string',
-        defaultValue = m.containsKey('default') ? m['default'] : null;
+    : type = m.containsKey('type') ? m['type'] : 'string',
+      defaultValue = m.containsKey('default') ? m['default'] : null;
 
   DSError? setConfig(Object value, LocalNodeImpl node, Responder responder) {
     if (node.configs[name] != value) {
@@ -66,13 +66,15 @@ class Configs {
     r'$columns': {'type': 'list'},
 
     /// stream meta of invoke method
-    r'$streamMeta': {'type': 'list'}
+    r'$streamMeta': {'type': 'list'},
     // not serializable
   };
 
   static final Configs global = Configs()..load(_globalConfigs);
-  static final ConfigSetting defaultConfig =
-      ConfigSetting.fromMap('', const <dynamic, dynamic>{});
+  static final ConfigSetting defaultConfig = ConfigSetting.fromMap(
+    '',
+    const <dynamic, dynamic>{},
+  );
 
   static Object? getConfig(String name, Node? profile) {
     if (global.configs.containsKey(name)) {

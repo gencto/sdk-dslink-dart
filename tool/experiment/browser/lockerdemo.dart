@@ -1,13 +1,14 @@
-import 'dart:html';
-import 'package:dslink/src/crypto/pk.dart';
-import 'package:dslink/browser_client.dart';
-import 'package:dslink/responder.dart';
-import 'package:dslink/common.dart';
+import 'package:dsalink/browser_client.dart';
+import 'package:dsalink/common.dart';
+import 'package:dsalink/responder.dart';
+import 'package:dsalink/src/crypto/pk.dart';
+import 'package:web/web.dart';
 
 // load private ECDH key
 // this can be replaced with other authentication method if it's implemented in broker
 PrivateKey key = PrivateKey.loadFromString(
-    'J7wbaV2z-HDVDau2WrOf6goPgbZnj0xamPid1MNOuVc BC7EZK44i85VUr5LleLsLP-Bu6MkK2IbZWVHXBaUQlRKmfkT_488BW-KwOgoize4gaRVF1i0NarPeLgCXM6pGrE');
+  'J7wbaV2z-HDVDau2WrOf6goPgbZnj0xamPid1MNOuVc BC7EZK44i85VUr5LleLsLP-Bu6MkK2IbZWVHXBaUQlRKmfkT_488BW-KwOgoize4gaRVF1i0NarPeLgCXM6pGrE',
+);
 
 late SimpleNodeProvider nodeProvider;
 
@@ -49,13 +50,13 @@ void main() {
       'open': {
         // an action to open the door
         r'$invokable': 'read',
-        r'$function': 'openLocker'
+        r'$function': 'openLocker',
       },
       'opened': {
         // the open status value
         r'$type': 'bool',
-        '?value': false
-      }
+        '?value': false,
+      },
     },
     'locker2': {
       r'$is': 'locker',
@@ -63,16 +64,16 @@ void main() {
         // an action to open the door
         r'$invokable': 'read',
         r'$params': [
-          {'name': 'value', 'type': 'bool'}
+          {'name': 'value', 'type': 'bool'},
         ],
-        r'$function': 'changeLocker'
+        r'$function': 'changeLocker',
       },
       'opened': {
         // the open status value
         r'$type': 'bool',
-        '?value': false
-      }
-    }
+        '?value': false,
+      },
+    },
   }, profiles);
 
   // add locker at runtime
@@ -82,20 +83,24 @@ void main() {
       // an action to open the door
       r'$invokable': 'read',
       r'$params': [
-        {'name': 'value', 'type': 'bool'}
+        {'name': 'value', 'type': 'bool'},
       ],
-      r'$function': 'openLocker'
+      r'$function': 'openLocker',
     },
     'opened': {
       // the open status value
       r'$type': 'bool',
-      '?value': false
-    }
+      '?value': false,
+    },
   });
 
-  BrowserECDHLink('http://localhost:8080/conn', 'locker-', key,
-          isResponder: true, nodeProvider: nodeProvider)
-      .connect();
+  BrowserECDHLink(
+    'http://localhost:8080/conn',
+    'locker-',
+    key,
+    isResponder: true,
+    nodeProvider: nodeProvider,
+  ).connect();
 
   initUI();
 }
@@ -103,11 +108,11 @@ void main() {
 void initUI() {
   // update label
   nodeProvider.getNode('/locker1/opened')?.subscribe((ValueUpdate update) {
-    document.querySelector('#opentext1')?.text =
+    document.querySelector('#opentext1')?.textContent =
         update.value == true ? 'Opened' : 'Closed';
   });
   nodeProvider.getNode('/locker2/opened')?.subscribe((ValueUpdate update) {
-    document.querySelector('#opentext2')?.text =
+    document.querySelector('#opentext2')?.textContent =
         update.value == true ? 'Opened' : 'Closed';
   });
   // buttons

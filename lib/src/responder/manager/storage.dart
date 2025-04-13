@@ -1,4 +1,4 @@
-part of dslink.responder;
+part of dsalink.responder;
 
 /// general purpose storage class
 abstract class IStorageManager {
@@ -8,9 +8,10 @@ abstract class IStorageManager {
 
   /// get subscription storage
   /// responder path point to a local responder node
-  /// which means the dslink on the other side of the connection is a requester
+  /// which means the dsalink on the other side of the connection is a requester
   ISubscriptionResponderStorage getOrCreateSubscriptionStorage(
-      String responderPath);
+    String responderPath,
+  );
 
   /// destroy subscription storage
   void destroySubscriptionStorage(String responderPath);
@@ -20,8 +21,8 @@ abstract class IStorageManager {
   Future<List<List<ISubscriptionNodeStorage>>> loadSubscriptions();
 }
 
-/// a storage container for one dslink
-/// different dslink will have different ISubscriptionResponderStorage
+/// a storage container for one dsalink
+/// different dsalink will have different ISubscriptionResponderStorage
 abstract class ISubscriptionResponderStorage {
   String? get responderPath;
 
