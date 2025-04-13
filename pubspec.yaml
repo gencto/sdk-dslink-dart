@@ -24,7 +24,7 @@ dev_dependencies:
   influxdb_client: ^2.9.0
 
 environment:
-  sdk: ">3.7.0"
+  sdk: ^3.7.0
 
 platforms:
   android:
