@@ -1,9 +1,8 @@
-import 'dart:html';
-
 import 'package:dsalink/browser_client.dart';
 import 'package:dsalink/common.dart';
 import 'package:dsalink/responder.dart';
 import 'package:dsalink/src/crypto/pk.dart';
+import 'package:web/web.dart';
 
 // load private ECDH key
 // this can be replaced with other authentication method if it's implemented in broker
@@ -109,11 +108,11 @@ void main() {
 void initUI() {
   // update label
   nodeProvider.getNode('/locker1/opened')?.subscribe((ValueUpdate update) {
-    document.querySelector('#opentext1')?.text =
+    document.querySelector('#opentext1')?.textContent =
         update.value == true ? 'Opened' : 'Closed';
   });
   nodeProvider.getNode('/locker2/opened')?.subscribe((ValueUpdate update) {
-    document.querySelector('#opentext2')?.text =
+    document.querySelector('#opentext2')?.textContent =
         update.value == true ? 'Opened' : 'Closed';
   });
   // buttons
