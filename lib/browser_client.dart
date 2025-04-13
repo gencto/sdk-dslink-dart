@@ -8,8 +8,8 @@ import 'package:dsalink/common.dart';
 import 'package:dsalink/requester.dart';
 import 'package:dsalink/responder.dart';
 import 'package:dsalink/utils.dart';
-import 'package:web/web.dart';
 import 'package:http/http.dart' as http;
+import 'package:web/web.dart';
 
 import 'src/crypto/pk.dart';
 
@@ -54,14 +54,16 @@ class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
   LocalDataStorage();
 
   @override
-  Future<String> get(String key) async => window.localStorage[key] ?? '';
+  Future<String> get(String key) async =>
+      window.localStorage.getItem(key) ?? '';
 
   @override
-  Future<bool> has(String key) async => window.localStorage[key] != null;
+  Future<bool> has(String key) async =>
+      window.localStorage.getItem(key) != null;
 
   @override
   Future store(String key, String value) {
-    window.localStorage[key] = value;
+    window.localStorage.setItem(key, value);
     return Future<void>.value();
   }
 
@@ -79,14 +81,14 @@ class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
 
   @override
   void storeSync(String key, String value) {
-    window.localStorage[key] = value;
+    window.localStorage.setItem(key, value);
   }
 
   @override
-  bool hasSync(String key) => window.localStorage[key] != null;
+  bool hasSync(String key) => window.localStorage.getItem(key) != null;
 
   @override
-  String getSync(String key) => window.localStorage[key] ?? '';
+  String getSync(String key) => window.localStorage.getItem(key) ?? '';
 }
 
 PrivateKey? _cachedPrivateKey;
@@ -171,7 +173,7 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
 void _startStorageLock(String lockKey, String lockToken) {
   void onStorage(StorageEvent e) {
     if (e.key == lockKey) {
-      window.localStorage[lockKey] = lockToken;
+      window.localStorage.setItem(lockKey, lockToken);
     }
   }
 
