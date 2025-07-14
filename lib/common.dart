@@ -80,7 +80,7 @@ class ConnectionAckGroup {
 
   ConnectionAckGroup(this.ackId, this.startTime, this.processors);
 
-  void ackAll(int ackid, int time) {
+  void ackAll(int acknowledgmentId, int time) {
     for (var processor in processors) {
       processor.ackReceived(ackId, startTime, time);
     }
@@ -241,54 +241,54 @@ class DSError {
   }
 
   Map serialize() {
-    var rslt = <String, dynamic>{};
+    var resultMap = <String, dynamic>{};
     if (msg != null) {
-      rslt['msg'] = msg;
+      resultMap['msg'] = msg;
     }
     if (type != null) {
-      rslt['type'] = type;
+      resultMap['type'] = type;
     }
     if (path != null) {
-      rslt['path'] = path;
+      resultMap['path'] = path;
     }
     if (phase == ErrorPhase.request) {
-      rslt['phase'] = ErrorPhase.request;
+      resultMap['phase'] = ErrorPhase.request;
     }
     if (detail != null) {
-      rslt['detail'] = detail;
+      resultMap['detail'] = detail;
     }
-    return rslt;
+    return resultMap;
   }
 
   /// Represents a permission denied error.
-  static final DSError PERMISSION_DENIED = DSError('permissionDenied');
+  static final DSError permissionDenied = DSError('permissionDenied');
 
   /// Represents an invalid method error.
-  static final DSError INVALID_METHOD = DSError('invalidMethod');
+  static final DSError invalidMethod = DSError('invalidMethod');
 
   /// Represents a not implemented error.
-  static final DSError NOT_IMPLEMENTED = DSError('notImplemented');
+  static final DSError notImplemented = DSError('notImplemented');
 
   /// Represents an invalid path error.
-  static final DSError INVALID_PATH = DSError('invalidPath');
+  static final DSError invalidPath = DSError('invalidPath');
 
   /// Represents an invalid paths error.
-  static final DSError INVALID_PATHS = DSError('invalidPaths');
+  static final DSError invalidPaths = DSError('invalidPaths');
 
   /// Represents an invalid value error.
-  static final DSError INVALID_VALUE = DSError('invalidValue');
+  static final DSError invalidValue = DSError('invalidValue');
 
   /// Represents an invalid parameter error.
-  static final DSError INVALID_PARAMETER = DSError('invalidParameter');
+  static final DSError invalidParameter = DSError('invalidParameter');
 
   /// Represents a disconnected error.
-  static final DSError DISCONNECTED = DSError(
+  static final DSError disconnected = DSError(
     'disconnected',
     phase: ErrorPhase.request,
   );
 
   /// Represents a failed error.
-  static final DSError FAILED = DSError('failed');
+  static final DSError failed = DSError('failed');
 }
 
 /// Marks something as being unspecified.

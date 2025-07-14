@@ -26,7 +26,7 @@ You can edit the server configuration using `broker.json`. For more information 
 
 ### Create a Link
 
-For documentation, see [this page](http://iot-dsa.github.io/docs/sdks/dart/).
+For documentation, see [this page](https://iot-dsa.github.io/docs/sdks/dart/).
 For more examples, see [this page](https://github.com/IOT-DSA/sdk-dsalink-dart/tree/master/example).
 
 ```dart
@@ -55,12 +55,12 @@ main(List<String> args) async {
 ### Start a Link
 
 ```bash
-dart path/to/link.dart # Start a link that connects to a broker at http://127.0.0.1:8080/conn
-dart path/to/link.dart --broker http://my.broker:8080/conn # Start a link that connects to the specified broker.
+dart path/to/link.dart # Start a link that connects to a broker at https://127.0.0.1:8443/conn
+dart path/to/link.dart --broker https://my.broker:8443/conn # Start a link that connects to the specified broker.
 ```
 
 ## Links
 
-- [DSA Site](http://iot-dsa.org/)
+- [DSA Site](https://dsa.gencto.uk/)
 - [DSA Wiki](https://github.com/IOT-DSA/docs/wiki)
-- [Documentation](http://iot-dsa.github.io/docs/sdks/dart/)
+- [Documentation](https://iot-dsa.github.io/docs/sdks/dart/)

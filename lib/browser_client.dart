@@ -49,7 +49,7 @@ abstract class SynchronousDataStorage {
 
 /// Storage for DSA in Local Storage
 class LocalDataStorage extends DataStorage implements SynchronousDataStorage {
-  static final LocalDataStorage INSTANCE = LocalDataStorage();
+  static final LocalDataStorage instance = LocalDataStorage();
 
   LocalDataStorage();
 
@@ -100,7 +100,7 @@ Future<PrivateKey?> getPrivateKey({DataStorage? storage}) async {
     return _cachedPrivateKey;
   }
 
-  storage ??= LocalDataStorage.INSTANCE;
+  storage ??= LocalDataStorage.instance;
 
   var keyPath = 'dsa_key:${window.location.pathname}';
   String? keyLockPath = 'dsa_key_lock:${window.location.pathname}';

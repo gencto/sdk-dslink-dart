@@ -145,7 +145,7 @@ class Responder extends ConnectionHandler {
         }
       }
     }
-    closeResponse(m['rid'], error: DSError.INVALID_METHOD);
+    closeResponse(m['rid'], error: DSError.invalidMethod);
   }
 
   /// close the response from responder side and notify requester
@@ -227,7 +227,7 @@ class Responder extends ConnectionHandler {
         },
       );
     } else {
-      closeResponse(m['rid'], error: DSError.INVALID_PATH);
+      closeResponse(m['rid'], error: DSError.invalidPath);
     }
   }
 
@@ -275,7 +275,7 @@ class Responder extends ConnectionHandler {
         }
       }
     } else {
-      closeResponse(m['rid'], error: DSError.INVALID_PATHS);
+      closeResponse(m['rid'], error: DSError.invalidPaths);
     }
   }
 
@@ -321,7 +321,7 @@ class Responder extends ConnectionHandler {
       }
       closeResponse(m['rid']);
     } else {
-      closeResponse(m['rid'], error: DSError.INVALID_PATHS);
+      closeResponse(m['rid'], error: DSError.invalidPaths);
     }
   }
 
@@ -337,7 +337,7 @@ class Responder extends ConnectionHandler {
           if (overriden == null) {
             node = parentNode.getChild(path.name) as LocalNode?;
             if (node == null) {
-              closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+              closeResponse(m['rid'], error: DSError.permissionDenied);
               return;
             }
 
@@ -349,7 +349,7 @@ class Responder extends ConnectionHandler {
               return;
             }
           } else {
-            closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+            closeResponse(m['rid'], error: DSError.permissionDenied);
             return;
           }
         }
@@ -387,7 +387,7 @@ class Responder extends ConnectionHandler {
             permission,
           );
         } else {
-          closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+          closeResponse(m['rid'], error: DSError.permissionDenied);
         }
       }
 
@@ -408,7 +408,7 @@ class Responder extends ConnectionHandler {
         doInvoke();
       }
     } else {
-      closeResponse(m['rid'], error: DSError.INVALID_PATH);
+      closeResponse(m['rid'], error: DSError.invalidPath);
     }
   }
 
@@ -419,19 +419,19 @@ class Responder extends ConnectionHandler {
         (_responses[rid] as InvokeResponse).updateReqParams(m['params']);
       }
     } else {
-      closeResponse(m['rid'], error: DSError.INVALID_METHOD);
+      closeResponse(m['rid'], error: DSError.invalidMethod);
     }
   }
 
   void set(Map m) {
     var path = Path.getValidPath(m['path']);
     if (path == null || !path.isAbsolute) {
-      closeResponse(m['rid'], error: DSError.INVALID_PATH);
+      closeResponse(m['rid'], error: DSError.invalidPath);
       return;
     }
 
     if (!m.containsKey('value')) {
-      closeResponse(m['rid'], error: DSError.INVALID_VALUE);
+      closeResponse(m['rid'], error: DSError.invalidValue);
       return;
     }
 
@@ -457,7 +457,7 @@ class Responder extends ConnectionHandler {
               addResponse(Response(this, rid, 'set'), path, value),
             );
           } else {
-            closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+            closeResponse(m['rid'], error: DSError.permissionDenied);
           }
           closeResponse(m['rid']);
         },
@@ -477,7 +477,7 @@ class Responder extends ConnectionHandler {
 
       var permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.CONFIG) {
-        closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+        closeResponse(m['rid'], error: DSError.permissionDenied);
       } else {
         node.setConfig(
           path.name,
@@ -492,7 +492,7 @@ class Responder extends ConnectionHandler {
       node = nodeProvider.getOrCreateNode(path.parentPath, false);
       var permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.WRITE) {
-        closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+        closeResponse(m['rid'], error: DSError.permissionDenied);
       } else {
         node.setAttribute(
           path.name,
@@ -510,12 +510,12 @@ class Responder extends ConnectionHandler {
   void remove(Map m) {
     var path = Path.getValidPath(m['path']);
     if (path == null || !path.isAbsolute) {
-      closeResponse(m['rid'], error: DSError.INVALID_PATH);
+      closeResponse(m['rid'], error: DSError.invalidPath);
       return;
     }
     int rid = m['rid'];
     if (path.isNode) {
-      closeResponse(m['rid'], error: DSError.INVALID_METHOD);
+      closeResponse(m['rid'], error: DSError.invalidMethod);
     } else if (path.isConfig) {
       LocalNode node;
 
@@ -523,7 +523,7 @@ class Responder extends ConnectionHandler {
 
       var permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.CONFIG) {
-        closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+        closeResponse(m['rid'], error: DSError.permissionDenied);
       } else {
         node.removeConfig(
           path.name,
@@ -537,7 +537,7 @@ class Responder extends ConnectionHandler {
       node = nodeProvider.getOrCreateNode(path.parentPath, false);
       var permission = nodeProvider.permissions.getPermission(node.path, this);
       if (permission < Permission.WRITE) {
-        closeResponse(m['rid'], error: DSError.PERMISSION_DENIED);
+        closeResponse(m['rid'], error: DSError.permissionDenied);
       } else {
         node.removeAttribute(
           path.name,

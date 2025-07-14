@@ -1,8 +1,12 @@
 name: dsalink
 
 version: 2.0.0
-description: "DSA IoT Platform - dsalink SDK for Dart"
-homepage: "http://iot-dsa.org"
+description: >
+  DSA IoT Platform - dsalink SDK for Dart. This package provides tools and libraries 
+  for building IoT solutions using the Distributed Services Architecture (DSA) in Dart. 
+  It includes support for secure communication, data serialization, and integration 
+  with various IoT protocols and platforms.
+homepage: "https://dsa.gencto.uk"
 documentation: "https://iot-dsa.github.io/docs/sdks/dart/"
 
 dependencies:
@@ -32,3 +36,4 @@ platforms:
   linux:
   macos:
   web:
+  windows:
