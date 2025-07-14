@@ -39,7 +39,7 @@ class LinkProvider {
     this.isResponder = true,
     this.token,
   }) {
-    dataStore ??= LocalDataStorage.INSTANCE;
+    dataStore ??= LocalDataStorage.instance;
   }
 
   bool _initCalled = false;

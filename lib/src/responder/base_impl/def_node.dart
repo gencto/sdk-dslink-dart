@@ -33,7 +33,7 @@ class DefinitionNode extends LocalNodeImpl {
     int maxPermission = Permission.CONFIG,
   ]) {
     if (_invokeCallback == null) {
-      return response..close(DSError.NOT_IMPLEMENTED);
+      return response..close(DSError.notImplemented);
     }
 
     var parentPath = parentNode is LocalNode ? parentNode.path : null;
@@ -51,7 +51,7 @@ class DefinitionNode extends LocalNodeImpl {
       _invokeCallback!(params, responder, response, parentNode as LocalNode?);
       return response;
     } else {
-      return response..close(DSError.PERMISSION_DENIED);
+      return response..close(DSError.permissionDenied);
     }
   }
 }

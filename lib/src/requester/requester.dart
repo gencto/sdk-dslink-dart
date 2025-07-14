@@ -235,7 +235,7 @@ class Requester extends ConnectionHandler {
     newRequests[0] = _subscription;
     _requests.forEach((n, req) {
       if (req.rid <= lastRid && req.updater is! ListController) {
-        req._close(DSError.DISCONNECTED);
+        req._close(DSError.disconnected);
       } else {
         newRequests[req.rid] = req;
         req.updater.onDisconnect();
