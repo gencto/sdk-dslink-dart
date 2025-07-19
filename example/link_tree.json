@@ -1,0 +1,17 @@
+{
+    "name": "root",
+    "children": [
+        {
+            "name": "temperature",
+            "value": 21.5,
+            "attributes": {
+                "@type": "number",
+                "@unit": "°C"
+            }
+        },
+        {
+            "name": "reset",
+            "action": true
+        }
+    ]
+}

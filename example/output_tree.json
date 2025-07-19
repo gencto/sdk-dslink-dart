@@ -1,0 +1,1 @@
+{"name":"root","children":[{"name":"temperature","attributes":{"@type":"number","@unit":"°C"}},{"name":"reset"}]}
