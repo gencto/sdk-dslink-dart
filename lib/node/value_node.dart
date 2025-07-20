@@ -3,52 +3,64 @@ import 'dart:async';
 import 'package:dsalink/node/ds_node.dart';
 
 class ValueNode extends DsNode {
-  final _controller = StreamController<dynamic>.broadcast();
+  dynamic _value;
+  final StreamController<dynamic> _controller = StreamController<dynamic>.broadcast();
+  
+  // Performance optimization: Cache the last value to avoid unnecessary updates
+  dynamic _lastEmittedValue;
+  
+  // Performance optimization: Debounce rapid value changes
+  Timer? _debounceTimer;
+  static const Duration _debounceDelay = Duration(milliseconds: 50);
 
-  ValueNode(super.name, dynamic initialValue) : super(value: initialValue);
+  ValueNode(super.name, this._value) {
+    _lastEmittedValue = _value;
+  }
 
-  void updateValue(dynamic newValue) {
-    if (newValue != value) {
-      value = newValue;
-      _controller.add(value);
-    }
+  @override
+  dynamic get value => _value;
+
+  @override
+  set value(dynamic newValue) {
+    // Performance optimization: Only update if value actually changed
+    if (_value == newValue) return;
+    
+    _value = newValue;
+    
+    // Performance optimization: Debounce rapid changes to prevent spam
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_debounceDelay, () {
+      // Only emit if the value is still different from last emitted
+      if (_lastEmittedValue != _value) {
+        _lastEmittedValue = _value;
+        if (!_controller.isClosed) {
+          _controller.add(_value);
+        }
+      }
+    });
   }
 
   Stream<dynamic> get onValueChanged => _controller.stream;
 
-  @override
+  // Performance optimization: Dispose method to clean up resources
   void dispose() {
+    _debounceTimer?.cancel();
     _controller.close();
-    _streamSubscription?.cancel();
   }
 
-  static ValueNode streamed<T>(
-    String name,
-    Stream<T> stream, {
-    T? initialValue,
-    Map<String, dynamic>? attributes,
-    StreamTransformer<T, dynamic>? transformer,
-  }) {
-    final node = ValueNode(name, initialValue);
-
-    if (attributes != null) {
-      for (final entry in attributes.entries) {
-        node.setAttribute(entry.key, entry.value);
+  // Performance optimization: Force immediate value update (bypass debouncing)
+  void forceUpdate() {
+    _debounceTimer?.cancel();
+    if (_lastEmittedValue != _value) {
+      _lastEmittedValue = _value;
+      if (!_controller.isClosed) {
+        _controller.add(_value);
       }
     }
-
-    final boundStream = transformer != null
-        ? stream.transform(transformer)
-        : stream;
-
-    node._streamSubscription = boundStream.listen((val) {
-      node.updateValue(val);
-    });
-
-    return node;
   }
 
-  StreamSubscription? _streamSubscription;
+  // Performance optimization: Check if node has pending updates
+  bool get hasPendingUpdate => _debounceTimer?.isActive == true;
 }
 
 class ReadOnlyValueNode extends ValueNode {
