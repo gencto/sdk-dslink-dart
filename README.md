@@ -59,6 +59,78 @@ dart path/to/link.dart # Start a link that connects to a broker at https://127.0
 dart path/to/link.dart --broker https://my.broker:8443/conn # Start a link that connects to the specified broker.
 ```
 
+## Logging
+
+The DSALink SDK includes a comprehensive logging system with best practices built-in:
+
+### Basic Usage
+
+```dart
+import "package:dsalink/utils/logger.dart";
+
+// Use the global logger
+final logger = DSALogger.instance;
+logger.info('Application started');
+logger.error('Something went wrong', error: exception, stackTrace: stackTrace);
+
+// Or use convenience functions
+logInfo('Quick info message');
+logError('Quick error message', error: exception);
+```
+
+### Categorized Logging
+
+```dart
+// Create category-specific loggers
+final webSocketLogger = DSALogger.category('WebSocket');
+final responderLogger = DSALogger.category('Responder');
+
+webSocketLogger.info('Connection established');
+responderLogger.debug('Processing request', context: {
+  'requestId': '123',
+  'path': '/nodes/sensor',
+});
+```
+
+### Configuration
+
+```dart
+// Development - verbose with location info
+DSALogger.configure(LoggerConfig.dev);
+
+// Production - structured JSON logging
+DSALogger.configure(LoggerConfig.production);
+
+// Custom configuration
+DSALogger.configure(const LoggerConfig(
+  level: LogLevel.info,
+  includeTimestamp: true,
+  structuredLogging: false,
+  useColors: true,
+));
+```
+
+### Log Levels
+
+- `trace` - Most verbose, for detailed debugging
+- `debug` - Debug information
+- `info` - General information
+- `warn` - Warning messages
+- `error` - Error conditions
+- `fatal` - Critical errors
+
+### Features
+
+- **Structured Logging**: JSON format for production systems
+- **Contextual Information**: Attach metadata to log entries
+- **Performance Optimized**: Early filtering and efficient formatting
+- **Environment Aware**: Different configs for dev/prod/test
+- **IDE Integration**: Uses `dart:developer` for better tooling support
+- **Categorization**: Organize logs by component/module
+- **Error Handling**: Proper error and stack trace logging
+
+See `example/logging_example.dart` for comprehensive usage examples.
+
 ## Links
 
 - [DSA Site](https://dsa.gencto.uk/)

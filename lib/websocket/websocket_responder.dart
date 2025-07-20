@@ -1,6 +1,7 @@
 import 'package:dsalink/node/ds_node.dart';
 import 'package:dsalink/responder/responder_service.dart';
 import 'package:dsalink/transport/websocket_transport.dart';
+import 'package:dsalink/utils/logger.dart';
 import 'package:dsalink/websocket/handshake_client.dart';
 
 class WebSocketResponder {
@@ -8,6 +9,8 @@ class WebSocketResponder {
   final String linkName;
   final String token;
   final DsNode root;
+
+  static final _logger = DSALogger.category('WebSocketResponder');
 
   WebSocketResponder({
     required this.brokerBaseUrl,
@@ -23,15 +26,33 @@ class WebSocketResponder {
       token: token,
     );
 
-    print('🔐 Performing handshake...');
-    final wsUri = await handshakeClient.performHandshake();
+    _logger.info('Performing handshake with broker', context: {
+      'brokerUrl': brokerBaseUrl,
+      'linkName': linkName,
+    });
+    
+    try {
+      final wsUri = await handshakeClient.performHandshake();
 
-    print('🔄 Connecting to WebSocket: $wsUri');
-    final transport = WebSocketTransport(wsUri.toString());
+      _logger.info('Connecting to WebSocket', context: {
+        'wsUri': wsUri.toString(),
+      });
+      
+      final transport = WebSocketTransport(wsUri.toString());
+      final responder = ResponderService(transport, root);
+      await responder.start();
 
-    final responder = ResponderService(transport, root);
-    await responder.start();
-
-    print('✅ DSLink Responder connected & running!');
+      _logger.info('DSLink Responder connected & running successfully');
+    } catch (error, stackTrace) {
+      _logger.error('Failed to start WebSocket responder', 
+        error: error, 
+        stackTrace: stackTrace,
+        context: {
+          'brokerUrl': brokerBaseUrl,
+          'linkName': linkName,
+        }
+      );
+      rethrow;
+    }
   }
 }
