@@ -1,1 +1,74 @@
 include: package:lint/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "build/**"
+    - ".dart_tool/**"
+  
+  # Performance optimization: Enable strong mode and additional checks
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  
+  # Enable performance-related diagnostics
+  errors:
+    # Treat performance issues as errors
+    cancel_subscriptions: error
+    close_sinks: error
+    avoid_slow_async_io: error
+    
+    # Promote warnings to errors for better code quality
+    avoid_dynamic_calls: error
+    avoid_print: error
+    prefer_const_constructors: error
+    prefer_const_declarations: error
+    prefer_const_literals_to_create_immutables: error
+
+linter:
+  rules:
+    # Performance-focused rules
+    - avoid_slow_async_io
+    - cancel_subscriptions
+    - close_sinks
+    - avoid_dynamic_calls
+    - prefer_final_locals
+    - prefer_final_fields
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - unnecessary_const
+    - unnecessary_new
+    - unnecessary_this
+    
+    # Memory efficiency
+    - avoid_function_literals_in_foreach_calls
+    - prefer_collection_literals
+    - prefer_spread_collections
+    - prefer_for_elements_to_map_fromIterable
+    - prefer_if_elements_to_conditional_expressions
+    
+    # Code size optimizations
+    - prefer_single_quotes
+    - unnecessary_string_interpolations
+    - unnecessary_string_escapes
+    - avoid_unnecessary_containers
+    - sized_box_for_whitespace
+    
+    # Async performance
+    - avoid_async_foreach
+    - unawaited_futures
+    - use_build_context_synchronously
+    
+    # Type safety (improves performance by enabling optimizations)
+    - always_specify_types
+    - type_annotate_public_apis
+    - avoid_types_on_closure_parameters
+    
+    # General performance
+    - prefer_is_empty
+    - prefer_is_not_empty
+    - prefer_contains
+    - use_rethrow_when_possible
