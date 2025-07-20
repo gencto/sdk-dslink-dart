@@ -1,3 +1,4 @@
+import 'package:dsalink/models/action_parameter.dart';
 import 'package:dsalink/node/action_node.dart';
 import 'package:dsalink/node/ds_node.dart';
 import 'package:dsalink/node/value_node.dart';
@@ -10,6 +11,7 @@ class NodeBuilder {
   final Map<String, dynamic> attributes = {};
   ActionHandler? action;
   final List<NodeBuilder> _children = [];
+  List<ActionParameter>? _params;
 
   NodeBuilder(this.name);
 
@@ -67,6 +69,15 @@ class NodeBuilder {
       node.addChild(childBuilder.build());
     }
 
+    if (_params != null) {
+      node.setAttribute('@params', _params!.map((p) => p.toJson()).toList());
+    }
+
     return node;
+  }
+
+  NodeBuilder withParams(List<ActionParameter> params) {
+    _params = params;
+    return this;
   }
 }

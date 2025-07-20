@@ -1,37 +1,49 @@
+import 'package:dsalink/models/node_dto.dart';
 import 'package:dsalink/node/ds_node.dart';
 import 'package:dsalink/node/node_builder.dart';
 
 class NodeSerializer {
   NodeSerializer._();
 
-  static DsNode fromJson(Map<String, dynamic> json) {
-    final builder = NodeBuilder(json['name'] as String);
+  static NodeBuilder builderFromDTO(NodeDTO dto) {
+    final builder = NodeBuilder(dto.name);
 
-    if (json.containsKey('value')) {
-      builder.withValue(json['value']);
+    if (dto.value != null) {
+      builder.withValue(dto.value);
     }
 
-    final attrs = json['attributes'] as Map<String, dynamic>? ?? {};
-    for (final entry in attrs.entries) {
-      builder.withAttribute(entry.key, entry.value);
-    }
-
-    if (json['action'] == true) {
-      builder.onInvoke((params) async {
-        return {'info': 'This is a placeholder action for "${json['name']}"'};
-      });
-    }
-
-    final children = json['children'] as List<dynamic>? ?? [];
-    for (final child in children) {
-      final childNode = fromJson(child as Map<String, dynamic>);
-      final childBuilder = NodeBuilder(childNode.name);
-      for (final attr in childNode.attributes.entries) {
-        childBuilder.withAttribute(attr.key, attr.value);
+    if (dto.attributes != null) {
+      for (final entry in dto.attributes!.entries) {
+        builder.withAttribute(entry.key, entry.value);
       }
-      builder.addChild(childBuilder);
     }
 
-    return builder.build();
+    if (dto.action == true) {
+      builder.onInvoke(
+        (params) async => {'info': 'Invoke on ${dto.name}', 'params': params},
+      );
+    }
+
+    if (dto.children != null) {
+      for (final child in dto.children!) {
+        builder.addChild(builderFromDTO(child));
+      }
+    }
+
+    return builder;
+  }
+
+  static DsNode fromDTO(NodeDTO dto) => builderFromDTO(dto).build();
+
+  static NodeDTO toDTO(DsNode node) {
+    return NodeDTO(
+      name: node.name,
+      value: node.value,
+      attributes: node.attributes.isEmpty ? null : node.attributes,
+      action: node.hasAction ? true : null,
+      children: node.children.isEmpty
+          ? null
+          : node.children.values.map(toDTO).toList(),
+    );
   }
 }

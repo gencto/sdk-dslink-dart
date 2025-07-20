@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dsalink/models/node_dto.dart';
 import 'package:dsalink/node/node_serializer.dart';
 import 'package:dsalink/utils/json_config_loader.dart';
 
@@ -25,7 +26,7 @@ Future<void> main() async {
   ''';
 
   final map = jsonDecode(rawJson) as Map<String, dynamic>;
-  final root = NodeSerializer.fromJson(map);
+  final root = NodeSerializer.fromDTO(NodeDTO.fromJson(map));
 
   final jsonOut = jsonEncode(root.toJson());
   print('🧾 Exported JSON:\n$jsonOut');
@@ -34,7 +35,7 @@ Future<void> main() async {
     './example/link_tree.json',
   );
 
-  final root2 = NodeSerializer.fromJson(config);
+  final root2 = NodeSerializer.fromDTO(NodeDTO.fromJson(config));
   print('🌲 Tree loaded from file');
 
   final jsonOut2 = root2.toJson();
