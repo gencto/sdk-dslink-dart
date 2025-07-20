@@ -63,7 +63,7 @@ void main() {
       }),
     );
 
-    valueNode.updateValue(21);
+    valueNode.value = 21;
 
     await Future.delayed(const Duration(seconds: 1));
 
