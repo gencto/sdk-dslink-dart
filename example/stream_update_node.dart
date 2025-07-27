@@ -8,8 +8,8 @@ void main() {
   // Initialize logging system for the example
   LoggingManager.configureForDevelopment();
 
-  final logger = DsLogger.getLogger('StreamUpdateExample');
-  logger.info('🚀 Starting stream update node example');
+  final logger = DsLogger.getLogger('StreamUpdateExample')
+    ..info('🚀 Starting stream update node example');
 
   try {
     // Create CPU usage stream with logging
@@ -72,9 +72,9 @@ void main() {
             component: 'TemperatureMonitor',
           );
         },
-        onDone: () {
+        onDone: () async {
           logger.info('Temperature stream completed');
-          controller.close();
+          await controller.close();
         },
       );
 
@@ -102,7 +102,7 @@ void main() {
     // Log system stats periodically
     Timer.periodic(const Duration(seconds: 5), (timer) {
       logger.info(
-        'System stats - CPU Node: ${cpuNode.logContext}, Temp Node: ${tempNode.logContext}',
+        '''System stats - CPU Node: ${cpuNode.logContext}, Temp Node: ${tempNode.logContext}''',
       );
     });
   } catch (error, stackTrace) {

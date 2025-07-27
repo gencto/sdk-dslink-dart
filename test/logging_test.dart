@@ -140,13 +140,12 @@ void main() {
 
       Logger.root.onRecord.listen(capturedLogs.add);
 
-      final logger = DsLogger.getLogger('TestCapture');
-
-      logger.finest('Finest message');
-      logger.fine('Fine message');
-      logger.info('Info message');
-      logger.warning('Warning message');
-      logger.severe('Severe message');
+      DsLogger.getLogger('TestCapture')
+        ..finest('Finest message')
+        ..fine('Fine message')
+        ..info('Info message')
+        ..warning('Warning message')
+        ..severe('Severe message');
 
       expect(capturedLogs.length, greaterThanOrEqualTo(5));
       expect(capturedLogs.any((log) => log.level == Level.FINEST), isTrue);
@@ -211,16 +210,4 @@ void main() {
 }
 
 /// Test class that uses the LoggerMixin
-class TestClassWithLogger with LoggerMixin {
-  void performTestOperation() {
-    logInfo('Performing test operation');
-  }
-
-  void handleError() {
-    try {
-      throw Exception('Test exception');
-    } catch (error, stackTrace) {
-      logError('Operation failed', error, stackTrace);
-    }
-  }
-}
+class TestClassWithLogger with LoggerMixin {}

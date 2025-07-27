@@ -1,7 +1,6 @@
 import 'package:dsalink/node/node_action.dart';
 
 class DsNode {
-
   DsNode(this.name, {this.value, this.action});
   final String name;
   DsNode? parent;
@@ -45,7 +44,7 @@ class DsNode {
     return map;
   }
 
-  Future<dynamic> invoke(Map<String, dynamic> params) async {
+  Future<dynamic> invoke(Map<String, dynamic> params) {
     if (action != null) {
       return action!.invoke(params, this);
     }
@@ -53,13 +52,13 @@ class DsNode {
   }
 
   Map<String, dynamic> toJson() => {
-      'name': name,
-      if (value != null) 'value': value,
-      if (attributes.isNotEmpty) 'attributes': attributes,
-      if (hasAction) 'action': true,
-      if (children.isNotEmpty)
-        'children': children.values.map((c) => c.toJson()).toList(),
-    };
+    'name': name,
+    if (value != null) 'value': value,
+    if (attributes.isNotEmpty) 'attributes': attributes,
+    if (hasAction) 'action': true,
+    if (children.isNotEmpty)
+      'children': children.values.map((c) => c.toJson()).toList(),
+  };
 
   void dispose() {}
 }

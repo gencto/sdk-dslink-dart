@@ -42,8 +42,11 @@ class HandshakeClient {
     late dynamic json;
     try {
       json = jsonDecode(result);
-    } catch (e) {
-      throw FormatException('Handshake failed: invalid JSON. Body: $result');
+    } on FormatException catch (e, stackTrace) {
+      throw FormatException(
+        'Handshake failed: invalid JSON. Body: $result',
+        stackTrace,
+      );
     }
 
     if (json['wsUri'] == null) {

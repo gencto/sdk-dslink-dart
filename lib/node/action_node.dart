@@ -7,10 +7,10 @@ class ActionNode extends DsNode {
 }
 
 class _WrapperAction implements NodeAction {
-
   _WrapperAction(this.handler);
   final Future<dynamic> Function(Map<String, dynamic>) handler;
 
   @override
-  Future<dynamic> invoke(Map<String, dynamic> params, DsNode context) => handler(params);
+  Future<dynamic> invoke(Map<String, dynamic> params, DsNode context) =>
+      handler(params);
 }

@@ -9,10 +9,9 @@ import 'package:dsalink/utils/logging_config.dart';
 Future<void> main() async {
   // Initialize logging for the example
   LoggingManager.configureForDevelopment();
-  final logger = DsLogger.getLogger('NodeSerializerExample');
-  
-  logger.info('Starting node serializer example');
-  
+  final logger = DsLogger.getLogger('NodeSerializerExample')
+    ..info('Starting node serializer example');
+
   try {
     const rawJson = '''
     {
@@ -35,14 +34,14 @@ Future<void> main() async {
     ''';
 
     final stopwatch = Stopwatch()..start();
-    
+
     logger.info('Parsing JSON configuration');
     final map = jsonDecode(rawJson) as Map<String, dynamic>;
     final root = NodeSerializer.fromDTO(NodeDTO.fromJson(map));
 
     final jsonOut = jsonEncode(root.toJson());
     stopwatch.stop();
-    
+
     DsLogger.logPerformance(
       'JSON parsing and serialization',
       stopwatch.elapsed,
@@ -53,39 +52,36 @@ Future<void> main() async {
         'childCount': (map['children'] as List?)?.length ?? 0,
       },
     );
-    
-    logger.info('Exported JSON (${jsonOut.length} characters):\n$jsonOut');
 
-    logger.info('Loading tree configuration from file');
+    logger
+      ..info('Exported JSON (${jsonOut.length} characters):\n$jsonOut')
+      ..info('Loading tree configuration from file');
     final configStopwatch = Stopwatch()..start();
-    
+
     final config = await JsonConfigLoader.loadFromFile(
       './example/link_tree.json',
     );
 
     final root2 = NodeSerializer.fromDTO(NodeDTO.fromJson(config));
     configStopwatch.stop();
-    
+
     DsLogger.logPerformance(
       'File loading and tree creation',
       configStopwatch.elapsed,
       component: 'JsonConfigLoader',
-      context: {
-        'fileName': 'link_tree.json',
-        'nodeCount': _countNodes(config),
-      },
+      context: {'fileName': 'link_tree.json', 'nodeCount': _countNodes(config)},
     );
-    
-    logger.info('Tree loaded from file successfully');
 
-    logger.info('Exporting tree to output file');
+    logger
+      ..info('Tree loaded from file successfully')
+      ..info('Exporting tree to output file');
     final exportStopwatch = Stopwatch()..start();
-    
+
     final jsonOut2 = root2.toJson();
     await JsonConfigLoader.saveToFile('./example/output_tree.json', jsonOut2);
-    
+
     exportStopwatch.stop();
-    
+
     DsLogger.logPerformance(
       'Tree export to file',
       exportStopwatch.elapsed,
@@ -95,10 +91,10 @@ Future<void> main() async {
         'dataSize': jsonEncode(jsonOut2).length,
       },
     );
-    
-    logger.info('Tree exported to output_tree.json successfully');
-    logger.info('Node serializer example completed successfully');
-    
+
+    logger
+      ..info('Tree exported to output_tree.json successfully')
+      ..info('Node serializer example completed successfully');
   } catch (error, stackTrace) {
     DsLogger.logError(
       'Node serializer example failed',
@@ -106,7 +102,7 @@ Future<void> main() async {
       stackTrace: stackTrace,
       component: 'NodeSerializerExample',
     );
-    
+
     logger.severe('Example failed. See error details above.');
     rethrow;
   }
