@@ -14,7 +14,7 @@ class MockTransport implements ITransport {
   @override
   Future<String> send(String message) async {
     _controller.add('{"status":"ok","data":{"result":"hello"}}');
-    return "mocked";
+    return 'mocked';
   }
 
   @override

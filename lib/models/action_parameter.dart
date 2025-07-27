@@ -9,9 +9,9 @@ class ActionParameter with _$ActionParameter {
     required String name,
     required String type,
     String? editor,
-    dynamic defaultValue,
-    dynamic min,
-    dynamic max,
+    defaultValue,
+    min,
+    max,
     List<dynamic>? enumValues,
   }) = _ActionParameter;
 

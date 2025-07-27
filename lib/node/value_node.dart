@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:dsalink/node/ds_node.dart';
 
 class ValueNode extends DsNode {
+
+  ValueNode(super.name, initialValue) : super(value: initialValue);
   final _controller = StreamController<dynamic>.broadcast();
 
-  ValueNode(super.name, dynamic initialValue) : super(value: initialValue);
-
-  void updateValue(dynamic newValue) {
+  void updateValue(newValue) {
     if (newValue != value) {
       value = newValue;
       _controller.add(value);
@@ -41,9 +41,7 @@ class ValueNode extends DsNode {
         ? stream.transform(transformer)
         : stream;
 
-    node._streamSubscription = boundStream.listen((val) {
-      node.updateValue(val);
-    });
+    node._streamSubscription = boundStream.listen(node.updateValue);
 
     return node;
   }

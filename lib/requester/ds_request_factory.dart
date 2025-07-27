@@ -25,7 +25,7 @@ class DsRequestFactory {
       case 'unsubscribe':
         return UnsubscribeRequest.fromJson(json);
       default:
-        throw UnsupportedError("Unsupported method: $method");
+        throw UnsupportedError('Unsupported method: $method');
     }
   }
 }

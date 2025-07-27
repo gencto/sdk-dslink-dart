@@ -114,7 +114,7 @@ Future<void> main() async {
 
 /// Helper function to count nodes in a configuration
 int _countNodes(Map<String, dynamic> config) {
-  int count = 1; // Count the root
+  var count = 1; // Count the root
   final children = config['children'] as List<dynamic>?;
   if (children != null) {
     for (final child in children) {

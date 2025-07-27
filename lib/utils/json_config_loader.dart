@@ -8,7 +8,7 @@ class JsonConfigLoader {
   static Future<Map<String, dynamic>> loadFromFile(String path) async {
     final file = File(path);
 
-    if (!await file.exists()) {
+    if (!file.existsSync()) {
       throw Exception('Config file not found: $path');
     }
 

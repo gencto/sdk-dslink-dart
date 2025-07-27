@@ -9,7 +9,7 @@ class SetRequest with _$SetRequest implements DsRequest {
   const factory SetRequest({
     required int rid,
     required String path,
-    required dynamic value,
+    required value,
     String? permit,
   }) = _SetRequest;
 

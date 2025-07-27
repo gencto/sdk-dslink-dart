@@ -18,7 +18,7 @@ class TestTransport implements ITransport {
   @override
   Future<String> send(String message) async {
     sentMessages.add(message);
-    return "ok";
+    return 'ok';
   }
 
   @override

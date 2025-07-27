@@ -16,9 +16,7 @@ void main() {
   });
 
   test('Invoke action node', () async {
-    final node = ActionNode('hello', (params) async {
-      return "Hello, ${params['name']}!";
-    });
+    final node = ActionNode('hello', (params) async => "Hello, ${params['name']}!");
 
     final result = await node.invoke({'name': 'World'});
     expect(result, 'Hello, World!');

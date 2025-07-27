@@ -6,14 +6,14 @@ import 'package:dsalink/utils/logger.dart';
 import 'package:logging/logging.dart';
 
 class WebSocketTransport with LoggerMixin implements ITransport {
+
+  WebSocketTransport(this.url);
   late WebSocket _socket;
   final String url;
   final _controller = StreamController<String>.broadcast();
   bool _isConnected = false;
   int _messagesSent = 0;
   int _messagesReceived = 0;
-
-  WebSocketTransport(this.url);
 
   @override
   Future<void> connect() async {
@@ -124,8 +124,8 @@ class WebSocketTransport with LoggerMixin implements ITransport {
       _socket.add(message);
       _messagesSent++;
       
-      logDebug('Message sent successfully', null, null);
-      return "sent";
+      logDebug('Message sent successfully');
+      return 'sent';
       
     } catch (error, stackTrace) {
       DsLogger.logError(
@@ -153,7 +153,7 @@ class WebSocketTransport with LoggerMixin implements ITransport {
       logInfo('Closing WebSocket connection');
       
       if (_isConnected) {
-        _socket.close();
+        unawaited(_socket.close());
         _isConnected = false;
         
         DsLogger.logConnection(
@@ -181,12 +181,10 @@ class WebSocketTransport with LoggerMixin implements ITransport {
   }
   
   /// Get connection statistics
-  Map<String, dynamic> getStats() {
-    return {
+  Map<String, dynamic> getStats() => {
       'isConnected': _isConnected,
       'messagesSent': _messagesSent,
       'messagesReceived': _messagesReceived,
       'url': url,
     };
-  }
 }

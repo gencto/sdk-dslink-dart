@@ -5,9 +5,9 @@ import 'package:dsalink/core/response.dart';
 import 'package:dsalink/core/transport_contract.dart';
 
 class RequesterService {
-  final ITransport transport;
 
   RequesterService(this.transport);
+  final ITransport transport;
 
   Future<DsResponse<T>> sendRequest<T>(DsRequest request) async {
     final jsonRequest = jsonEncode({

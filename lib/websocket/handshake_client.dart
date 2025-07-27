@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 
 class HandshakeClient {
-  final String brokerUrl;
-  final String linkName;
-  final String token;
 
   HandshakeClient({
     required this.brokerUrl,
     required this.linkName,
     required this.token,
   });
+  final String brokerUrl;
+  final String linkName;
+  final String token;
 
   Future<Uri> performHandshake() async {
     final handshakeUri = Uri.parse('$brokerUrl/conn');

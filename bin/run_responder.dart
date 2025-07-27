@@ -5,9 +5,7 @@ void main() async {
   final root = NodeBuilder('root')
       .addChild(NodeBuilder('status').withValue('OK').withType('string'))
       .addChild(
-        NodeBuilder('hello').onInvoke((params) async {
-          return 'Hi ${params['name']}';
-        }),
+        NodeBuilder('hello').onInvoke((params) async => 'Hi ${params['name']}'),
       )
       .build();
 

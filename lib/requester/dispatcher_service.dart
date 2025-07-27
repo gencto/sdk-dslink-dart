@@ -6,22 +6,19 @@ import 'package:dsalink/models/set_request.dart';
 import 'package:dsalink/models/subscribe_request.dart';
 import 'package:dsalink/models/unsubscribe_request.dart';
 import 'package:dsalink/utils/logger.dart';
-import 'package:logging/logging.dart';
 
 class DispatcherService with LoggerMixin {
   int _requestCounter = 0;
-  
-  String _generateRequestId() {
-    return 'req_${++_requestCounter}_${DateTime.now().millisecondsSinceEpoch}';
-  }
+
+  String _generateRequestId() => 'req_${++_requestCounter}_${DateTime.now().millisecondsSinceEpoch}';
 
   void dispatch(DsRequest request) {
     final requestId = _generateRequestId();
     final stopwatch = Stopwatch()..start();
-    
+
     try {
-      logInfo('Dispatching request: ${request.runtimeType}', null, null);
-      
+      logInfo('Dispatching request: ${request.runtimeType}');
+
       switch (request.runtimeType) {
         case ListRequest _:
           _handleList(request as ListRequest, requestId, stopwatch);
@@ -34,7 +31,11 @@ class DispatcherService with LoggerMixin {
         case SubscribeRequest _:
           _handleSubscribe(request as SubscribeRequest, requestId, stopwatch);
         case UnsubscribeRequest _:
-          _handleUnsubscribe(request as UnsubscribeRequest, requestId, stopwatch);
+          _handleUnsubscribe(
+            request as UnsubscribeRequest,
+            requestId,
+            stopwatch,
+          );
         default:
           stopwatch.stop();
           DsLogger.logError(
@@ -47,7 +48,9 @@ class DispatcherService with LoggerMixin {
               'duration': stopwatch.elapsedMilliseconds,
             },
           );
-          throw UnsupportedError("Unknown request type: ${request.runtimeType}");
+          throw UnsupportedError(
+            'Unknown request type: ${request.runtimeType}',
+          );
       }
     } catch (error, stackTrace) {
       stopwatch.stop();
@@ -73,17 +76,16 @@ class DispatcherService with LoggerMixin {
       requestId: requestId,
       component: 'DispatcherService',
     );
-    
+
     // Simulate processing time for demonstration
     // In real implementation, this would handle the actual list operation
-    
+
     stopwatch.stop();
     DsLogger.logResponse(
       'LIST',
       req.path,
       requestId: requestId,
       duration: stopwatch.elapsed,
-      success: true,
       component: 'DispatcherService',
     );
   }
@@ -96,14 +98,13 @@ class DispatcherService with LoggerMixin {
       params: req.params,
       component: 'DispatcherService',
     );
-    
+
     stopwatch.stop();
     DsLogger.logResponse(
       'INVOKE',
       req.path,
       requestId: requestId,
       duration: stopwatch.elapsed,
-      success: true,
       component: 'DispatcherService',
     );
   }
@@ -116,14 +117,13 @@ class DispatcherService with LoggerMixin {
       params: {'value': req.value},
       component: 'DispatcherService',
     );
-    
+
     stopwatch.stop();
     DsLogger.logResponse(
       'SET',
       req.path,
       requestId: requestId,
       duration: stopwatch.elapsed,
-      success: true,
       component: 'DispatcherService',
     );
   }
@@ -135,21 +135,24 @@ class DispatcherService with LoggerMixin {
       requestId: requestId,
       component: 'DispatcherService',
     );
-    
+
     stopwatch.stop();
     DsLogger.logResponse(
       'REMOVE',
       req.path,
       requestId: requestId,
       duration: stopwatch.elapsed,
-      success: true,
       component: 'DispatcherService',
     );
   }
 
-  void _handleSubscribe(SubscribeRequest req, String requestId, Stopwatch stopwatch) {
+  void _handleSubscribe(
+    SubscribeRequest req,
+    String requestId,
+    Stopwatch stopwatch,
+  ) {
     final paths = req.paths.map((p) => p.path).toList();
-    
+
     DsLogger.logRequest(
       'SUBSCRIBE',
       'multiple_paths',
@@ -157,20 +160,23 @@ class DispatcherService with LoggerMixin {
       params: {'paths': paths},
       component: 'DispatcherService',
     );
-    
+
     stopwatch.stop();
     DsLogger.logResponse(
       'SUBSCRIBE',
       'multiple_paths',
       requestId: requestId,
       duration: stopwatch.elapsed,
-      success: true,
       result: {'subscribedPaths': paths.length},
       component: 'DispatcherService',
     );
   }
 
-  void _handleUnsubscribe(UnsubscribeRequest req, String requestId, Stopwatch stopwatch) {
+  void _handleUnsubscribe(
+    UnsubscribeRequest req,
+    String requestId,
+    Stopwatch stopwatch,
+  ) {
     DsLogger.logRequest(
       'UNSUBSCRIBE',
       'multiple_sids',
@@ -178,14 +184,13 @@ class DispatcherService with LoggerMixin {
       params: {'sids': req.sids},
       component: 'DispatcherService',
     );
-    
+
     stopwatch.stop();
     DsLogger.logResponse(
       'UNSUBSCRIBE',
       'multiple_sids',
       requestId: requestId,
       duration: stopwatch.elapsed,
-      success: true,
       result: {'unsubscribedSids': req.sids.length},
       component: 'DispatcherService',
     );

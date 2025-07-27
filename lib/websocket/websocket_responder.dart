@@ -1,16 +1,10 @@
 import 'package:dsalink/node/ds_node.dart';
 import 'package:dsalink/responder/responder_service.dart';
 import 'package:dsalink/transport/websocket_transport.dart';
-import 'package:dsalink/websocket/handshake_client.dart';
 import 'package:dsalink/utils/logger.dart';
-import 'package:logging/logging.dart';
+import 'package:dsalink/websocket/handshake_client.dart';
 
 class WebSocketResponder with LoggerMixin {
-  final String brokerBaseUrl;
-  final String linkName;
-  final String token;
-  final DsNode root;
-
   WebSocketResponder({
     required this.brokerBaseUrl,
     required this.linkName,
@@ -18,15 +12,17 @@ class WebSocketResponder with LoggerMixin {
     required this.root,
   });
 
+  final String brokerBaseUrl;
+  final String linkName;
+  final String token;
+  final DsNode root;
+
   Future<void> start() async {
     final stopwatch = Stopwatch()..start();
-    
+
     try {
-      logInfo('Starting WebSocket responder',
-        null, 
-        null
-      );
-      
+      logInfo('Starting WebSocket responder');
+
       final handshakeClient = HandshakeClient(
         brokerUrl: brokerBaseUrl,
         linkName: linkName,
@@ -37,31 +33,25 @@ class WebSocketResponder with LoggerMixin {
         'Handshake initiated',
         'Performing handshake with broker: $brokerBaseUrl',
         component: 'WebSocketResponder',
-        context: {
-          'linkName': linkName,
-          'brokerUrl': brokerBaseUrl,
-        },
+        context: {'linkName': linkName, 'brokerUrl': brokerBaseUrl},
       );
-      
+
       final wsUri = await handshakeClient.performHandshake();
 
       DsLogger.logConnection(
         'connecting',
         wsUri.toString(),
         component: 'WebSocketResponder',
-        metadata: {
-          'linkName': linkName,
-          'protocol': 'websocket',
-        },
+        metadata: {'linkName': linkName, 'protocol': 'websocket'},
       );
-      
+
       final transport = WebSocketTransport(wsUri.toString());
       final responder = ResponderService(transport, root);
-      
+
       await responder.start();
-      
+
       stopwatch.stop();
-      
+
       DsLogger.logConnection(
         'established',
         wsUri.toString(),
@@ -72,21 +62,18 @@ class WebSocketResponder with LoggerMixin {
           'startupTime': stopwatch.elapsedMilliseconds,
         },
       );
-      
+
       DsLogger.logPerformance(
         'WebSocket responder startup',
         stopwatch.elapsed,
         component: 'WebSocketResponder',
-        context: {
-          'linkName': linkName,
-          'brokerUrl': brokerBaseUrl,
-        },
+        context: {'linkName': linkName, 'brokerUrl': brokerBaseUrl},
       );
-      
+
       logInfo('DSLink Responder connected & running successfully');
     } catch (error, stackTrace) {
       stopwatch.stop();
-      
+
       DsLogger.logError(
         'Failed to start WebSocket responder',
         error,
@@ -98,7 +85,7 @@ class WebSocketResponder with LoggerMixin {
           'attemptDuration': stopwatch.elapsedMilliseconds,
         },
       );
-      
+
       rethrow;
     }
   }

@@ -6,6 +6,8 @@ import 'package:dsalink/node/value_node.dart';
 typedef ActionHandler = Future<dynamic> Function(Map<String, dynamic> params);
 
 class NodeBuilder {
+  NodeBuilder(this.name);
+  
   final String name;
   dynamic value;
   final Map<String, dynamic> attributes = {};
@@ -13,9 +15,7 @@ class NodeBuilder {
   final List<NodeBuilder> _children = [];
   List<ActionParameter>? _params;
 
-  NodeBuilder(this.name);
-
-  NodeBuilder withValue(dynamic val) {
+  NodeBuilder withValue(val) {
     value = val;
     return this;
   }
@@ -35,7 +35,7 @@ class NodeBuilder {
     return this;
   }
 
-  NodeBuilder withAttribute(String key, dynamic val) {
+  NodeBuilder withAttribute(String key, val) {
     attributes[key] = val;
     return this;
   }

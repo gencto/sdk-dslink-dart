@@ -7,7 +7,7 @@ part 'node_dto.g.dart';
 class NodeDTO with _$NodeDTO {
   const factory NodeDTO({
     required String name,
-    dynamic value,
+    value,
     Map<String, dynamic>? attributes,
     bool? action,
     List<NodeDTO>? children,

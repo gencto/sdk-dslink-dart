@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dsalink/core/transport_contract.dart';
@@ -5,12 +6,12 @@ import 'package:dsalink/node/ds_node.dart';
 import 'package:dsalink/responder/subscriptions/subscription_manager.dart';
 
 class ResponderRouter {
-  final DsNode root;
-  final ITransport transport;
-  final SubscriptionManager _subscriptions;
 
   ResponderRouter(this.root, this.transport)
     : _subscriptions = SubscriptionManager(transport);
+  final DsNode root;
+  final ITransport transport;
+  final SubscriptionManager _subscriptions;
 
   Future<void> handle(String message) async {
     final decoded = jsonDecode(message);
@@ -21,7 +22,9 @@ class ResponderRouter {
 
     try {
       final node = _getNodeByPath(path);
-      if (node == null) throw Exception("Node not found at path: $path");
+      if (node == null) {
+        throw Exception('Node not found at path: $path');
+      }
 
       switch (method) {
         case 'subscribe':
@@ -29,11 +32,13 @@ class ResponderRouter {
           await _sendSuccess({'subscribed': true}, rid);
 
         case 'unsubscribe':
-          _subscriptions.unsubscribe(path, rid!);
+          unawaited(_subscriptions.unsubscribe(path, rid!));
           await _sendSuccess({'unsubscribed': true}, rid);
 
         case 'invoke':
-          if (!node.hasAction) throw Exception("Node has no action");
+          if (!node.hasAction) {
+            throw Exception('Node has no action');
+          }
           final result = await node.invoke(params);
           await _sendSuccess(result, rid);
 
@@ -57,7 +62,7 @@ class ResponderRouter {
           node.value = params['value'];
           await _sendSuccess({'value': node.value}, rid);
         default:
-          await _sendError("Unknown method: $method", rid);
+          await _sendError('Unknown method: $method', rid);
       }
     } catch (e) {
       await _sendError(e.toString(), decoded['rid'] as int?);
@@ -69,12 +74,14 @@ class ResponderRouter {
     DsNode? current = root;
     for (final part in parts) {
       current = current?.getChild(part);
-      if (current == null) return null;
+      if (current == null) {
+        return null;
+      }
     }
     return current;
   }
 
-  Future<void> _sendSuccess(dynamic data, int? rid) async {
+  Future<void> _sendSuccess(data, int? rid) async {
     final msg = jsonEncode({'rid': rid, 'status': 'ok', 'data': data});
     await transport.send(msg);
   }

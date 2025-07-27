@@ -35,8 +35,7 @@ class NodeSerializer {
 
   static DsNode fromDTO(NodeDTO dto) => builderFromDTO(dto).build();
 
-  static NodeDTO toDTO(DsNode node) {
-    return NodeDTO(
+  static NodeDTO toDTO(DsNode node) => NodeDTO(
       name: node.name,
       value: node.value,
       attributes: node.attributes.isEmpty ? null : node.attributes,
@@ -45,5 +44,4 @@ class NodeSerializer {
           ? null
           : node.children.values.map(toDTO).toList(),
     );
-  }
 }

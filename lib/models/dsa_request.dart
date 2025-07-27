@@ -11,7 +11,7 @@ class DsaRequest with _$DsaRequest implements DsRequest {
     required String method,
     String? path,
     Map<String, dynamic>? params,
-    dynamic value,
+    value,
     List<dynamic>? paths,
     List<dynamic>? sids,
     String? permit,

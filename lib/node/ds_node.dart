@@ -1,6 +1,8 @@
 import 'package:dsalink/node/node_action.dart';
 
 class DsNode {
+
+  DsNode(this.name, {this.value, this.action});
   final String name;
   DsNode? parent;
   final Map<String, DsNode> children = {};
@@ -8,10 +10,10 @@ class DsNode {
   dynamic value;
   NodeAction? action;
 
-  DsNode(this.name, {this.value, this.action});
-
   String get path {
-    if (parent == null) return '/$name';
+    if (parent == null) {
+      return '/$name';
+    }
     return '${parent!.path}/$name';
   }
 
@@ -29,7 +31,7 @@ class DsNode {
 
   bool get hasAction => action != null;
 
-  void setAttribute(String key, dynamic val) {
+  void setAttribute(String key, val) {
     attributes[key] = val;
   }
 
@@ -45,13 +47,12 @@ class DsNode {
 
   Future<dynamic> invoke(Map<String, dynamic> params) async {
     if (action != null) {
-      return await action!.invoke(params, this);
+      return action!.invoke(params, this);
     }
     throw Exception("Node '$path' has no action.");
   }
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'name': name,
       if (value != null) 'value': value,
       if (attributes.isNotEmpty) 'attributes': attributes,
@@ -59,7 +60,6 @@ class DsNode {
       if (children.isNotEmpty)
         'children': children.values.map((c) => c.toJson()).toList(),
     };
-  }
 
   void dispose() {}
 }
