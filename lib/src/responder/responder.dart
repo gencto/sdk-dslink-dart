@@ -243,14 +243,16 @@ class Responder extends ConnectionHandler {
           } else {
             continue;
           }
-          if (p['sid'] is int) {
+          if (p['sid'] is int && p['sid'] > 0) {
             sid = p['sid'];
-          } else {
-            continue;
           }
-          if (p['qos'] is int) {
+          if (p['qos'] is int && p['qos'] >= 0) {
             qos = p['qos'];
           }
+        } else if (p is String) {
+          pathstr = p;
+        } else {
+          continue;
         }
         var path = Path.getValidNodePath(pathstr);
 
