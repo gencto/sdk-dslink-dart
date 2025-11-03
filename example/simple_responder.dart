@@ -14,7 +14,7 @@ main(List<String> args) async {
   link.init();
   updates(ValueUpdate update) {
     link.updateValue('/MyNum', update.value);
-    link.save();
+    link.saveAsync();
   }
 
   link.connect();

@@ -54,16 +54,16 @@ class RemoteNodeCache {
     } else {
       path = '${parent.remotePath}/$name';
     }
-    late RemoteNode? rslt;
+    late RemoteNode? results;
     if (_nodes.containsKey(path)) {
-      rslt = _nodes[path];
-      rslt?.updateRemoteChildData(m, this);
+      results = _nodes[path];
+      results?.updateRemoteChildData(m, this);
     } else {
-      rslt = RemoteNode(path);
-      _nodes[path] = rslt;
-      rslt.updateRemoteChildData(m, this);
+      results = RemoteNode(path);
+      _nodes[path] = results;
+      results.updateRemoteChildData(m, this);
     }
-    return rslt;
+    return results;
   }
 }
 

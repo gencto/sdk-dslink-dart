@@ -19,6 +19,7 @@ dependencies:
   json_diff: ^0.2.1
   web: ^1.1.1
   http: ^1.5.0
+  synchronized: ^3.3.0+3
 
 dev_dependencies:
   pedantic: ^1.11.1

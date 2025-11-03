@@ -233,6 +233,14 @@ class HttpClientLink extends ClientLink {
       var socket = await HttpHelper.connectToWebSocket(
         wsUrl,
         useStandardWebSocket: useStandardWebSocket,
+      ).timeout(
+        Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException(
+            'WebSocket connection timeout after 30 seconds',
+            Duration(seconds: 30),
+          );
+        },
       );
 
       _wsConnection = WebSocketConnection(

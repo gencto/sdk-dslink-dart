@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:synchronized/synchronized.dart';
 
 import 'common.dart';
 import 'io.dart';
@@ -38,6 +39,9 @@ class LinkProvider {
   /// The Broker URL
   String? brokerUrl;
   File? _nodesFile;
+
+  /// Lock for preventing concurrent save operations
+  final Lock _saveLock = Lock();
 
   /// The Link Name
   String prefix;
@@ -410,16 +414,25 @@ class LinkProvider {
     var dsalinkFile = File('$_basePath/dsalink.json');
 
     if (dsalinkFile.existsSync()) {
-      dynamic e;
       try {
         var configStr = dsalinkFile.readAsStringSync();
         dsalinkJson = DsaJson.decode(configStr);
-      } catch (err) {
-        e = err;
-      }
-
-      if (dsalinkJson == null) {
-        logger.severe('Invalid dsalink.json', e);
+      } on FileSystemException catch (e, stack) {
+        logger.severe('Failed to read dsalink.json: ${e.message}', e, stack);
+        if (exitOnFailure) {
+          exit(1);
+        } else {
+          return false;
+        }
+      } on FormatException catch (e, stack) {
+        logger.severe('Invalid JSON in dsalink.json: ${e.message}', e, stack);
+        if (exitOnFailure) {
+          exit(1);
+        } else {
+          return false;
+        }
+      } catch (e, stack) {
+        logger.severe('Unexpected error reading dsalink.json', e, stack);
         if (exitOnFailure) {
           exit(1);
         } else {
@@ -696,6 +709,10 @@ class LinkProvider {
   bool get isInitialized => link != null;
 
   /// Synchronously saves the nodes.json file.
+  ///
+  /// **DEPRECATED**: This method blocks the event loop during serialization.
+  /// Use [saveAsync] instead for better performance.
+  @Deprecated('Use saveAsync() instead to avoid blocking the event loop')
   void save() {
     if (_nodesFile != null && provider != null) {
       if (provider is! SerializableNodeProvider) {
@@ -712,36 +729,25 @@ class LinkProvider {
   }
 
   /// Asynchronously saves the nodes.json file.
+  ///
+  /// This method uses a lock to prevent concurrent save operations,
+  /// ensuring data integrity when multiple saves are requested simultaneously.
   Future saveAsync() async {
-    if (_nodesFile != null && provider != null) {
-      if (provider is! SerializableNodeProvider) {
-        return;
-      }
-
-      var count = 0;
-      while (_isAsyncSave) {
-        await Future<void>.delayed(const Duration(milliseconds: 5));
-        count++;
-
-        if (count == 100) {
-          break;
+    await _saveLock.synchronized(() async {
+      if (_nodesFile != null && provider != null) {
+        if (provider is! SerializableNodeProvider) {
+          return;
         }
+
+        var encoded = DsaJson.encode(
+          (provider as SerializableNodeProvider).save(),
+          pretty: encodePrettyJson,
+        );
+
+        await _nodesFile?.writeAsString(encoded);
       }
-
-      var encoded = DsaJson.encode(
-        (provider as SerializableNodeProvider).save(),
-        pretty: encodePrettyJson,
-      );
-
-      _isAsyncSave = true;
-
-      await _nodesFile?.writeAsString(encoded);
-
-      _isAsyncSave = false;
-    }
+    });
   }
-
-  bool _isAsyncSave = false;
 
   /// Gets the node at the specified path.
   LocalNode? getNode(String path) {

@@ -45,6 +45,6 @@ void main(List<String> args) async {
 
   // Save the message when it changes.
   if (link!.valuePersistenceEnabled) {
-    link?.onValueChange('/message').listen((_) => link?.save());
+    link?.onValueChange('/message').listen((_) => link?.saveAsync());
   }
 }

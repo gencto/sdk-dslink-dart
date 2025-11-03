@@ -22,7 +22,7 @@ void main(List<String> args) async {
   await link.connect();
 
   var counterNode = link['/Counter'];
-  counterNode?.subscribe((update) => link.save());
+  counterNode?.subscribe((update) => link.saveAsync());
 
   var worker = await createWorker(counterWorker).init();
   worker.addMethod('increment', (dynamic _) {

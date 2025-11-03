@@ -13,7 +13,7 @@ class AddNodeAction extends SimpleNode {
   AddNodeAction(String path) : super(path);
 
   @override
-  Object onInvoke(Map params) {
+  Object onInvoke(Map params) async {
     addNode.configs[r'$lastNum'] = ++lastNum;
 
     var nodeName = '/node%2F_$lastNum';
@@ -30,27 +30,27 @@ class AddNodeAction extends SimpleNode {
       r'$writable': 'write',
       r'$placeholder': 'abcc',
     });
-    link.save(); // save json
+    await link.saveAsync(); // save json
 
-    var tableRslt = AsyncTableResult();
+    var tableResults = AsyncTableResult();
     void closed(InvokeResponse resp) {
       print('closed');
     }
 
     var tcount = 0;
-    tableRslt.onClose = closed;
-    tableRslt.columns = <List<Map<String, String>>>[
+    tableResults.onClose = closed;
+    tableResults.columns = <List<Map<String, String>>>[
       <Map<String, String>>[
         {'name': 'a'},
       ],
     ];
     Timer.periodic(Duration(milliseconds: 50), (Timer t) {
       if (tcount++ > 5) {
-        tableRslt.close();
+        tableResults.close();
         t.cancel();
         return;
       }
-      tableRslt.update(
+      tableResults.update(
         <List<int>>[
           [1],
           [2],
@@ -59,7 +59,7 @@ class AddNodeAction extends SimpleNode {
         <String, dynamic>{'a': 'abc'},
       );
     });
-    return tableRslt; //new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
+    return tableResults; //new SimpleTableResult([['0'], ['1']], [{"name":"name"}]);
   }
 }
 

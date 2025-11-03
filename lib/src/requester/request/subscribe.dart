@@ -103,7 +103,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
       _changedPaths.addAll(subscriptions.keys);
     }
     _waitingAckCount = 0;
-    _lastWatingAckId = -1;
+    _lastWaitingAckId = -1;
     _sendingAfterAck = false;
   }
 
@@ -190,7 +190,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
 
     if (waitingAckId != -1) {
       _waitingAckCount++;
-      _lastWatingAckId = waitingAckId;
+      _lastWaitingAckId = waitingAckId;
     }
 
     if (requester.connection == null) {
@@ -236,11 +236,11 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
 
   bool _pendingSending = false;
   int _waitingAckCount = 0;
-  int _lastWatingAckId = -1;
+  int _lastWaitingAckId = -1;
 
   @override
   void ackReceived(int receiveAckId, int startTime, int currentTime) {
-    if (receiveAckId == _lastWatingAckId) {
+    if (receiveAckId == _lastWaitingAckId) {
       _waitingAckCount = 0;
     } else {
       _waitingAckCount--;
