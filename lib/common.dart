@@ -16,8 +16,11 @@ part 'src/common/node.dart';
 part 'src/common/node_builder.dart';
 part 'src/common/node_keys.dart';
 part 'src/common/permission.dart';
+part 'src/common/result.dart';
 part 'src/common/table.dart';
+part 'src/common/type_aliases.dart';
 part 'src/common/value.dart';
+part 'src/common/extensions.dart';
 
 abstract class Connection {
   ConnectionChannel get requesterChannel;
