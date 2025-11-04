@@ -12,6 +12,7 @@ import 'utils.dart';
 part 'src/common/connection_channel.dart';
 part 'src/common/connection_handler.dart';
 part 'src/common/default_defs.dart';
+part 'src/common/dsa_method.dart';
 part 'src/common/node.dart';
 part 'src/common/node_builder.dart';
 part 'src/common/node_keys.dart';
@@ -99,7 +100,8 @@ abstract class ConnectionChannel {
   void sendWhenReady(ConnectionHandler handler);
 
   /// receive data from method stream
-  Stream<List> get onReceive;
+  /// Each element is a list of DSA message maps
+  Stream<List<DSAMessage>> get onReceive;
 
   /// whether the connection is ready to send and receive data
   bool get isReady;

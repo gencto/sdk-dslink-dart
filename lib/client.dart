@@ -59,7 +59,7 @@ class LinkProvider {
   bool isResponder = true;
 
   /// Default Nodes
-  Map? defaultNodes;
+  DSAConfig? defaultNodes;
 
   /// Profiles
   Map<String, NodeFactory>? profiles;
@@ -94,7 +94,7 @@ class LinkProvider {
   Requester? overrideRequester;
   Responder? overrideResponder;
 
-  Map? linkData;
+  DSAConfig? linkData;
 
   /// connect to user home space
   String? home;
@@ -128,7 +128,7 @@ class LinkProvider {
     this.command = 'link',
     this.isResponder = true,
     this.defaultNodes,
-    Map? nodes,
+    DSAConfig? nodes,
     this.profiles,
     this.provider,
     this.enableHttp = true,
@@ -144,7 +144,7 @@ class LinkProvider {
     this.overrideResponder,
     NodeProvider? nodeProvider, // For Backwards Compatibility
     this.linkData,
-    Map<String, String>? commandLineOptions,
+    CommandLineOptions? commandLineOptions,
   }) {
     exitOnFailure = Zone.current['dsalink.runtime.config'] is! Map;
 
@@ -613,7 +613,7 @@ class LinkProvider {
           getConfig('nodes') == null
               ? File('$_basePath/nodes.json')
               : File.fromUri(Uri.parse(getConfig('nodes') as String));
-      Map? loadedNodesData;
+      DSAConfig? loadedNodesData;
 
       if (loadNodesJson) {
         _nodesFile =
@@ -623,7 +623,7 @@ class LinkProvider {
         try {
           if (_nodesFile!.existsSync()) {
             var nodesStr = _nodesFile!.readAsStringSync();
-            Map? json = DsaJson.decode(nodesStr);
+            DSAConfig? json = DsaJson.decode(nodesStr) as DSAConfig?;
 
             loadedNodesData = json;
           }
@@ -642,7 +642,7 @@ class LinkProvider {
   }
 
   /// The dsalink.json contents. This is only available after [configure] is called.
-  Map? dsalinkJson;
+  DSAConfig? dsalinkJson;
 
   /// Gets a configuration value from the dsalink.json
   Object? getConfig(String key) {

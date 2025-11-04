@@ -1,9 +1,10 @@
 part of dsalink.common;
 
 class PassiveChannel implements ConnectionChannel {
-  final StreamController<List> onReceiveController = StreamController<List>();
+  final StreamController<List<DSAMessage>> onReceiveController =
+      StreamController<List<DSAMessage>>();
   @override
-  Stream<List> get onReceive => onReceiveController.stream;
+  Stream<List<DSAMessage>> get onReceive => onReceiveController.stream;
 
   // List<Function> _processors = [];
 
