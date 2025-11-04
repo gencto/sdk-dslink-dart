@@ -15,15 +15,27 @@ class HA extends HistorianAdapter {
   @override
   List<Map> getCreateDatabaseParameters() {
     return [
-      {'name': 'url', 'type': 'string', 'default': 'http://localhost:8086'},
+      {
+        'name': 'url',
+        'type': 'string',
+        'default': 'http://localhost:8086',
+      },
       {
         'name': 'token',
         'type': 'string',
         'default':
             'TRDX3sB8K3MW3iyZGz6qdIsV_ZfbLfafFX3q-BIIqPj-BeVPPu5PVLMgNNFceJxEoDfAmqtRqnzg72VRZ2mQLg==',
       },
-      {'name': 'org', 'type': 'string', 'default': 'mydb'},
-      {'name': 'bucket', 'type': 'string', 'default': 'mydb'},
+      {
+        'name': 'org',
+        'type': 'string',
+        'default': 'mydb',
+      },
+      {
+        'name': 'bucket',
+        'type': 'string',
+        'default': 'mydb',
+      },
     ];
   }
 

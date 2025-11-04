@@ -73,50 +73,50 @@ void main(List<String> args) async {
   };
 
   // Process the arguments and initializes the default nodes.
+  // Using NodeBuilder for cleaner, type-safe node configuration
   link = LinkProvider(
     ['--broker', 'https://dmk.sviteco.ua/conn'],
     'Actions-',
     defaultNodes: <String, dynamic>{
-      'message': {
-        r'$name': 'Message',
-        r'$type': 'string',
-        r'$writable': 'write',
-        '?value': 'Hello World',
-        'reset': {
-          r'$name': 'Reset',
-          r'$is': 'reset',
-          r'$invokable': 'write',
-          r'$params': <dynamic>[],
-          r'$result': 'values',
-          r'$columns': <dynamic>[],
-        },
-        'add': {
-          r'$name': 'Add',
-          r'$is': 'add',
-          r'$invokable': 'write',
-          r'$params': [
-            {'name': 'name', 'type': 'string'},
-          ],
-          r'$result': 'values',
-          r'$columns': <dynamic>[],
-        },
-        'process': {
-          r'$name': 'Process Data',
-          r'$is': 'process',
-          r'$invokable': 'read',
-          r'$params': [
-            {'name': 'data', 'type': 'string'},
-          ],
-          r'$result': 'stream',
-          r'$columns': [
-            {'name': 'processed', 'type': 'bool'},
-            {'name': 'workerId', 'type': 'number'},
-            {'name': 'result', 'type': 'string'},
-            {'name': 'timestamp', 'type': 'string'},
-            {'name': 'processingTime', 'type': 'number'},
-          ],
-        },
-      },
+      'message': NodeBuilder.value('string')
+          .name('Message')
+          .writable()
+          .value('Hello World')
+          .child(
+            'reset',
+            NodeBuilder.action()
+                .name('Reset')
+                .profile('reset')
+                .invokable('write')
+                .resultType('values')
+                .build(),
+          )
+          .child(
+            'add',
+            NodeBuilder.action()
+                .name('Add')
+                .profile('add')
+                .invokable('write')
+                .param('name', 'string')
+                .resultType('values')
+                .build(),
+          )
+          .child(
+            'process',
+            NodeBuilder.action()
+                .name('Process Data')
+                .profile('process')
+                .invokable('read')
+                .param('data', 'string')
+                .resultType('stream')
+                .column('processed', 'bool')
+                .column('workerId', 'number')
+                .column('result', 'string')
+                .column('timestamp', 'string')
+                .column('processingTime', 'number')
+                .build(),
+          )
+          .build(),
     },
     profiles: {
       'reset': (String path) => ResetNode(path),
@@ -156,44 +156,48 @@ class ControllerNode extends SimpleNode {
 
   @override
   void onInvoke(Map params) {
-    link?.addNode(('/' + params['name']).toString(), <String, dynamic>{
-      r'$name': params['name'],
-      r'$writable': 'write',
-      'reset': {
-        r'$name': 'Reset',
-        r'$is': 'reset',
-        r'$invokable': 'write',
-        r'$params': <dynamic>[],
-        r'$result': 'values',
-        r'$columns': <dynamic>[],
-      },
-      'add': {
-        r'$name': 'Add',
-        r'$is': 'add',
-        r'$invokable': 'write',
-        r'$params': [
-          {'name': 'name', 'type': 'string'},
-        ],
-        r'$result': 'values',
-        r'$columns': <dynamic>[],
-      },
-      'process': {
-        r'$name': 'Process Data',
-        r'$is': 'process',
-        r'$invokable': 'read',
-        r'$params': [
-          {'name': 'data', 'type': 'string'},
-        ],
-        r'$result': 'stream',
-        r'$columns': [
-          {'name': 'processed', 'type': 'bool'},
-          {'name': 'workerId', 'type': 'number'},
-          {'name': 'result', 'type': 'string'},
-          {'name': 'timestamp', 'type': 'string'},
-          {'name': 'processingTime', 'type': 'number'},
-        ],
-      },
-    });
+    // Using NodeBuilder for cleaner, type-safe node configuration
+    link?.addNode(
+      ('/' + params['name']).toString(),
+      NodeBuilder()
+          .name(params['name'])
+          .writable()
+          .child(
+            'reset',
+            NodeBuilder.action()
+                .name('Reset')
+                .profile('reset')
+                .invokable('write')
+                .resultType('values')
+                .build(),
+          )
+          .child(
+            'add',
+            NodeBuilder.action()
+                .name('Add')
+                .profile('add')
+                .invokable('write')
+                .param('name', 'string')
+                .resultType('values')
+                .build(),
+          )
+          .child(
+            'process',
+            NodeBuilder.action()
+                .name('Process Data')
+                .profile('process')
+                .invokable('read')
+                .param('data', 'string')
+                .resultType('stream')
+                .column('processed', 'bool')
+                .column('workerId', 'number')
+                .column('result', 'string')
+                .column('timestamp', 'string')
+                .column('processingTime', 'number')
+                .build(),
+          )
+          .build(),
+    );
   }
 }
 

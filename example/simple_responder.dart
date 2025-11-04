@@ -27,15 +27,12 @@ class TesterNode extends SimpleNode {
   static const String isType = 'testerNode';
   static const String pathName = 'Test_Node';
 
-  static Map def() => <String, dynamic>{
-    r'$is': isType,
-    r'$name': 'Test Node',
-    r'$invokable': 'write',
-    r'$params': [
-      {'name': 'test', 'type': 'bool'},
-    ],
-    r'$columns': <dynamic>[],
-  };
+  static Map def() => NodeBuilder.action()
+      .profile(isType)
+      .name('Test Node')
+      .invokable('write')
+      .param('test', 'bool')
+      .build();
 
   TesterNode(String path) : super(path);
 
