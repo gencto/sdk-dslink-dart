@@ -4,40 +4,35 @@ late LinkProvider? link;
 
 void main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
+  // Using NodeBuilder for cleaner, type-safe node configuration
   link = LinkProvider(
     ['--broker', 'https://127.0.0.1/conn'],
     'Actions-',
     defaultNodes: <String, dynamic>{
-      'message': {
-        r'$name': 'Message', // The pretty name of this node.
-        r'$type': 'string', // The type of the node is a string.
-        r'$writable': 'write', // This node's value can be set by a requester.
-        '?value': 'Hello World', // The default message value.
-        'reset': {
-          // An action on the message node.
-          r'$name': 'Reset', // The pretty name of this action.
-          r'$is': 'reset', // This node takes on the 'reset' profile.
-          r'$invokable':
-              'write', // Invoking this action requires write permissions.
-          r'$params': <dynamic>[], // This action does not have any parameters.
-          r'$result': 'values', // This action returns a single row of values.
-          r'$columns':
-              <dynamic>[], // This action does not return any actual values.
-        },
-        'add': {
-          // An action on the message node.
-          r'$name': 'Add', // The pretty name of this action.
-          r'$is': 'add', // This node takes on the 'reset' profile.
-          r'$invokable':
-              'write', // Invoking this action requires write permissions.
-          r'$params': [
-            {'name': 'name', 'type': 'string'},
-          ], // This action does not have any parameters.
-          r'$result': 'values', // This action returns a single row of values.
-          r'$columns':
-              <dynamic>[], // This action does not return any actual values.
-        },
-      },
+      'message': NodeBuilder.value('string')
+          .name('Message') // The pretty name of this node.
+          .writable() // This node's value can be set by a requester.
+          .value('Hello World') // The default message value.
+          .child(
+            'reset',
+            NodeBuilder.action()
+                .name('Reset')
+                .profile('reset')
+                .invokable('write')
+                .resultType('values')
+                .build(),
+          )
+          .child(
+            'add',
+            NodeBuilder.action()
+                .name('Add')
+                .profile('add')
+                .invokable('write')
+                .param('name', 'string')
+                .resultType('values')
+                .build(),
+          )
+          .build(),
     },
     profiles: {
       'reset': (String path) => ResetNode(path),
@@ -85,33 +80,32 @@ class ControllerNode extends SimpleNode {
   }
   @override
   void onInvoke(Map params) {
-    link?.addNode(('/' + params['name']).toString(), <String, dynamic>{
-      r'$name': params['name'],
-      r'$writable': 'write',
-      'reset': {
-        // An action on the message node.
-        r'$name': 'Reset', // The pretty name of this action.
-        r'$is': 'reset', // This node takes on the 'reset' profile.
-        r'$invokable':
-            'write', // Invoking this action requires write permissions.
-        r'$params': <dynamic>[], // This action does not have any parameters.
-        r'$result': 'values', // This action returns a single row of values.
-        r'$columns':
-            <dynamic>[], // This action does not return any actual values.
-      },
-      'add': {
-        // An action on the message node.
-        r'$name': 'Add', // The pretty name of this action.
-        r'$is': 'add', // This node takes on the 'reset' profile.
-        r'$invokable':
-            'write', // Invoking this action requires write permissions.
-        r'$params': [
-          {'name': 'name', 'type': 'string'},
-        ], // This action does not have any parameters.
-        r'$result': 'values', // This action returns a single row of values.
-        r'$columns':
-            <dynamic>[], // This action does not return any actual values.
-      },
-    });
+    // Using NodeBuilder for cleaner, type-safe node configuration
+    link?.addNode(
+      ('/' + params['name']).toString(),
+      NodeBuilder()
+          .name(params['name'])
+          .writable()
+          .child(
+            'reset',
+            NodeBuilder.action()
+                .name('Reset')
+                .profile('reset')
+                .invokable('write')
+                .resultType('values')
+                .build(),
+          )
+          .child(
+            'add',
+            NodeBuilder.action()
+                .name('Add')
+                .profile('add')
+                .invokable('write')
+                .param('name', 'string')
+                .resultType('values')
+                .build(),
+          )
+          .build(),
+    );
   }
 }

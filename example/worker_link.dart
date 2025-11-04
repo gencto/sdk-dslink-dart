@@ -5,15 +5,15 @@ late LinkProvider link;
 
 void main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
+  // Using NodeBuilder for cleaner, type-safe node configuration
   link = LinkProvider(
     ['--broker', 'http://127.0.0.1:8080/conn', '--log', 'debug'],
     'CounterWorker-',
     defaultNodes: <String, dynamic>{
-      'Counter': {
-        r'$type': 'number', // The type of the node is a number.
-        r'$writable': 'write', // This node's value can be set by a requester.
-        '?value': 0, // The default counter value.
-      },
+      'Counter': NodeBuilder.value('number')
+          .writable() // This node's value can be set by a requester.
+          .value(0) // The default counter value.
+          .build(),
     },
     encodePrettyJson: true,
   );

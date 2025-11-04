@@ -13,6 +13,7 @@ part 'src/common/connection_channel.dart';
 part 'src/common/connection_handler.dart';
 part 'src/common/default_defs.dart';
 part 'src/common/node.dart';
+part 'src/common/node_builder.dart';
 part 'src/common/node_keys.dart';
 part 'src/common/permission.dart';
 part 'src/common/table.dart';

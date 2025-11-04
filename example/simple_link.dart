@@ -7,17 +7,17 @@ LinkProvider? link;
 
 void main(List<String> args) async {
   // Process the arguments and initializes the default nodes.
+  // Using NodeBuilder for cleaner, type-safe node configuration
   link = LinkProvider(
     ['--broker', 'http://127.0.0.1:8080/conn'],
     'Simple-',
     defaultNodes: <String, dynamic>{
-      'message': {
-        r'$name': 'Message', // The pretty name of this node.
-        r'$type': 'string', // The type of the node is a string.
-        r'$writable': 'write', // This node's value can be set by a requester.
-        '?value': null, // The default message value.
-        '@icon': 'dart-example-simple/message',
-      },
+      'message': NodeBuilder.value('string')
+          .name('Message') // The pretty name of this node.
+          .writable() // This node's value can be set by a requester.
+          .value(null) // The default message value.
+          .icon('dart-example-simple/message')
+          .build(),
     },
     encodePrettyJson: true,
     commandLineOptions: {'default-message': 'Hello World'},
