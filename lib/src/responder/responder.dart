@@ -102,13 +102,13 @@ class Responder extends ConnectionHandler {
       return;
     }
     for (Object resp in list) {
-      if (resp is Map) {
+      if (resp is DSAMessage) {
         _onReceiveRequest(resp);
       }
     }
   }
 
-  void _onReceiveRequest(Map m) {
+  void _onReceiveRequest(DSAMessage m) {
     Object? method = m['method'];
     if (m['rid'] is int) {
       if (method == null) {
@@ -123,24 +123,35 @@ class Responder extends ConnectionHandler {
           return;
         }
 
-        switch (method) {
-          case 'list':
+        // Parse method string to DSAMethod enum for type safety
+        final dsaMethod = DSAMethod.fromString(method.toString());
+        if (dsaMethod == null) {
+          closeResponse(m['rid'], error: DSError.invalidMethod);
+          return;
+        }
+
+        // Use pattern matching with enum for better type safety
+        switch (dsaMethod) {
+          case DSAMethod.list:
             list(m);
             return;
-          case 'subscribe':
+          case DSAMethod.subscribe:
             subscribe(m);
             return;
-          case 'unsubscribe':
+          case DSAMethod.unsubscribe:
             unsubscribe(m);
             return;
-          case 'invoke':
+          case DSAMethod.invoke:
             invoke(m);
             return;
-          case 'set':
+          case DSAMethod.set:
             set(m);
             return;
-          case 'remove':
+          case DSAMethod.remove:
             remove(m);
+            return;
+          case DSAMethod.close:
+            // Close is handled above in the _responses check
             return;
         }
       }
@@ -207,7 +218,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void list(Map m) {
+  void list(DSAMessage m) {
     var path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
@@ -231,7 +242,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void subscribe(Map m) {
+  void subscribe(DSAMessage m) {
     if (m['paths'] is List) {
       for (Object p in m['paths']) {
         late String pathstr;
@@ -314,7 +325,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void unsubscribe(Map m) {
+  void unsubscribe(DSAMessage m) {
     if (m['sids'] is List) {
       for (Object sid in m['sids']) {
         if (sid is int) {
@@ -327,7 +338,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void invoke(Map m) {
+  void invoke(DSAMessage m) {
     var path = Path.getValidNodePath(m['path']);
     if (path != null && path.isAbsolute) {
       int rid = m['rid'];
@@ -414,7 +425,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void updateInvoke(Map m) {
+  void updateInvoke(DSAMessage m) {
     int rid = m['rid'];
     if (_responses[rid] is InvokeResponse) {
       if (m['params'] is Map) {
@@ -425,7 +436,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void set(Map m) {
+  void set(DSAMessage m) {
     var path = Path.getValidPath(m['path']);
     if (path == null || !path.isAbsolute) {
       closeResponse(m['rid'], error: DSError.invalidPath);
@@ -509,7 +520,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void remove(Map m) {
+  void remove(DSAMessage m) {
     var path = Path.getValidPath(m['path']);
     if (path == null || !path.isAbsolute) {
       closeResponse(m['rid'], error: DSError.invalidPath);
@@ -553,7 +564,7 @@ class Responder extends ConnectionHandler {
     }
   }
 
-  void close(Map m) {
+  void close(DSAMessage m) {
     if (m['rid'] is int) {
       int rid = m['rid'];
       if (_responses.containsKey(rid)) {
