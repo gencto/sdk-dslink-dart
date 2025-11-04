@@ -96,7 +96,7 @@ class InvokeController implements RequestUpdater {
     _controller.done.then(_onUnsubscribe);
     _stream = _controller.stream;
     var reqMap = <String, dynamic>{
-      'method': 'invoke',
+      'method': DSAMethod.invoke.toProtocolString(),
       'path': node.remotePath,
       'params': params
     };

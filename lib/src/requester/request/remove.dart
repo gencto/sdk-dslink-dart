@@ -17,7 +17,10 @@ class RemoveController implements RequestUpdater {
   /// The [requester] parameter is the requester object used to send the remove request.
   /// The [path] parameter is the path of the request to be removed.
   RemoveController(this.requester, this.path) {
-    var reqMap = <String, dynamic>{'method': 'remove', 'path': path};
+    var reqMap = <String, dynamic>{
+      'method': DSAMethod.remove.toProtocolString(),
+      'path': path
+    };
 
     //_request =
     requester._sendRequest(reqMap, this);

@@ -248,7 +248,7 @@ class ListController implements RequestUpdater, ConnectionProcessor {
       return;
     }
     request = requester._sendRequest(<String, dynamic>{
-      'method': 'list',
+      'method': DSAMethod.list.toProtocolString(),
       'path': node.remotePath,
     }, this);
     waitToSend = false;

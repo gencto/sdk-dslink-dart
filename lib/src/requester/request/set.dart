@@ -15,7 +15,7 @@ class SetController implements RequestUpdater {
     int maxPermission = Permission.CONFIG,
   ]) {
     var reqMap = <String, dynamic>{
-      'method': 'set',
+      'method': DSAMethod.set.toProtocolString(),
       'path': path,
       'value': value,
     };

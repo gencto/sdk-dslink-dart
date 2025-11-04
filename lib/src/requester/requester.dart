@@ -44,13 +44,13 @@ class Requester extends ConnectionHandler {
   @override
   void onData(List list) {
     for (Object resp in list) {
-      if (resp is Map) {
+      if (resp is DSAMessage) {
         _onReceiveUpdate(resp);
       }
     }
   }
 
-  void _onReceiveUpdate(Map m) {
+  void _onReceiveUpdate(DSAMessage m) {
     if (m['rid'] is int && _requests.containsKey(m['rid'])) {
       _requests[m['rid']]?._update(m);
     }
@@ -79,10 +79,10 @@ class Requester extends ConnectionHandler {
     return rslt;
   }
 
-  Request? sendRequest(Map m, RequestUpdater updater) =>
+  Request? sendRequest(DSAMessage m, RequestUpdater updater) =>
       _sendRequest(m, updater);
 
-  Request? _sendRequest(Map m, RequestUpdater? updater) {
+  Request? _sendRequest(DSAMessage m, RequestUpdater? updater) {
     m['rid'] = getNextRid();
     Request? req;
     if (updater != null) {
@@ -193,7 +193,7 @@ class Requester extends ConnectionHandler {
 
   Stream<RequesterInvokeUpdate> invoke(
     String path, [
-    Map params = const {},
+    DSAConfig params = const {},
     int maxPermission = Permission.CONFIG,
     RequestConsumer? fetchRawReq,
   ]) {
@@ -217,7 +217,10 @@ class Requester extends ConnectionHandler {
   void closeRequest(Request request) {
     if (_requests.containsKey(request.rid)) {
       if (request.streamStatus != StreamStatus.closed) {
-        addToSendList(<String, dynamic>{'method': 'close', 'rid': request.rid});
+        addToSendList(<String, dynamic>{
+          'method': DSAMethod.close.toProtocolString(),
+          'rid': request.rid
+        });
       }
       _requests.remove(request.rid);
       request._close();

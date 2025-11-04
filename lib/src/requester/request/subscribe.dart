@@ -212,7 +212,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
     }
     if (toAdd.isNotEmpty) {
       requester._sendRequest(<String, dynamic>{
-        'method': 'subscribe',
+        'method': DSAMethod.subscribe.toProtocolString(),
         'paths': toAdd,
       }, null);
     }
@@ -227,7 +227,7 @@ class SubscribeRequest extends Request implements ConnectionProcessor {
         }
       });
       requester._sendRequest(<String, dynamic>{
-        'method': 'unsubscribe',
+        'method': DSAMethod.unsubscribe.toProtocolString(),
         'sids': removeSids,
       }, null);
       toRemove.clear();
