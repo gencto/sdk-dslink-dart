@@ -5,7 +5,7 @@
 This document summarizes the comprehensive modernization effort of the DSLink Dart SDK, focusing on improving type safety, developer experience, and code maintainability using modern Dart features.
 
 **Branch**: `feature/new-api`
-**Total Changes**: 30 files changed, 1540 insertions(+), 272 deletions(-)
+**Total Changes**: 36 files changed, 3081 insertions(+), 312 deletions(-)
 **All Tests**: ✅ Passing (36 tests)
 **Backwards Compatibility**: ✅ Maintained
 
@@ -13,9 +13,9 @@ This document summarizes the comprehensive modernization effort of the DSLink Da
 
 ## 📊 Statistics
 
-- **6 Major Commits** focused on modernization
+- **8 Major Commits** focused on modernization
 - **7 New Files** created with modern patterns
-- **23 Existing Files** enhanced with type safety
+- **29 Existing Files** enhanced with type safety
 - **335 Lines** of comprehensive test coverage added
 - **Zero Breaking Changes** - fully backwards compatible
 
@@ -374,6 +374,117 @@ All request classes now use type-safe enum:
 - **invoke.dart**: `'invoke'` → `DSAMethod.invoke.toProtocolString()`
 - **set.dart**: `'set'` → `DSAMethod.set.toProtocolString()`
 - **remove.dart**: `'remove'` → `DSAMethod.remove.toProtocolString()`
+
+---
+
+### Phase 4: Applying Modern Patterns (Non-Breaking)
+
+**Commit**: `d594381 - refactor: apply NodeBuilder pattern to historian module (Phase 4)`
+
+Applied NodeBuilder pattern throughout the historian module, demonstrating the practical benefits of the modernization work.
+
+#### Historian Module Modernization
+
+**lib/src/historian/publish.dart**:
+
+**Before**:
+```dart
+_link.addNode(tp, <String, dynamic>{
+  r'$name': inputPath,
+  r'$is': 'watchPath',
+  r'$publish': true,
+  r'$type': 'dynamic',
+  r'$path': inputPath,
+});
+```
+
+**After**:
+```dart
+final nodeConfig = NodeBuilder()
+    .name(inputPath)
+    .profile('watchPath')
+    .type('dynamic')
+    .build();
+
+// Add custom configs not in NodeBuilder
+nodeConfig[r'$publish'] = true;
+nodeConfig[r'$path'] = inputPath;
+
+pn = _link.addNode(tp, nodeConfig) as WatchPathNode;
+```
+
+**lib/src/historian/manage.dart**:
+
+Three classes modernized:
+
+1. **CreateWatchGroupNode**:
+```dart
+_link.addNode(
+  '${p.parentPath}/$realName',
+  NodeBuilder()
+      .profile('watchGroup')
+      .name(name)
+      .build(),
+);
+```
+
+2. **AddDatabaseNode**:
+```dart
+final nodeConfig = NodeBuilder()
+    .profile('database')
+    .name(name)
+    .build();
+
+nodeConfig[r'$$db_config'] = params;
+_link.addNode('/$realName', nodeConfig);
+```
+
+3. **AddWatchPathNode**:
+```dart
+final nodeConfig = NodeBuilder()
+    .name(wp)
+    .profile('watchPath')
+    .type(node?.configs[r'$type'])
+    .build();
+
+nodeConfig[r'$path'] = wp;
+_link.addNode(targetPath, nodeConfig);
+```
+
+**lib/src/historian/main.dart**:
+
+**Before**:
+```dart
+'addDatabase': {
+  r'$name': 'Add Database',
+  r'$invokable': 'write',
+  r'$params': [...],
+  r'$is': 'addDatabase',
+}
+```
+
+**After**:
+```dart
+'addDatabase': NodeBuilder.action()
+    .name('Add Database')
+    .invokable('write')
+    .profile('addDatabase')
+    .param('Name', 'string', placeholder: 'HistoryData')
+    .build()
+  ..addAll({
+    r'$params': [
+      {'name': 'Name', 'type': 'string', 'placeholder': 'HistoryData'},
+      ...adapter.getCreateDatabaseParameters(),
+    ],
+  })
+```
+
+**Benefits**:
+- Reduced magic string usage in historian module
+- Consistent fluent API across all node creation
+- Better readability and discoverability
+- Custom configs can still be added when needed
+- Demonstrates gradual migration path
 
 ---
 
