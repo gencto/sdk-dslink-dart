@@ -11,11 +11,14 @@ class CreateWatchGroupNode extends SimpleNode {
 
     var p = Path(path);
 
-    _link.addNode('${p.parentPath}/$realName', <String, dynamic>{
-      r'$is': 'watchGroup',
-      r'$name': name,
-    });
-    _link.save();
+    _link.addNode(
+      '${p.parentPath}/$realName',
+      NodeBuilder()
+          .profile('watchGroup')
+          .name(name)
+          .build(),
+    );
+    _link.saveAsync();
   }
 }
 
@@ -28,12 +31,16 @@ class AddDatabaseNode extends SimpleNode {
     String name = params['Name'];
     var realName = NodeNamer.createName(name);
 
-    _link.addNode('/$realName', <String, dynamic>{
-      r'$is': 'database',
-      r'$name': name,
-      r'$$db_config': params,
-    });
-    _link.save();
+    final nodeConfig = NodeBuilder()
+        .profile('database')
+        .name(name)
+        .build();
+
+    // Add custom db config
+    nodeConfig[r'$$db_config'] = params;
+
+    _link.addNode('/$realName', nodeConfig);
+    await _link.saveAsync();
   }
 }
 
@@ -47,14 +54,18 @@ class AddWatchPathNode extends SimpleNode {
     var p = Path(path);
     var targetPath = '${p.parentPath}/$rp';
     var node = await _link.requester?.getRemoteNode(wp);
-    _link.addNode(targetPath, <String, dynamic>{
-      r'$name': wp,
-      r'$path': wp,
-      r'$is': 'watchPath',
-      r'$type': node?.configs[r'$type'],
-    });
 
-    _link.save();
+    final nodeConfig = NodeBuilder()
+        .name(wp)
+        .profile('watchPath')
+        .type(node?.configs[r'$type'])
+        .build();
+
+    // Add custom path config
+    nodeConfig[r'$path'] = wp;
+
+    _link.addNode(targetPath, nodeConfig);
+    _link.saveAsync();
   }
 }
 

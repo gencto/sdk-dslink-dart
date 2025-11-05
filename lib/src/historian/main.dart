@@ -13,15 +13,18 @@ FutureOr<void> historianMain(
     isRequester: true,
     autoInitialize: false,
     nodes: <String, dynamic>{
-      'addDatabase': {
-        r'$name': 'Add Database',
-        r'$invokable': 'write',
-        r'$params': [
-          {'name': 'Name', 'type': 'string', 'placeholder': 'HistoryData'},
-          ...adapter.getCreateDatabaseParameters(),
-        ],
-        r'$is': 'addDatabase',
-      },
+      'addDatabase': NodeBuilder.action()
+          .name('Add Database')
+          .invokable('write')
+          .profile('addDatabase')
+          .param('Name', 'string', placeholder: 'HistoryData')
+          .build()
+        ..addAll({
+          r'$params': [
+            {'name': 'Name', 'type': 'string', 'placeholder': 'HistoryData'},
+            ...adapter.getCreateDatabaseParameters(),
+          ],
+        }),
     },
     profiles: {
       'createWatchGroup': (String path) => CreateWatchGroupNode(path),
@@ -34,8 +37,8 @@ FutureOr<void> historianMain(
           (String path) => DeleteActionNode.forParent(
             path,
             _link.provider as MutableNodeProvider,
-            onDelete: () {
-              _link.save();
+            onDelete: () async {
+              await _link.saveAsync();
             },
           ),
       'purgePath': (String path) => PurgePathNode(path),

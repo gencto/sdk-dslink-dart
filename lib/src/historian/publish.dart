@@ -21,16 +21,18 @@ class PublishValueAction extends SimpleNode {
 
     WatchPathNode pn;
     if (node is! WatchPathNode) {
-      pn =
-          _link.addNode(tp, <String, dynamic>{
-                r'$name': inputPath,
-                r'$is': 'watchPath',
-                r'$publish': true,
-                r'$type': 'dynamic',
-                r'$path': inputPath,
-              })
-              as WatchPathNode;
-      _link.save();
+      final nodeConfig = NodeBuilder()
+          .name(inputPath)
+          .profile('watchPath')
+          .type('dynamic')
+          .build();
+
+      // Add custom configs not in NodeBuilder
+      nodeConfig[r'$publish'] = true;
+      nodeConfig[r'$path'] = inputPath;
+
+      pn = _link.addNode(tp, nodeConfig) as WatchPathNode;
+      _link.saveAsync();
     } else {
       pn = node;
     }
