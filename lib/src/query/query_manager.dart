@@ -17,21 +17,22 @@ class BrokerQueryManager {
     // TODO: implement full dql spec
     // this is just a temp quick parser for basic /data node query
     var commands = str.split('|').map((x) => x.trim()).toList();
-    if (commands.length == 2 &&
-        commands[0].startsWith('list /data') &&
-        commands[1].startsWith('subscribe')) {
-      var path = commands[0].substring(5);
-      BrokerQueryCommand? listcommand = QueryCommandList(path, this);
-      listcommand = _getOrAddCommand(listcommand);
-      if (listcommand == null) {
-        return null;
+    BrokerQueryCommand? currentCommand;
+
+    for (var cmd in commands) {
+      if (cmd.startsWith('list ')) {
+        var path = cmd.substring(5).trim();
+        var listcommand = QueryCommandList(path, this);
+        currentCommand = _getOrAddCommand(listcommand);
+      } else if (cmd == 'subscribe') {
+        if (currentCommand == null) return null;
+        var subcommand = QueryCommandSubscribe(this);
+        subcommand.base = currentCommand;
+        currentCommand = _getOrAddCommand(subcommand);
       }
-      BrokerQueryCommand? subcommand = QueryCommandSubscribe(this);
-      subcommand.base = listcommand;
-      subcommand = _getOrAddCommand(subcommand);
-      return subcommand;
+      if (currentCommand == null) return null;
     }
-    return null;
+    return currentCommand;
   }
 
   final Map<String, BrokerQueryCommand> _dict = <String, BrokerQueryCommand>{};

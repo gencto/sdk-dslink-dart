@@ -142,7 +142,7 @@ abstract class LocalNode extends Node {
 
   /// Called by the link internals to invoke this node.
   InvokeResponse invoke(
-    Map params,
+    DSAConfig params,
     Responder responder,
     InvokeResponse response,
     Node parentNode, [

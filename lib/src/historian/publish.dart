@@ -4,19 +4,19 @@ class PublishValueAction extends SimpleNode {
   PublishValueAction(String path) : super(path);
 
   @override
-  void onInvoke(Map params) {
-    String? inputPath = params['Path'];
+  void onInvoke(DSAConfig params) {
+    String inputPath = params.getString('Path');
     dynamic val = params['Value'];
-    String? ts = params['Timestamp'];
+    String? ts = params['Timestamp'] as String?;
 
     ts ??= ValueUpdate.getTs();
 
-    if (inputPath is! String) {
+    if (inputPath.isEmpty) {
       throw 'Path not provided.';
     }
 
-    var p = Path(path);
-    var tp = p.parent.child(NodeNamer.createName(inputPath)).path;
+    var pathObj = Path(path);
+    var tp = pathObj.parent.child(NodeNamer.createName(inputPath)).path;
     var node = _link[tp] as SimpleNode;
 
     WatchPathNode pn;

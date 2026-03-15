@@ -110,6 +110,67 @@ void main() {
         expect(config[r'$params'][1]['name'], equals('lastName'));
         expect(config[r'$params'][2]['name'], equals('age'));
       });
+
+      test('param() adds parameter with editor', () {
+        final config = NodeBuilder()
+            .param('password', 'string', editor: 'password')
+            .build();
+        expect(config[r'$params'][0]['editor'], equals('password'));
+      });
+
+      test('param() adds parameter with daterange editor', () {
+        final config = NodeBuilder()
+            .param('timeRange', 'string', editor: 'daterange')
+            .build();
+        expect(config[r'$params'][0]['name'], equals('timeRange'));
+        expect(config[r'$params'][0]['type'], equals('string'));
+        expect(config[r'$params'][0]['editor'], equals('daterange'));
+      });
+
+      test('param() adds number parameter with min and max', () {
+        final config = NodeBuilder()
+            .param('age', 'number', min: 0, max: 150)
+            .build();
+        expect(config[r'$params'][0]['min'], equals(0));
+        expect(config[r'$params'][0]['max'], equals(150));
+      });
+
+      test('param() adds number parameter with color editor', () {
+        final config = NodeBuilder()
+            .param('color', 'number', editor: 'color')
+            .build();
+        expect(config[r'$params'][0]['editor'], equals('color'));
+      });
+
+      test('param() adds number parameter with int editor', () {
+        final config = NodeBuilder()
+            .param('count', 'number', editor: 'int')
+            .build();
+        expect(config[r'$params'][0]['editor'], equals('int'));
+      });
+
+      test('param() combines editor with min/max', () {
+        final config = NodeBuilder()
+            .param('count', 'number', editor: 'int', min: 1, max: 100)
+            .build();
+        expect(config[r'$params'][0]['editor'], equals('int'));
+        expect(config[r'$params'][0]['min'], equals(1));
+        expect(config[r'$params'][0]['max'], equals(100));
+      });
+
+      test('param() adds textarea editor', () {
+        final config = NodeBuilder()
+            .param('message', 'string', editor: 'textarea')
+            .build();
+        expect(config[r'$params'][0]['editor'], equals('textarea'));
+      });
+
+      test('param() adds date editor', () {
+        final config = NodeBuilder()
+            .param('startDate', 'string', editor: 'date')
+            .build();
+        expect(config[r'$params'][0]['editor'], equals('date'));
+      });
     });
 
     group('Columns', () {
@@ -296,6 +357,23 @@ void main() {
         expect(config[r'$name'], equals('Message'));
         expect(config['reset'][r'$name'], equals('Reset'));
         expect(config['clear'][r'$name'], equals('Clear'));
+      });
+
+      test('creates historian purge action with daterange editor', () {
+        final config = NodeBuilder.action()
+            .name('Purge')
+            .invokable('write')
+            .profile('purgePath')
+            .param('timeRange', 'string', editor: 'daterange')
+            .build();
+
+        expect(config[r'$name'], equals('Purge'));
+        expect(config[r'$invokable'], equals('write'));
+        expect(config[r'$is'], equals('purgePath'));
+        expect(config[r'$params'], hasLength(1));
+        expect(config[r'$params'][0]['name'], equals('timeRange'));
+        expect(config[r'$params'][0]['type'], equals('string'));
+        expect(config[r'$params'][0]['editor'], equals('daterange'));
       });
     });
 

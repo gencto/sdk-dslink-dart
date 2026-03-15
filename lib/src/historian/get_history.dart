@@ -3,10 +3,20 @@ part of dsalink.historian;
 class GetHistoryNode extends SimpleNode {
   GetHistoryNode(String path)
     : super(path, _link.provider as SimpleNodeProvider?) {
-    configs[r'$is'] = 'getHistory';
-    configs[r'$name'] = 'Get History';
-    configs[r'$invokable'] = 'read';
-    configs[r'$params'] = [
+    final config = NodeBuilder.action()
+        .profile('getHistory')
+        .name('Get History')
+        .invokable('read')
+        .param('Timerange', 'string', editor: 'daterange')
+        .param('Real Time', 'bool', defaultValue: false)
+        .param('Batch Size', 'number', defaultValue: 0)
+        .column('timestamp', 'time')
+        .column('value', 'dynamic')
+        .resultType('stream')
+        .build();
+
+    // Add complex enum params that NodeBuilder doesn't support yet
+    config[r'$params'] = [
       {'name': 'Timerange', 'type': 'string', 'editor': 'daterange'},
       {
         'name': 'Interval',
@@ -55,18 +65,13 @@ class GetHistoryNode extends SimpleNode {
       {'name': 'Batch Size', 'type': 'number', 'default': 0},
     ];
 
-    configs[r'$columns'] = [
-      {'name': 'timestamp', 'type': 'time'},
-      {'name': 'value', 'type': 'dynamic'},
-    ];
-
-    configs[r'$result'] = 'stream';
+    configs.addAll(config);
   }
 
   @override
-  FutureOr<void> onInvoke(Map params) async* {
-    String range = params['Timerange'];
-    String rollupName = params['Rollup'];
+  FutureOr<void> onInvoke(DSAConfig params) async* {
+    String range = params.getString('Timerange');
+    String rollupName = params.getString('Rollup');
     var rollupFactory = _rollups[rollupName];
     var rollup = rollupFactory == null ? null : rollupFactory();
     var interval = Duration(milliseconds: parseInterval(params['Interval']));
@@ -77,14 +82,16 @@ class GetHistoryNode extends SimpleNode {
     var batchCount = batchSize.toInt();
 
     var tr = parseTimeRange(range);
-    if (params['Real Time'] == true) {
+    bool isRealTime = params.getBool('Real Time', defaultValue: false);
+
+    if (isRealTime) {
       tr = TimeRange(tr!.start, null);
     }
 
     try {
       var pairs = calculateHistory(tr!, interval, rollup);
 
-      if (params['Real Time'] == true) {
+      if (isRealTime) {
         await for (ValuePair pair in pairs) {
           yield [pair.toRow()];
         }

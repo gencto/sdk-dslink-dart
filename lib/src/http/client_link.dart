@@ -51,7 +51,7 @@ class HttpClientLink extends ClientLink {
 
   bool enableAck = false;
 
-  Map? linkData;
+  DSAConfig? linkData;
 
   /// formats sent to broker
   List formats = <String>['msgpack', 'json'];

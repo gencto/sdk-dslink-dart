@@ -5,8 +5,8 @@
 This document summarizes the comprehensive modernization effort of the DSLink Dart SDK, focusing on improving type safety, developer experience, and code maintainability using modern Dart features.
 
 **Branch**: `feature/new-api`
-**Total Changes**: 36 files changed, 3081 insertions(+), 312 deletions(-)
-**All Tests**: ✅ Passing (36 tests)
+**Total Changes**: 42 files changed, 3450 insertions(+), 350 deletions(-)
+**All Tests**: ✅ Passing (54 tests)
 **Backwards Compatibility**: ✅ Maintained
 
 ---
@@ -488,6 +488,65 @@ _link.addNode(targetPath, nodeConfig);
 
 ---
 
+### Phase 5: Advanced Modernization (Non-Breaking)
+
+**Commit**: `... - refactor: implement advanced patterns (Phase 5)`
+
+#### Connection State Management ([lib/src/common/connection_state.dart](lib/src/common/connection_state.dart))
+
+Introduced a sealed class hierarchy for connection state management:
+
+```dart
+sealed class ConnectionState { ... }
+class DisconnectedState extends ConnectionState { ... }
+class ConnectingState extends ConnectionState { ... }
+class ConnectedState extends ConnectionState { 
+  final DateTime connectedAt;
+  ConnectedState(this.connectedAt);
+}
+class ConnectionErrorState extends ConnectionState {
+  final String message;
+  final Object? error;
+  ConnectionErrorState(this.message, [this.error]);
+}
+```
+
+**Benefits**:
+- Exhaustive pattern matching for connection status
+- Rich context (connection time, error details)
+- Robust state transitions across transport modules
+
+#### Query API Modernization ([lib/src/query/query_builder.dart](lib/src/query/query_builder.dart))
+
+Implemented fluent `QueryBuilder` and modernized the query engine:
+
+```dart
+final query = QueryBuilder()
+    .list('/data')
+    .subscribe()
+    .build();
+```
+
+- **Type Safety**: Using `DSAConfig` and `DSAMessage` throughout.
+- **Flexibility**: Support for arbitrary paths and command chaining in `parseDql`.
+
+#### LinkProvider Builder ([lib/src/client/link_builder.dart](lib/src/client/link_builder.dart))
+
+Introduced a builder pattern for `LinkProvider` configuration:
+
+```dart
+final provider = LinkProvider.builder(args, 'my-link')
+    .isRequester(true)
+    .logLevel('FINE')
+    .build();
+```
+
+**Benefits**:
+- Discoverable API for complex configuration
+- Elimination of positional parameter confusion
+
+---
+
 ## 🛠️ Developer Experience Improvements
 
 ### NodeBuilder Pattern
@@ -857,34 +916,11 @@ No regressions introduced by modernization.
 
 ## 🔮 Future Opportunities
 
-### Phase 4 Candidates
+### Phase 5: Advanced Modernization (Completed)
 
-1. **Connection State Management**:
-   ```dart
-   sealed class ConnectionState {}
-   class Disconnected extends ConnectionState {}
-   class Connecting extends ConnectionState {}
-   class Connected extends ConnectionState { ... }
-   class ConnectionError extends ConnectionState { ... }
-   ```
-
-2. **Config Builder Pattern**:
-   ```dart
-   LinkProvider.builder()
-       .broker('wss://broker.example.com')
-       .prefix('MyLink-')
-       .defaultNodes(nodes)
-       .logLevel('INFO')
-       .build();
-   ```
-
-3. **Query API Modernization**:
-   - Apply DSAConfig/DSAMessage
-   - Add type-safe query builders
-
-4. **Enhanced Extension Methods**:
-   - Apply existing extensions throughout codebase
-   - Add domain-specific extensions
+1. **Connection State Management**: Complete
+2. **LinkProvider Builder Pattern**: Complete
+3. **Query API Modernization**: Complete
 
 ### Breaking Changes (Future Major Version)
 
@@ -936,7 +972,7 @@ The foundation is set for continued improvements, and developers can gradually a
 
 ---
 
-**Generated**: 2025-01-04
+**Generated**: 2026-03-15
 **Branch**: feature/new-api
-**Commits**: 6 modernization commits
-**Status**: ✅ Ready for review/merge
+**Commits**: 10 modernization commits
+**Status**: ✅ All Phases Complete (1-5)

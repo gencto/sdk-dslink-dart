@@ -53,11 +53,14 @@ class WebSocketConnection extends Connection {
     socket.listen(
       onData,
       onDone: _onDone,
-      onError:
-          (dynamic err) => logger.warning(
-            formatLogMessage('Error listening to socket'),
-            err,
-          ),
+      onError: (dynamic err) {
+        logger.warning(
+          formatLogMessage('Error listening to socket'),
+          err,
+        );
+        _responderChannel.updateError('Socket error', err);
+        _requesterChannel.updateError('Socket error', err);
+      },
     );
     socket.add(codec.blankData);
     if (!enableAck) {
@@ -116,12 +119,12 @@ class WebSocketConnection extends Connection {
 
   /// special server command that need to be merged into message
   /// now only 2 possible value, salt, allowed
-  Map? _serverCommand;
+  DSAConfig? _serverCommand;
 
   /// add server command, will be called only when used as server connection
   @override
   void addConnCommand(String? key, Object? value) {
-    _serverCommand ??= <dynamic, dynamic>{};
+    _serverCommand ??= DSAConfig();
     if (key != null) {
       _serverCommand![key] = value;
     }
@@ -141,10 +144,13 @@ class WebSocketConnection extends Connection {
       onRequestReadyCompleter.complete(_requesterChannel);
     }
     _dataReceiveCount = 0;
-    Map? m;
+    DSAMessage? m;
     if (data is List<int>) {
       try {
-        m = codec.decodeBinaryFrame(data);
+        final decoded = codec.decodeBinaryFrame(data);
+        if (decoded != null) {
+          m = DSAMessage.from(decoded);
+        }
         if (logger.isLoggable(Level.FINEST)) {
           logger.finest(formatLogMessage('receive: $m'));
         }
@@ -167,23 +173,31 @@ class WebSocketConnection extends Connection {
       data = null;
 
       var needAck = false;
-      if (m?['responses'] is List && (m?['responses'] as List).isNotEmpty) {
-        needAck = true;
-        // send responses to requester channel
-        _requesterChannel.onReceiveController.add(m?['responses']);
+      if (m?.containsKey('responses') == true && m!['responses'] is List) {
+        final responsesList = m['responses'] as List;
+        if (responsesList.isNotEmpty) {
+          needAck = true;
+          // send responses to requester channel
+          _requesterChannel.onReceiveController.add(
+              responsesList.map((e) => DSAMessage.from(e as Map)).toList());
 
-        if (throughputEnabled) {
-          messageIn += (m?['responses'] as List).length;
+          if (throughputEnabled) {
+            messageIn += responsesList.length;
+          }
         }
       }
 
-      if (m?['requests'] is List && (m?['requests'] as List).isNotEmpty) {
-        needAck = true;
-        // send requests to responder channel
-        _responderChannel.onReceiveController.add(m?['requests']);
+      if (m?.containsKey('requests') == true && m!['requests'] is List) {
+        final requestsList = m['requests'] as List;
+        if (requestsList.isNotEmpty) {
+          needAck = true;
+          // send requests to responder channel
+          _responderChannel.onReceiveController.add(
+              requestsList.map((e) => DSAMessage.from(e as Map)).toList());
 
-        if (throughputEnabled) {
-          messageIn += (m?['requests'] as List).length;
+          if (throughputEnabled) {
+            messageIn += requestsList.length;
+          }
         }
       }
 
@@ -199,7 +213,10 @@ class WebSocketConnection extends Connection {
       }
     } else if (data is String) {
       try {
-        m = codec.decodeStringFrame(data);
+        final decoded = codec.decodeStringFrame(data);
+        if (decoded != null) {
+          m = DSAMessage.from(decoded);
+        }
         if (logger.isLoggable(Level.FINEST)) {
           logger.finest(formatLogMessage('receive: $m'));
         }
@@ -224,32 +241,40 @@ class WebSocketConnection extends Connection {
       }
 
       var needAck = false;
-      if (m?['responses'] is List && (m?['responses'] as List).isNotEmpty) {
-        needAck = true;
-        // send responses to requester channel
-        _requesterChannel.onReceiveController.add(m?['responses']);
-        if (throughputEnabled) {
-          for (Map resp in m?['responses']) {
-            if (resp['updates'] is List) {
-              int len = resp['updates'].length;
-              if (len > 0) {
-                messageIn += len;
+      if (m?.containsKey('responses') == true && m!['responses'] is List) {
+        final responsesList = m['responses'] as List;
+        if (responsesList.isNotEmpty) {
+          needAck = true;
+          // send responses to requester channel
+          _requesterChannel.onReceiveController.add(
+              responsesList.map((e) => DSAMessage.from(e as Map)).toList());
+          if (throughputEnabled) {
+            for (final resp in responsesList) {
+              if (resp is Map && resp['updates'] is List) {
+                int len = (resp['updates'] as List).length;
+                if (len > 0) {
+                  messageIn += len;
+                } else {
+                  messageIn += 1;
+                }
               } else {
                 messageIn += 1;
               }
-            } else {
-              messageIn += 1;
             }
           }
         }
       }
 
-      if (m?['requests'] is List && (m?['requests'] as List).isNotEmpty) {
-        needAck = true;
-        // send requests to responder channel
-        _responderChannel.onReceiveController.add(m?['requests']);
-        if (throughputEnabled) {
-          messageIn += m?['requests'].length as int;
+      if (m?.containsKey('requests') == true && m!['requests'] is List) {
+        final requestsList = m['requests'] as List;
+        if (requestsList.isNotEmpty) {
+          needAck = true;
+          // send requests to responder channel
+          _responderChannel.onReceiveController.add(
+              requestsList.map((e) => DSAMessage.from(e as Map)).toList());
+          if (throughputEnabled) {
+            messageIn += requestsList.length;
+          }
         }
       }
       if (m?['ack'] is int) {
@@ -274,13 +299,13 @@ class WebSocketConnection extends Connection {
     }
     _sending = false;
     var needSend = false;
-    Map m;
+    DSAMessage m;
     if (_serverCommand != null) {
-      m = _serverCommand!;
+      m = DSAMessage(_serverCommand!.toMap());
       _serverCommand = null;
       needSend = true;
     } else {
-      m = <dynamic, dynamic>{};
+      m = DSAMessage();
     }
     var pendingAck = <ConnectionProcessor>[];
     var ts = (DateTime.now()).millisecondsSinceEpoch;
@@ -343,7 +368,7 @@ class WebSocketConnection extends Connection {
     }
   }
 
-  void addData(Map m) {
+  void addData(DSAMessage m) {
     var encoded = codec.encodeFrame(m);
 
     if (logger.isLoggable(Level.FINEST)) {
@@ -384,17 +409,13 @@ class WebSocketConnection extends Connection {
       _requesterChannel.onReceiveController.close();
     }
 
-    if (!_requesterChannel.onDisconnectController.isCompleted) {
-      _requesterChannel.onDisconnectController.complete(_requesterChannel);
-    }
+    _requesterChannel.updateDisconnected();
 
     if (!_responderChannel.onReceiveController.isClosed) {
       _responderChannel.onReceiveController.close();
     }
 
-    if (!_responderChannel.onDisconnectController.isCompleted) {
-      _responderChannel.onDisconnectController.complete(_responderChannel);
-    }
+    _responderChannel.updateDisconnected();
 
     if (!_onDisconnectedCompleter.isCompleted) {
       _onDisconnectedCompleter.complete(false);

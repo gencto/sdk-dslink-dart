@@ -114,12 +114,12 @@ class WebSocketConnection extends Connection {
 
   /// special server command that need to be merged into message
   /// now only 2 possible value, salt, allowed
-  Map? _msgCommand;
+  DSAConfig? _msgCommand;
 
   /// add server command, will be called only when used as server connection
   @override
   void addConnCommand(String? key, Object? value) {
-    _msgCommand ??= <dynamic, dynamic>{};
+    _msgCommand ??= DSAConfig();
     if (key != null) {
       _msgCommand![key] = value;
     }
@@ -129,12 +129,14 @@ class WebSocketConnection extends Connection {
   void _onData(MessageEvent e) {
     logger.fine('onData:');
     _dataReceiveTs = DateTime.now().millisecondsSinceEpoch;
-    Map m;
+    DSAMessage m;
     if (e.data is ByteBuffer) {
       try {
         var bytes = (e.data as ByteBuffer).asUint8List();
 
-        m = codec.decodeBinaryFrame(bytes)!;
+        final decoded = codec.decodeBinaryFrame(bytes);
+        if (decoded == null) return;
+        m = DSAMessage.from(decoded);
         logger.fine('$m');
         checkBrowserThrottling();
 
@@ -142,16 +144,24 @@ class WebSocketConnection extends Connection {
           clientLink.updateSalt(m['salt']);
         }
         var needAck = false;
-        if (m['responses'] is List && (m['responses'] as List).isNotEmpty) {
-          needAck = true;
-          // send responses to requester channel
-          _requesterChannel.onReceiveController.add(m['responses']);
+        if (m.containsKey('responses') && m['responses'] is List) {
+          final responses = m['responses'] as List;
+          if (responses.isNotEmpty) {
+            needAck = true;
+            // send responses to requester channel
+            _requesterChannel.onReceiveController
+                .add(responses.map((e) => DSAMessage.from(e as Map)).toList());
+          }
         }
 
-        if (m['requests'] is List && (m['requests'] as List).isNotEmpty) {
-          needAck = true;
-          // send requests to responder channel
-          _responderChannel.onReceiveController.add(m['requests']);
+        if (m.containsKey('requests') && m['requests'] is List) {
+          final requests = m['requests'] as List;
+          if (requests.isNotEmpty) {
+            needAck = true;
+            // send requests to responder channel
+            _responderChannel.onReceiveController
+                .add(requests.map((e) => DSAMessage.from(e as Map)).toList());
+          }
         }
         if (m['ack'] is int) {
           ack(m['ack']);
@@ -169,21 +179,31 @@ class WebSocketConnection extends Connection {
       }
     } else if (e.data is String) {
       try {
-        m = codec.decodeStringFrame(e.data as String)!;
+        final decoded = codec.decodeStringFrame(e.data as String);
+        if (decoded == null) return;
+        m = DSAMessage.from(decoded);
         logger.fine('$m');
         checkBrowserThrottling();
 
         var needAck = false;
-        if (m['responses'] is List && (m['responses'] as List).isNotEmpty) {
-          needAck = true;
-          // send responses to requester channel
-          _requesterChannel.onReceiveController.add(m['responses']);
+        if (m.containsKey('responses') && m['responses'] is List) {
+          final responses = m['responses'] as List;
+          if (responses.isNotEmpty) {
+            needAck = true;
+            // send responses to requester channel
+            _requesterChannel.onReceiveController
+                .add(responses.map((e) => DSAMessage.from(e as Map)).toList());
+          }
         }
 
-        if (m['requests'] is List && (m['requests'] as List).isNotEmpty) {
-          needAck = true;
-          // send requests to responder channel
-          _responderChannel.onReceiveController.add(m['requests']);
+        if (m.containsKey('requests') && m['requests'] is List) {
+          final requests = m['requests'] as List;
+          if (requests.isNotEmpty) {
+            needAck = true;
+            // send requests to responder channel
+            _responderChannel.onReceiveController
+                .add(requests.map((e) => DSAMessage.from(e as Map)).toList());
+          }
         }
         if (m['ack'] is int) {
           ack(m['ack']);
@@ -212,13 +232,13 @@ class WebSocketConnection extends Connection {
     }
     logger.fine('browser sending');
     var needSend = false;
-    Map? m;
+    DSAMessage m;
     if (_msgCommand != null) {
-      m = _msgCommand;
+      m = DSAMessage(_msgCommand!.toMap());
       needSend = true;
       _msgCommand = null;
     } else {
-      m = <dynamic, dynamic>{};
+      m = DSAMessage();
     }
 
     var pendingAck = <ConnectionProcessor>[];
@@ -227,7 +247,7 @@ class WebSocketConnection extends Connection {
     var rslt = _responderChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.isNotEmpty) {
-        m?['responses'] = rslt.messages;
+        m['responses'] = rslt.messages;
         needSend = true;
       }
       if (rslt.processors.isNotEmpty) {
@@ -237,7 +257,7 @@ class WebSocketConnection extends Connection {
     rslt = _requesterChannel.getSendingData(ts, nextMsgId);
     if (rslt != null) {
       if (rslt.messages.isNotEmpty) {
-        m?['requests'] = rslt.messages;
+        m['requests'] = rslt.messages;
         needSend = true;
       }
       if (rslt.processors.isNotEmpty) {
@@ -250,7 +270,7 @@ class WebSocketConnection extends Connection {
         if (pendingAck.isNotEmpty) {
           pendingAcks.add(ConnectionAckGroup(nextMsgId, ts, pendingAck));
         }
-        m?['msg'] = nextMsgId;
+        m['msg'] = nextMsgId;
         if (nextMsgId < 0x7FFFFFFF) {
           ++nextMsgId;
         } else {
@@ -259,7 +279,7 @@ class WebSocketConnection extends Connection {
       }
 
       logger.fine('send: $m');
-      var encoded = codec.encodeFrame(m!);
+      var encoded = codec.encodeFrame(m);
       if (encoded is List<int>) {
         encoded = ByteDataUtil.list2Uint8List(encoded);
       }
@@ -288,17 +308,13 @@ class WebSocketConnection extends Connection {
       _requesterChannel.onReceiveController.close();
     }
 
-    if (!_requesterChannel.onDisconnectController.isCompleted) {
-      _requesterChannel.onDisconnectController.complete(_requesterChannel);
-    }
+    _requesterChannel.updateDisconnected();
 
     if (!_responderChannel.onReceiveController.isClosed) {
       _responderChannel.onReceiveController.close();
     }
 
-    if (!_responderChannel.onDisconnectController.isCompleted) {
-      _responderChannel.onDisconnectController.complete(_responderChannel);
-    }
+    _responderChannel.updateDisconnected();
 
     if (!_onDisconnectedCompleter.isCompleted) {
       _onDisconnectedCompleter.complete(_authError);

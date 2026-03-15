@@ -10,7 +10,7 @@ class PassiveChannel implements ConnectionChannel {
 
   final Connection? conn;
 
-  PassiveChannel(this.conn, [this.connected = false]);
+  PassiveChannel(this.conn, [bool connected = false]) : _state = connected ? ConnectedState(DateTime.now()) : const DisconnectedState();
 
   ConnectionHandler? handler;
   @override
@@ -36,7 +36,11 @@ class PassiveChannel implements ConnectionChannel {
   }
 
   @override
-  bool connected = true;
+  bool get connected => _state.isConnected;
+
+  ConnectionState _state;
+  @override
+  ConnectionState get state => _state;
 
   final Completer<ConnectionChannel> onDisconnectController =
       Completer<ConnectionChannel>();
@@ -49,8 +53,23 @@ class PassiveChannel implements ConnectionChannel {
   Future<ConnectionChannel> get onConnected => onConnectController.future;
 
   void updateConnect() {
-    if (connected) return;
-    connected = true;
+    if (_state.isConnected) return;
+    _state = ConnectedState(DateTime.now());
     onConnectController.complete(this);
+  }
+
+  void updateDisconnected() {
+    if (_state.isDisconnected) return;
+    _state = const DisconnectedState();
+    if (!onDisconnectController.isCompleted) {
+      onDisconnectController.complete(this);
+    }
+  }
+
+  void updateError(String message, [Object? error]) {
+    _state = ConnectionErrorState(message, error);
+    if (!onDisconnectController.isCompleted) {
+      onDisconnectController.complete(this);
+    }
   }
 }

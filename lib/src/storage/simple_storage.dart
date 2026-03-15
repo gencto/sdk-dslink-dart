@@ -278,8 +278,8 @@ class SimpleValueStorageBucket implements IValueStorageBucket {
   }
 
   @override
-  Future<Map> load() async {
-    Map rslt = <String, dynamic>{};
+  Future<DSAConfig> load() async {
+    final rslt = DSAConfig();
     for (var entity in dir.listSync()) {
       var name = UriComponentDecoder.decode(
         entity.path.substring(

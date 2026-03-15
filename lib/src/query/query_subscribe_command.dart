@@ -48,11 +48,11 @@ class _QuerySubscription {
 }
 
 class QueryCommandSubscribe extends BrokerQueryCommand {
-  static List<Map<String, String>> columns = [
-    {'name': 'path', 'type': 'string'},
-    {'name': 'change', 'type': 'string'},
-    {'name': 'value', 'type': 'string'},
-    {'name': 'ts', 'type': 'string'},
+  static List<DSAConfig> columns = [
+    DSAConfig({'name': 'path', 'type': 'string'}),
+    DSAConfig({'name': 'change', 'type': 'string'}),
+    DSAConfig({'name': 'value', 'type': 'string'}),
+    DSAConfig({'name': 'ts', 'type': 'string'}),
   ];
 
   QueryCommandSubscribe(BrokerQueryManager manager) : super(manager);

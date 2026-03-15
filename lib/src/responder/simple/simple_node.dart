@@ -275,21 +275,17 @@ abstract class MutableNodeProvider {
 class SysGetIconNode extends SimpleNode {
   SysGetIconNode(String path, [SimpleNodeProvider? provider])
     : super(path, provider!) {
-    configs.addAll(<String, dynamic>{
-      r'$invokable': 'read',
-      r'$params': [
-        {'name': 'Icon', 'type': 'string'},
-      ],
-      r'$columns': [
-        {'name': 'Data', 'type': 'binary'},
-      ],
-      r'$result': 'table',
-    });
+    configs.addAll(NodeBuilder.action()
+        .invokable('read')
+        .param('Icon', 'string')
+        .column('Data', 'binary')
+        .resultType('table')
+        .build());
   }
 
   @override
-  Future<List<List<ByteData>>> onInvoke(Map params) async {
-    String name = params['Icon'];
+  Future<List<List<ByteData>>> onInvoke(DSAConfig params) async {
+    String name = params.getString('Icon');
     var resolver = provider._iconResolver;
 
     var data = await resolver!(name);
@@ -863,7 +859,7 @@ class SimpleNode extends LocalNodeImpl {
   /// Use [onInvoke] to handle when a node is invoked.
   @override
   InvokeResponse invoke(
-    Map params,
+    DSAConfig params,
     Responder responder,
     InvokeResponse response,
     Node parentNode, [
@@ -1119,6 +1115,10 @@ class SimpleNode extends LocalNodeImpl {
   }
 
   /// This is called when this node is invoked.
+  ///
+  /// The [params] parameter contains the invoke parameters as a DSAConfig.
+  /// You can use extension methods like `getString()`, `getBool()`, etc. for safe access.
+  ///
   /// You can return the following types from this method:
   /// - [Iterable]
   /// - [Map]
@@ -1132,7 +1132,17 @@ class SimpleNode extends LocalNodeImpl {
   /// - [Iterable]
   /// - [Map]
   /// - [Table]
-  dynamic onInvoke(Map params) {
+  ///
+  /// Example:
+  /// ```dart
+  /// @override
+  /// dynamic onInvoke(DSAConfig params) {
+  ///   String name = params.getString('name');
+  ///   int age = params.getInt('age', defaultValue: 0);
+  ///   return {'result': 'Hello $name, age $age'};
+  /// }
+  /// ```
+  dynamic onInvoke(DSAConfig params) {
     return null;
   }
 

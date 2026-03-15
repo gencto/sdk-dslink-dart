@@ -72,7 +72,7 @@ abstract class ISubscriptionNodeStorage {
 /// a storage class for general purpose key/value pair
 abstract class IValueStorageBucket {
   IValueStorage getValueStorage(String key);
-  Future<Map> load();
+  Future<DSAConfig> load();
   void destroy();
 }
 

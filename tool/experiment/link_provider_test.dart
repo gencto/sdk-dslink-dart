@@ -71,7 +71,7 @@ class RemoveSelfAction extends SimpleNode {
     List p = path.split('/')..removeLast();
     var parentPath = p.join('/');
     link.removeNode(parentPath);
-    link.save();
+    link.saveAsync();
     return null;
   }
 }
@@ -139,7 +139,7 @@ void main() {
     'rick-resp-',
     defaultNodes: defaultNodes,
     profiles: profiles /*, home:'dgSuper'*/,
-    linkData: <String, dynamic>{'a': 1},
+    linkData: DSAConfig.from({'a': 1}),
   );
   if (link.link == null) {
     // initialization failed

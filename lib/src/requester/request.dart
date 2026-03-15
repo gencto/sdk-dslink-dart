@@ -9,7 +9,7 @@ part of dsalink.requester;
 class Request {
   final Requester requester;
   final int rid;
-  final DSAMessage? data;
+  final Map<String, dynamic>? data;
 
   /// The callback function for updating the request status.
   final RequestUpdater updater;
@@ -32,11 +32,11 @@ class Request {
   ///
   /// This method adds the request ID and parameters to the send list
   /// of the requester to be sent later.
-  void addReqParams(DSAMessage m) {
+  void addReqParams(Map<String, dynamic> m) {
     requester.addToSendList(<String, dynamic>{'rid': rid, 'params': m});
   }
 
-  void _update(DSAMessage m) {
+  void _update(Map<String, dynamic> m) {
     if (m['stream'] is String) {
       streamStatus = m['stream'];
     }

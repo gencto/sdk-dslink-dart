@@ -44,13 +44,13 @@ class Requester extends ConnectionHandler {
   @override
   void onData(List list) {
     for (Object resp in list) {
-      if (resp is DSAMessage) {
+      if (resp is Map<String, dynamic>) {
         _onReceiveUpdate(resp);
       }
     }
   }
 
-  void _onReceiveUpdate(DSAMessage m) {
+  void _onReceiveUpdate(Map<String, dynamic> m) {
     if (m['rid'] is int && _requests.containsKey(m['rid'])) {
       _requests[m['rid']]?._update(m);
     }
@@ -79,10 +79,10 @@ class Requester extends ConnectionHandler {
     return rslt;
   }
 
-  Request? sendRequest(DSAMessage m, RequestUpdater updater) =>
+  Request? sendRequest(Map<String, dynamic> m, RequestUpdater updater) =>
       _sendRequest(m, updater);
 
-  Request? _sendRequest(DSAMessage m, RequestUpdater? updater) {
+  Request? _sendRequest(Map<String, dynamic> m, RequestUpdater? updater) {
     m['rid'] = getNextRid();
     Request? req;
     if (updater != null) {
@@ -193,10 +193,11 @@ class Requester extends ConnectionHandler {
 
   Stream<RequesterInvokeUpdate> invoke(
     String path, [
-    DSAConfig params = const {},
+    DSAConfig? params,
     int maxPermission = Permission.CONFIG,
     RequestConsumer? fetchRawReq,
   ]) {
+    params ??= DSAConfig();
     var node = nodeCache.getRemoteNode(path);
     return node._invoke(params, this, maxPermission, fetchRawReq);
   }

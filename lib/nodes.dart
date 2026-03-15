@@ -33,7 +33,7 @@ class DeleteActionNode extends SimpleNode {
 
   /// Handles an action invocation and deletes the target path.
   @override
-  Object onInvoke(Map params) {
+  Object onInvoke(DSAConfig params) {
     provider.removeNode(targetPath);
     if (onDelete != null) {
       onDelete!();
@@ -43,7 +43,7 @@ class DeleteActionNode extends SimpleNode {
 }
 
 /// A function that is called when an action is invoked.
-typedef ActionFunction = Function(Map params);
+typedef ActionFunction = Function(DSAConfig params);
 
 /// A Simple Action Node
 class SimpleActionNode extends SimpleNode {
@@ -55,7 +55,7 @@ class SimpleActionNode extends SimpleNode {
     : super(path, provider);
 
   @override
-  Object? onInvoke(Map params) => function(params);
+  Object? onInvoke(DSAConfig params) => function(params);
 }
 
 /// A Node Provider for a Single Node
@@ -309,7 +309,7 @@ class CallbackNode extends SimpleNode implements WaitForMe {
        super(path, provider);
 
   @override
-  dynamic onInvoke(Map params) {
+  dynamic onInvoke(DSAConfig params) {
     if (onActionInvoke != null) {
       return onActionInvoke!(params);
     } else {

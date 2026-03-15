@@ -40,10 +40,10 @@ void main() {
     req
         ?.invoke(
           '/downstream/streamset-req/node',
-          <String, dynamic>{
+          DSAConfig.from(<String, dynamic>{
             'Path': '/downstream/streamset-req/node',
             'Value': 0,
-          },
+          }),
           Permission.CONFIG,
           fetchReq,
         )

@@ -10,16 +10,17 @@ import 'src/crypto/pk.dart';
 import 'utils.dart';
 
 part 'src/common/connection_channel.dart';
+part 'src/common/connection_state.dart';
 part 'src/common/connection_handler.dart';
 part 'src/common/default_defs.dart';
 part 'src/common/dsa_method.dart';
+part 'src/common/dsa_types.dart';
 part 'src/common/node.dart';
 part 'src/common/node_builder.dart';
 part 'src/common/node_keys.dart';
 part 'src/common/permission.dart';
 part 'src/common/result.dart';
 part 'src/common/table.dart';
-part 'src/common/type_aliases.dart';
 part 'src/common/value.dart';
 part 'src/common/extensions.dart';
 
@@ -107,6 +108,8 @@ abstract class ConnectionChannel {
   bool get isReady;
 
   bool get connected;
+
+  ConnectionState get state;
 
   Future<ConnectionChannel> get onDisconnected;
 

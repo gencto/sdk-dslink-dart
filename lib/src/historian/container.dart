@@ -31,20 +31,24 @@ class DatabaseNode extends SimpleNode {
         return;
       }
 
-      _link.addNode('$path/createWatchGroup', <String, dynamic>{
-        r'$name': 'Add Watch Group',
-        r'$is': 'createWatchGroup',
-        r'$invokable': 'write',
-        r'$params': [
-          {'name': 'Name', 'type': 'string'},
-        ],
-      });
+      _link.addNode(
+        '$path/createWatchGroup',
+        NodeBuilder.action()
+            .name('Add Watch Group')
+            .profile('createWatchGroup')
+            .invokable('write')
+            .param('Name', 'string')
+            .build(),
+      );
 
-      _link.addNode('$path/delete', <String, dynamic>{
-        r'$name': 'Delete',
-        r'$invokable': 'write',
-        r'$is': 'delete',
-      });
+      _link.addNode(
+        '$path/delete',
+        NodeBuilder.action()
+            .name('Delete')
+            .invokable('write')
+            .profile('delete')
+            .build(),
+      );
     });
   }
 
@@ -82,28 +86,36 @@ class WatchPathNode extends SimpleNode {
 
     var groupName = group?._watchName;
 
-    _link.addNode('$path/lwv', <String, dynamic>{
-      r'$name': 'Last Written Value',
-      r'$type': 'dynamic',
-    });
+    _link.addNode(
+      '$path/lwv',
+      NodeBuilder.value('dynamic')
+          .name('Last Written Value')
+          .build(),
+    );
 
-    _link.addNode('$path/startDate', <String, dynamic>{
-      r'$name': 'Start Date',
-      r'$type': 'string',
-    });
+    _link.addNode(
+      '$path/startDate',
+      NodeBuilder.value('string')
+          .name('Start Date')
+          .build(),
+    );
 
-    _link.addNode('$path/endDate', <String, dynamic>{
-      r'$name': 'End Date',
-      r'$type': 'string',
-    });
+    _link.addNode(
+      '$path/endDate',
+      NodeBuilder.value('string')
+          .name('End Date')
+          .build(),
+    );
 
     if (children['enabled'] == null) {
-      _link.addNode('$path/enabled', <String, dynamic>{
-        r'$name': 'Enabled',
-        r'$type': 'bool',
-        '?value': true,
-        r'$writable': 'write',
-      });
+      _link.addNode(
+        '$path/enabled',
+        NodeBuilder.value('bool')
+            .name('Enabled')
+            .value(true)
+            .writable()
+            .build(),
+      );
     }
 
     if (group?.db?.database == null) {
@@ -135,20 +147,24 @@ class WatchPathNode extends SimpleNode {
     (_link.provider as SimpleNodeProvider).setNode(ghn.path, ghn);
     updateList('getHistory');
 
-    _link.addNode('$path/purge', <String, dynamic>{
-      r'$name': 'Purge',
-      r'$invokable': 'write',
-      r'$params': [
-        {'name': 'timeRange', 'type': 'string', 'editor': 'daterange'},
-      ],
-      r'$is': 'purgePath',
-    });
+    _link.addNode(
+      '$path/purge',
+      NodeBuilder.action()
+          .name('Purge')
+          .invokable('write')
+          .profile('purgePath')
+          .param('timeRange', 'string', editor: 'daterange')
+          .build(),
+    );
 
-    _link.addNode('$path/delete', <String, dynamic>{
-      r'$name': 'Delete',
-      r'$invokable': 'write',
-      r'$is': 'delete',
-    });
+    _link.addNode(
+      '$path/delete',
+      NodeBuilder.action()
+          .name('Delete')
+          .invokable('write')
+          .profile('delete')
+          .build(),
+    );
 
     _link.onValueChange('$path/enabled').listen((ValueUpdate update) {
       if (update.value == true) {
@@ -262,44 +278,50 @@ class WatchGroupNode extends SimpleNode {
   void onCreated() {
     var p = Path(path);
     db = _link[p.parentPath] as DatabaseNode?;
-    _watchName = configs[r'$name'] as String?;
+    _watchName = configs[NodeConfigKeys.name] as String?;
 
     _watchName ??= NodeNamer.decodeName(p.name);
 
-    _link.addNode('$path/addWatchPath', <String, dynamic>{
-      r'$name': 'Add Watch Path',
-      r'$invokable': 'write',
-      r'$is': 'addWatchPath',
-      r'$params': [
-        {'name': 'Path', 'type': 'string'},
-      ],
-    });
+    _link.addNode(
+      '$path/addWatchPath',
+      NodeBuilder.action()
+          .name('Add Watch Path')
+          .invokable('write')
+          .profile('addWatchPath')
+          .param('Path', 'string')
+          .build(),
+    );
 
-    _link.addNode('$path/publish', <String, dynamic>{
-      r'$name': 'Publish',
-      r'$invokable': 'write',
-      r'$is': 'publishValue',
-      r'$params': [
-        {'name': 'Path', 'type': 'string'},
-        {'name': 'Value', 'type': 'dynamic'},
-        {'name': 'Timestamp', 'type': 'string'},
-      ],
-    });
+    _link.addNode(
+      '$path/publish',
+      NodeBuilder.action()
+          .name('Publish')
+          .invokable('write')
+          .profile('publishValue')
+          .param('Path', 'string')
+          .param('Value', 'dynamic')
+          .param('Timestamp', 'string')
+          .build(),
+    );
 
-    _link.addNode('$path/delete', <String, dynamic>{
-      r'$name': 'Delete',
-      r'$invokable': 'write',
-      r'$is': 'delete',
-    });
+    _link.addNode(
+      '$path/delete',
+      NodeBuilder.action()
+          .name('Delete')
+          .invokable('write')
+          .profile('delete')
+          .build(),
+    );
 
-    _link.addNode('$path/purge', <String, dynamic>{
-      r'$name': 'Purge',
-      r'$invokable': 'write',
-      r'$params': [
-        {'name': 'timeRange', 'type': 'string', 'editor': 'daterange'},
-      ],
-      r'$is': 'purgeGroup',
-    });
+    _link.addNode(
+      '$path/purge',
+      NodeBuilder.action()
+          .name('Purge')
+          .invokable('write')
+          .profile('purgeGroup')
+          .param('timeRange', 'string', editor: 'daterange')
+          .build(),
+    );
 
     Future(() async {
       await db?.waitForDatabaseReady();

@@ -113,12 +113,22 @@ class NodeBuilder {
   /// [defaultValue] - optional default value
   /// [placeholder] - optional placeholder text
   /// [description] - optional parameter description
+  /// [editor] - optional editor type for special input controls
+  /// [min] - optional minimum value (for number types)
+  /// [max] - optional maximum value (for number types)
+  ///
+  /// Supported editor types:
+  /// - For string: 'password', 'daterange', 'date', 'textarea'
+  /// - For number: 'color', 'int'
   ///
   /// Example:
   /// ```dart
   /// builder
   ///   .param('username', 'string', placeholder: 'Enter username')
-  ///   .param('age', 'int', defaultValue: 18)
+  ///   .param('password', 'string', editor: 'password')
+  ///   .param('timeRange', 'string', editor: 'daterange')
+  ///   .param('age', 'number', editor: 'int', min: 0, max: 150)
+  ///   .param('color', 'number', editor: 'color')
   ///   .param('active', 'bool', defaultValue: true);
   /// ```
   NodeBuilder param(
@@ -127,6 +137,9 @@ class NodeBuilder {
     dynamic defaultValue,
     String? placeholder,
     String? description,
+    String? editor,
+    num? min,
+    num? max,
   }) {
     var paramDef = <String, dynamic>{
       'name': name,
@@ -141,6 +154,15 @@ class NodeBuilder {
     }
     if (description != null) {
       paramDef['description'] = description;
+    }
+    if (editor != null) {
+      paramDef['editor'] = editor;
+    }
+    if (min != null) {
+      paramDef['min'] = min;
+    }
+    if (max != null) {
+      paramDef['max'] = max;
     }
 
     _params.add(paramDef);

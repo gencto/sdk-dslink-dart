@@ -2,6 +2,74 @@ part of dsalink.common;
 
 /// Extension methods for better developer experience
 
+/// Extension methods for DSAConfig to provide safe access to parameters.
+extension DSAConfigExtensions on DSAConfig {
+  /// Safely get a string value from the config
+  String getString(String key, {String defaultValue = ''}) {
+    final value = this[key];
+    if (value is String) return value;
+    if (value != null) return value.toString();
+    return defaultValue;
+  }
+
+  /// Safely get a boolean value from the config
+  bool getBool(String key, {bool defaultValue = false}) {
+    final value = this[key];
+    if (value is bool) return value;
+    if (value is String) {
+      final lower = value.toLowerCase();
+      if (lower == 'true') return true;
+      if (lower == 'false') return false;
+    }
+    if (value is num) return value != 0;
+    return defaultValue;
+  }
+
+  /// Safely get an integer value from the config
+  int getInt(String key, {int defaultValue = 0}) {
+    final value = this[key];
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? defaultValue;
+    return defaultValue;
+  }
+
+  /// Safely get a double value from the config
+  double getDouble(String key, {double defaultValue = 0.0}) {
+    final value = this[key];
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? defaultValue;
+    return defaultValue;
+  }
+
+  /// Safely get a number value from the config
+  num getNum(String key, {num defaultValue = 0}) {
+    final value = this[key];
+    if (value is num) return value;
+    if (value is String) {
+      return num.tryParse(value) ?? defaultValue;
+    }
+    return defaultValue;
+  }
+
+  /// Safely get a list value from the config
+  List<T> getList<T>(String key, {List<T> defaultValue = const []}) {
+    final value = this[key];
+    if (value is List<T>) return value;
+    if (value is List) return value.cast<T>();
+    return defaultValue;
+  }
+
+  /// Safely get a map value from the config
+  Map<K, V> getMap<K, V>(String key, {Map<K, V>? defaultValue}) {
+    final value = this[key];
+    if (value is Map<K, V>) return value;
+    if (value is Map) return value.cast<K, V>();
+    return defaultValue ?? <K, V>{};
+  }
+}
+
 /// Extensions for Map<String, dynamic> (DSA configs and messages)
 extension DSAMapExtensions on Map<String, dynamic> {
   /// Get typed value from DSA config

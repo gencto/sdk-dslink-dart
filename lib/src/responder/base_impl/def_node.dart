@@ -2,7 +2,7 @@ part of dsalink.responder;
 
 typedef InvokeCallback =
     InvokeResponse Function(
-      Map params,
+      DSAConfig params,
       Responder responder,
       InvokeResponse response,
       LocalNode? parentNode,
@@ -26,7 +26,7 @@ class DefinitionNode extends LocalNodeImpl {
 
   @override
   InvokeResponse invoke(
-    Map params,
+    DSAConfig params,
     Responder responder,
     InvokeResponse response,
     Node? parentNode, [

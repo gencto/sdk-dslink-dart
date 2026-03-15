@@ -5,14 +5,14 @@ class CreateWatchGroupNode extends SimpleNode {
     : super(path, _link.provider as SimpleNodeProvider?);
 
   @override
-  void onInvoke(Map params) async {
-    String name = params['Name'];
+  void onInvoke(DSAConfig params) async {
+    String name = params.getString('Name');
     var realName = NodeNamer.createName(name);
 
-    var p = Path(path);
+    var path = Path(this.path);
 
     _link.addNode(
-      '${p.parentPath}/$realName',
+      '${path.parentPath}/$realName',
       NodeBuilder()
           .profile('watchGroup')
           .name(name)
@@ -27,8 +27,8 @@ class AddDatabaseNode extends SimpleNode {
     : super(path, _link.provider as SimpleNodeProvider?);
 
   @override
-  void onInvoke(Map params) async {
-    String name = params['Name'];
+  void onInvoke(DSAConfig params) async {
+    String name = params.getString('Name');
     var realName = NodeNamer.createName(name);
 
     final nodeConfig = NodeBuilder()
@@ -48,17 +48,17 @@ class AddWatchPathNode extends SimpleNode {
   AddWatchPathNode(String path) : super(path);
 
   @override
-  void onInvoke(Map params) async {
-    String wp = params['Path'];
+  void onInvoke(DSAConfig params) async {
+    String wp = params.getString('Path');
     var rp = NodeNamer.createName(wp);
-    var p = Path(path);
-    var targetPath = '${p.parentPath}/$rp';
+    var pathObj = Path(path);
+    var targetPath = '${pathObj.parentPath}/$rp';
     var node = await _link.requester?.getRemoteNode(wp);
 
     final nodeConfig = NodeBuilder()
         .name(wp)
         .profile('watchPath')
-        .type(node?.configs[r'$type'])
+        .type(node?.configs[NodeConfigKeys.type])
         .build();
 
     // Add custom path config
@@ -73,8 +73,8 @@ class PurgePathNode extends SimpleNode {
   PurgePathNode(String path) : super(path);
 
   @override
-  Future<void> onInvoke(Map params) async {
-    var tr = parseTimeRange(params['timeRange']);
+  Future<void> onInvoke(DSAConfig params) async {
+    var tr = parseTimeRange(params.getString('timeRange'));
     if (tr == null) {
       return;
     }
@@ -92,8 +92,8 @@ class PurgeGroupNode extends SimpleNode {
   PurgeGroupNode(String path) : super(path);
 
   @override
-  Future<void> onInvoke(Map params) async {
-    var tr = parseTimeRange(params['timeRange']);
+  Future<void> onInvoke(DSAConfig params) async {
+    var tr = parseTimeRange(params.getString('timeRange'));
     if (tr == null) {
       return;
     }

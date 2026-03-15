@@ -21,6 +21,7 @@ import 'utils.dart';
 export 'src/crypto/pk.dart';
 
 part 'src/http/client_link.dart';
+part 'src/client/link_builder.dart';
 
 /// A Handler for Argument Results
 typedef OptionResultsHandler = void Function(ArgResults results);
@@ -59,7 +60,7 @@ class LinkProvider {
   bool isResponder = true;
 
   /// Default Nodes
-  DSAConfig? defaultNodes;
+  Map<String, dynamic>? defaultNodes;
 
   /// Profiles
   Map<String, NodeFactory>? profiles;
@@ -102,6 +103,10 @@ class LinkProvider {
   /// connection token
   String? token;
 
+  /// Create a [LinkProviderBuilder].
+  static LinkProviderBuilder builder(List<String> args, String prefix) =>
+      LinkProviderBuilder(args, prefix);
+
   /// Create a Link Provider.
   /// [args] are the command-line arguments to pass in.
   /// [prefix] is the link name.
@@ -128,7 +133,7 @@ class LinkProvider {
     this.command = 'link',
     this.isResponder = true,
     this.defaultNodes,
-    DSAConfig? nodes,
+    Map<String, dynamic>? nodes,
     this.profiles,
     this.provider,
     this.enableHttp = true,
@@ -146,7 +151,9 @@ class LinkProvider {
     this.linkData,
     CommandLineOptions? commandLineOptions,
   }) {
-    exitOnFailure = Zone.current['dsalink.runtime.config'] is! Map;
+    if (Zone.current['dsalink.runtime.config'] is Map) {
+      exitOnFailure = false;
+    }
 
     if (nodeProvider != null) {
       provider = nodeProvider;
@@ -440,7 +447,7 @@ class LinkProvider {
         }
       }
     } else {
-      dsalinkJson = <String, dynamic>{};
+      dsalinkJson = DSAConfig();
     }
 
     if (brokerUrl != null) {

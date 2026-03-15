@@ -102,13 +102,14 @@ class Responder extends ConnectionHandler {
       return;
     }
     for (Object resp in list) {
-      if (resp is DSAMessage) {
+      if (resp is Map<String, dynamic>) {
         _onReceiveRequest(resp);
       }
     }
   }
 
-  void _onReceiveRequest(DSAMessage m) {
+  void _onReceiveRequest(Map<String, dynamic> rawMap) {
+    final m = DSAMessage.from(rawMap);
     Object? method = m['method'];
     if (m['rid'] is int) {
       if (method == null) {
@@ -375,16 +376,17 @@ class Responder extends ConnectionHandler {
           permission = maxPermit;
         }
 
-        Map? params;
+        DSAConfig? params;
 
         if (m['params'] is Map) {
-          params = <String, dynamic>{};
+          var tempMap = <String, dynamic>{};
           (m['params'] as Map).forEach((key, dynamic value) {
-            params![key.toString()] = value;
+            tempMap[key.toString()] = value;
           });
+          params = DSAConfig.from(tempMap);
         }
 
-        params ??= <String, dynamic>{};
+        params ??= DSAConfig();
 
         if (node.getInvokePermission() <= permission) {
           node.invoke(
